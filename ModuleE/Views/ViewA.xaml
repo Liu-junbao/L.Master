@@ -1,0 +1,37 @@
+﻿<UserControl
+    x:Class="ModuleE.Views.ViewA"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ModuleE.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:prism="http://prismlibrary.com/"
+    xmlns:root="clr-namespace:ModuleE"
+    d:DesignHeight="300"
+    d:DesignWidth="300"
+    RegionBrowserAssist.Header="模块E"
+    prism:ViewModelLocator.AutoWireViewModel="True"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ObjectDataProvider
+            x:Key="data.Images"
+            MethodName="GetImageFiles"
+            ObjectType="{x:Type root:AdsManager}" />
+    </UserControl.Resources>
+    <Grid>
+        <TransitionerSlideBox x:Name="tran" ItemsSource="{Binding Source={StaticResource data.Images}}">
+            <TransitionerSlideBox.TransitionWipeSelector>
+                <RandomWipeSelector />
+            </TransitionerSlideBox.TransitionWipeSelector>
+            <TransitionerSlideBox.ItemTemplate>
+                <DataTemplate>
+                    <Image
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Source="{Binding}"
+                        Stretch="Fill" />
+                </DataTemplate>
+            </TransitionerSlideBox.ItemTemplate>
+        </TransitionerSlideBox>
+    </Grid>
+</UserControl>

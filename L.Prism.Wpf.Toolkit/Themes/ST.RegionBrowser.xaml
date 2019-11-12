@@ -1,0 +1,502 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+    xmlns:local="clr-namespace:Prism"
+    xmlns:prism="http://prismlibrary.com/">
+
+    <SolidColorBrush x:Key="br.RegionBrowser.CloseBackground" Color="#FFF76C6C" />
+    <SolidColorBrush x:Key="br.RegionBrowser.Background" Color="#FFCCCCCC" />
+    <SolidColorBrush x:Key="br.RegionBrowser.ContentBackground" Color="#FFF2F2F2" />
+    <SolidColorBrush x:Key="br.RegionBrowser.MouseOverBackground" Color="#FF9A9DA2" />
+
+    <Style x:Key="st.RegionBrowser.ToggleButton" TargetType="ToggleButton">
+        <Setter Property="Padding" Value="3" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                        <Viewbox Margin="{TemplateBinding Padding}">
+                            <Border Width="32" Height="16">
+                                <Path
+                                    x:Name="ph"
+                                    Data="M0,0 1,1 2,0"
+                                    Opacity="0.7"
+                                    Stretch="Fill"
+                                    Stroke="{TemplateBinding Foreground}"
+                                    StrokeThickness="4" />
+                            </Border>
+                        </Viewbox>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="ph" Property="Data" Value="M0,1 1,0 2,1" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ph" Property="Opacity" Value="1" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="st.RegionBrowser.CloseButton" TargetType="Button">
+        <Setter Property="Padding" Value="3" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bd" Background="Transparent">
+                        <Viewbox Margin="{TemplateBinding Padding}">
+                            <Border Width="32" Height="32">
+                                <Path
+                                    x:Name="ph"
+                                    Data="M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z"
+                                    Fill="{TemplateBinding Foreground}"
+                                    Stretch="Fill"
+                                    StrokeThickness="0" />
+                            </Border>
+                        </Viewbox>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True" />
+                                <Condition Property="IsEnabled" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="ph" Property="Opacity" Value="1" />
+                            <Setter TargetName="ph" Property="Fill" Value="{StaticResource br.RegionBrowser.CloseBackground}" />
+                        </MultiTrigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="ph" Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="st.RegionBrowser.GoBackButton" TargetType="Button">
+        <Setter Property="Width" Value="32" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Padding" Value="3" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border
+                        x:Name="bd"
+                        Background="Transparent"
+                        BorderBrush="{Binding MouseOverBackground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:RegionBrowser}}}"
+                        BorderThickness="0">
+                        <Viewbox Margin="{TemplateBinding Padding}">
+                            <Border Width="36" Height="32">
+                                <Path
+                                    x:Name="ph"
+                                    Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
+                                    Fill="{TemplateBinding Foreground}"
+                                    Stretch="Fill"
+                                    Stroke="{TemplateBinding Foreground}" />
+                            </Border>
+                        </Viewbox>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True" />
+                                <Condition Property="IsEnabled" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="ph" Property="Opacity" Value="1" />
+                            <Setter TargetName="bd" Property="BorderThickness" Value="1" />
+                        </MultiTrigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="ph" Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="st.RegionBrowser.GoForwardButton" TargetType="Button">
+        <Setter Property="Width" Value="32" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Padding" Value="3" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border
+                        x:Name="bd"
+                        Background="Transparent"
+                        BorderBrush="{Binding MouseOverBackground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:RegionBrowser}}}"
+                        BorderThickness="0">
+                        <Viewbox Margin="{TemplateBinding Padding}">
+                            <Border Width="36" Height="32">
+                                <Path
+                                    x:Name="ph"
+                                    Data="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z"
+                                    Fill="{TemplateBinding Foreground}"
+                                    Stretch="Fill"
+                                    Stroke="{TemplateBinding Foreground}" />
+                            </Border>
+                        </Viewbox>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True" />
+                                <Condition Property="IsEnabled" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="ph" Property="Opacity" Value="1" />
+                            <Setter TargetName="bd" Property="BorderThickness" Value="1" />
+                        </MultiTrigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="ph" Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <BooleanToVisibilityConverter x:Key="cvt.BoolToVisibility" />
+    <local:NULLToVisibilityConverter x:Key="cvt.NULLToVisibility" />
+
+    <DataTemplate x:Key="dt.RegionBrowser.Header">
+        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+            <Path
+                x:Name="ph"
+                Width="10"
+                Height="10"
+                VerticalAlignment="Center"
+                Data="{Binding (RegionBrowserAssist.Data)}"
+                Fill="{Binding (RegionBrowserAssist.Fill)}"
+                Stretch="Fill"
+                Stroke="{Binding (RegionBrowserAssist.Stroke)}"
+                StrokeThickness="{Binding (RegionBrowserAssist.StrokeThickness)}"
+                Visibility="{Binding ElementName=ph, Path=Data, Converter={StaticResource cvt.NULLToVisibility}}" />
+            <Image
+                x:Name="ig"
+                Width="12"
+                Height="12"
+                VerticalAlignment="Center"
+                Source="{Binding (RegionBrowserAssist.Icon)}"
+                Stretch="Fill"
+                Visibility="{Binding ElementName=ig, Path=Source, Converter={StaticResource cvt.NULLToVisibility}}" />
+            <TextBlock
+                x:Name="tb"
+                Margin="3"
+                VerticalAlignment="Center"
+                Text="{Binding (RegionBrowserAssist.Header)}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <Style x:Key="st.ComboBoxItem.HeaderPup" TargetType="ComboBoxItem">
+        <Setter Property="Padding" Value="3" />
+        <Setter Property="MinWidth" Value="100" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBoxItem">
+                    <Border
+                        x:Name="bd"
+                        Background="Transparent"
+                        SnapsToDevicePixels="true"
+                        ToolTip="{Binding (RegionBrowserAssist.ToolTip)}">
+                        <DockPanel Margin="{TemplateBinding Padding}">
+                            <Border DockPanel.Dock="Right" Visibility="{Binding (RegionBrowserAssist.CanClose), Converter={StaticResource cvt.BoolToVisibility}}">
+                                <Button
+                                    x:Name="bt"
+                                    Width="16"
+                                    Height="16"
+                                    Command="{x:Static local:RegionBrowser.CloseViewCommand}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource st.RegionBrowser.CloseButton}"
+                                    Visibility="Collapsed" />
+                            </Border>
+                            <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
+                        </DockPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True" />
+                                <Condition Property="IsSelected" Value="False" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource br.RegionBrowser.MouseOverBackground}" />
+                            <Setter TargetName="bt" Property="Visibility" Value="Visible" />
+                        </MultiTrigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource br.RegionBrowser.ContentBackground}" />
+                            <Setter TargetName="bt" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="st.ComboBox.HeaderPup" TargetType="ComboBox">
+        <Setter Property="ItemContainerStyle" Value="{StaticResource st.ComboBoxItem.HeaderPup}" />
+        <Setter Property="ItemTemplate" Value="{StaticResource dt.RegionBrowser.Header}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Width" Value="32" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Border x:Name="bd" Background="{TemplateBinding Background}">
+                        <Grid>
+                            <Popup
+                                x:Name="PART_Popup"
+                                AllowsTransparency="true"
+                                IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                Placement="Bottom"
+                                PopupAnimation="{DynamicResource {x:Static SystemParameters.ComboBoxPopupAnimationKey}}">
+                                <Border
+                                    Background="{Binding Background, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:RegionBrowser}}}"
+                                    BorderBrush="{Binding MouseOverBackground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:RegionBrowser}}}"
+                                    BorderThickness="0.5,0">
+                                    <ItemsPresenter />
+                                </Border>
+                            </Popup>
+                            <ToggleButton
+                                x:Name="tb"
+                                Padding="8"
+                                IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                Opacity="0.7"
+                                Style="{StaticResource st.RegionBrowser.ToggleButton}" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="tb" Property="Opacity" Value="1" />
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource br.RegionBrowser.MouseOverBackground}" />
+                        </Trigger>
+                        <Trigger Property="IsDropDownOpen" Value="True">
+                            <Setter TargetName="tb" Property="Opacity" Value="1" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <ControlTemplate x:Key="st.ScrollViewer.Header" TargetType="{x:Type ScrollViewer}">
+        <ScrollContentPresenter
+            x:Name="PART_ScrollContentPresenter"
+            Grid.Row="0"
+            Grid.Column="0"
+            Margin="{TemplateBinding Padding}"
+            CanContentScroll="{TemplateBinding CanContentScroll}"
+            CanHorizontallyScroll="False"
+            CanVerticallyScroll="False"
+            Content="{TemplateBinding Content}"
+            ContentTemplate="{TemplateBinding ContentTemplate}" />
+    </ControlTemplate>
+
+    <Style x:Key="st.ListBoxItem.Header" TargetType="ListBoxItem">
+        <Setter Property="Padding" Value="5,3" />
+        <Setter Property="MinWidth" Value="100" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Border
+                        x:Name="bd"
+                        Background="{TemplateBinding Background}"
+                        SnapsToDevicePixels="true"
+                        ToolTip="{Binding (RegionBrowserAssist.ToolTip)}">
+                        <Grid Margin="{TemplateBinding Padding}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter VerticalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            <Border Grid.Column="1" Visibility="{Binding (RegionBrowserAssist.CanClose), Converter={StaticResource cvt.BoolToVisibility}}">
+                                <Button
+                                    x:Name="bt"
+                                    Width="16"
+                                    Height="16"
+                                    Command="{x:Static local:RegionBrowser.CloseTab}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource st.RegionBrowser.CloseButton}"
+                                    Visibility="Collapsed" />
+                            </Border>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True" />
+                                <Condition Property="IsSelected" Value="False" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource br.RegionBrowser.MouseOverBackground}" />
+                            <Setter TargetName="bt" Property="Visibility" Value="Visible" />
+                        </MultiTrigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource br.RegionBrowser.ContentBackground}" />
+                            <Setter TargetName="bt" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="st.ListBox.Header" TargetType="ListBox">
+        <Setter Property="ItemContainerStyle" Value="{StaticResource st.ListBoxItem.Header}" />
+        <Setter Property="ItemTemplate" Value="{StaticResource dt.RegionBrowser.Header}" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBox">
+                    <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ScrollViewer
+                                x:Name="sv"
+                                HorizontalScrollBarVisibility="Auto"
+                                Template="{StaticResource st.ScrollViewer.Header}"
+                                VerticalScrollBarVisibility="Disabled">
+                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </ScrollViewer>
+                            <ComboBox
+                                Grid.Column="1"
+                                Height="Auto"
+                                ItemTemplate="{StaticResource dt.RegionBrowser.Header}"
+                                ItemsSource="{TemplateBinding ItemsSource}"
+                                SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource TemplatedParent}}"
+                                Style="{StaticResource st.ComboBox.HeaderPup}"
+                                Visibility="{Binding ElementName=sv, Path=ComputedHorizontalScrollBarVisibility}" />
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="st.ListBox.Header.Vertical" TargetType="ListBox">
+        <Setter Property="ItemContainerStyle" Value="{StaticResource st.ListBoxItem.Header}" />
+        <Setter Property="ItemTemplate" Value="{StaticResource dt.RegionBrowser.Header}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBox">
+                    <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <ScrollViewer
+                                x:Name="sv"
+                                HorizontalScrollBarVisibility="Disabled"
+                                Template="{StaticResource st.ScrollViewer.Header}"
+                                VerticalScrollBarVisibility="Auto">
+                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </ScrollViewer>
+                            <ComboBox
+                                Grid.Row="1"
+                                Height="32"
+                                ItemTemplate="{StaticResource dt.RegionBrowser.Header}"
+                                ItemsSource="{TemplateBinding ItemsSource}"
+                                SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource TemplatedParent}}"
+                                Style="{StaticResource st.ComboBox.HeaderPup}"
+                                Visibility="{Binding ElementName=sv, Path=ComputedVerticalScrollBarVisibility}" />
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel Orientation="Vertical" />
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="st.RegionBrowser" TargetType="local:RegionBrowser">
+        <Setter Property="Padding" Value="3" />
+        <Setter Property="Background" Value="{StaticResource br.RegionBrowser.Background}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:RegionBrowser">
+                    <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <ListBox
+                                x:Name="PART_Header"
+                                ItemsSource="{TemplateBinding Views}"
+                                SelectedItem="{TemplateBinding Content}"
+                                Style="{StaticResource st.ListBox.Header}" />
+                            <Border Grid.Row="1" Background="{StaticResource br.RegionBrowser.ContentBackground}">
+                                <ContentPresenter
+                                    Margin="{TemplateBinding Padding}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Border>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Vertical">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="local:RegionBrowser">
+                            <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition />
+                                    </Grid.ColumnDefinitions>
+                                    <ListBox
+                                        x:Name="PART_Header"
+                                        ItemsSource="{TemplateBinding Views}"
+                                        SelectedItem="{TemplateBinding Content}"
+                                        Style="{StaticResource st.ListBox.Header.Vertical}" />
+                                    <Border Grid.Column="1" Background="{StaticResource br.RegionBrowser.ContentBackground}">
+                                        <ContentPresenter
+                                            Margin="{TemplateBinding Padding}"
+                                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>

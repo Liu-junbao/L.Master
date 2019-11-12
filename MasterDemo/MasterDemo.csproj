@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>MasterDemo</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Images\background.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Prism.Unity" Version="7.2.0.1367" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj" />
+    <ProjectReference Include="..\L.Wpf.Toolkit\L.Wpf.Toolkit.csproj" />
+    <ProjectReference Include="..\ModuleA\ModuleA.csproj" />
+    <ProjectReference Include="..\ModuleB\ModuleB.csproj" />
+    <ProjectReference Include="..\ModuleC\ModuleC.csproj" />
+    <ProjectReference Include="..\ModuleD\ModuleD.csproj" />
+    <ProjectReference Include="..\ModuleE\ModuleE.csproj" />
+    <ProjectReference Include="..\ModuleF\ModuleF.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\background.png" />
+  </ItemGroup>
+</Project>
