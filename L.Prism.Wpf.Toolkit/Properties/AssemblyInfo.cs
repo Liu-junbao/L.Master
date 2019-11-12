@@ -9,9 +9,9 @@ using System.Windows.Markup;
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
 [assembly: AssemblyTitle("L.Prism.Wpf.Toolkit")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("L.Prism.Wpf.Toolkit")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("L.Prism.Wpf.Toolkit")]
 [assembly: AssemblyProduct("L.Prism.Wpf.Toolkit")]
 [assembly: AssemblyCopyright("Copyright ©  2019")]
 [assembly: AssemblyTrademark("")]
