@@ -51,6 +51,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BrowserBar.cs" />
     <Compile Include="CustomWindow.cs" />
     <Compile Include="Transitions\IndexedItemOffsetMultiplierExtension.cs" />
     <Compile Include="Transitions\ITransitionContainer.cs" />
@@ -87,6 +88,10 @@
     <Page Include="Themes\RS.CustomWipe.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Themes\ST.BrowserBar.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Themes\ST.Transitions.xaml">
       <Generator>MSBuild:Compile</Generator>

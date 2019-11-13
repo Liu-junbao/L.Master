@@ -52,8 +52,10 @@ namespace Prism
         private static readonly DependencyPropertyKey ViewsPropertyKey =
             DependencyProperty.RegisterReadOnly(nameof(Views), typeof(IEnumerable), typeof(RegionBrowser), new PropertyMetadata(null));
         public static readonly DependencyProperty ViewsProperty = ViewsPropertyKey.DependencyProperty;
-        public static readonly DependencyProperty OrientationProperty =
-          DependencyProperty.Register(nameof(Orientation), typeof(Orientation), typeof(RegionBrowser), new PropertyMetadata(Orientation.Horizontal));
+        public static readonly DependencyProperty BarLocationProperty =
+            DependencyProperty.Register(nameof(BarLocation), typeof(Location), typeof(RegionBrowser), new PropertyMetadata(Location.Top));
+        public static readonly DependencyProperty HeaderTemplateProperty =
+            DependencyProperty.Register(nameof(HeaderTemplate), typeof(DataTemplate), typeof(RegionBrowser), new PropertyMetadata(null));
 
         static RegionBrowser()
         {
@@ -74,10 +76,15 @@ namespace Prism
             get { return (IEnumerable)GetValue(ViewsProperty); }
             protected set { SetValue(ViewsPropertyKey, value); }
         }
-        public Orientation Orientation
+        public Location BarLocation
         {
-            get { return (Orientation)GetValue(OrientationProperty); }
-            set { SetValue(OrientationProperty, value); }
+            get { return (Location)GetValue(BarLocationProperty); }
+            set { SetValue(BarLocationProperty, value); }
+        }
+        public DataTemplate HeaderTemplate
+        {
+            get { return (DataTemplate)GetValue(HeaderTemplateProperty); }
+            set { SetValue(HeaderTemplateProperty, value); }
         }
         private void ApplyRegion()
         {
@@ -163,8 +170,13 @@ namespace Prism
                 }
             }
         }
-      
     }
 
-
+    public enum Location
+    {
+        Top,
+        Left,
+        Right,
+        Bottom
+    }
 }

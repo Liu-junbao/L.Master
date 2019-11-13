@@ -20,6 +20,9 @@
             </CustomWindowButton>
         </StackPanel>
     </CustomWindow.HeaderBar>
+    <CustomWindow.Header>
+        <Border Height="50" />
+    </CustomWindow.Header>
     <!--<Window.Background>
         <ImageBrush ImageSource="/MasterDemo;component/Images/background.png"/>
     </Window.Background>-->
@@ -27,6 +30,7 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="32" />
                 <RowDefinition />
             </Grid.RowDefinitions>
             <Menu Background="#FFCCCCCC">
@@ -45,11 +49,22 @@
                 <MenuItem Command="{NavigateTo ModuleE/Views/ViewA}" Header="模块E" />
                 <MenuItem Command="{NavigateTo ModuleF/Views/ViewA}" Header="模块F" />
             </Menu>
-            <Border Grid.Row="1" Background="Red">
+            <BrowserBar
+                Grid.Row="1"
+                ItemsSource="{Binding Headers}">
+                <BrowserBar.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                            <TextBlock Text="{Binding}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </BrowserBar.ItemTemplate>
+            </BrowserBar>
+            <Border Grid.Row="2" Background="Red">
                 <RegionBrowser
                     x:Name="rb"
                     prism:RegionManager.RegionName="ContentRegion"
-                    Orientation="Horizontal">
+                    BarLocation="Bottom">
                     <RegionBrowser.ContentTemplate>
                         <DataTemplate>
                             <TransitionerBox Content="{Binding}" TransitionWipe="{LocalCustomWipe Kind=FadeInWipe}" />

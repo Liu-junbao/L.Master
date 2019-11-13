@@ -11,8 +11,13 @@ namespace System.Windows
     {
         public static readonly DependencyProperty MouseOverBackgroundProperty =
             DependencyProperty.RegisterAttached("MouseOverBackground", typeof(Brush), typeof(UIElementAssist), new PropertyMetadata(null));
+        public static readonly DependencyProperty MouseOverForegroundProperty =
+            DependencyProperty.RegisterAttached("MouseOverForeground", typeof(Brush), typeof(UIElementAssist), new PropertyMetadata(null));
         public static readonly DependencyProperty PressedBackgroundProperty =
-           DependencyProperty.RegisterAttached("PressedBackground", typeof(Brush), typeof(UIElementAssist), new PropertyMetadata(null));
+            DependencyProperty.RegisterAttached("PressedBackground", typeof(Brush), typeof(UIElementAssist), new PropertyMetadata(null));
+        public static readonly DependencyProperty SelectedBackgroundProperty =
+            DependencyProperty.RegisterAttached("SelectedBackground", typeof(Brush), typeof(UIElementAssist), new PropertyMetadata(null));
+
         public static Brush GetMouseOverBackground(DependencyObject obj)
         {
             return (Brush)obj.GetValue(MouseOverBackgroundProperty);
@@ -28,6 +33,22 @@ namespace System.Windows
         public static void SetPressedBackground(DependencyObject obj, Brush value)
         {
             obj.SetValue(PressedBackgroundProperty, value);
+        }
+        public static Brush GetSelectedBackground(DependencyObject obj)
+        {
+            return (Brush)obj.GetValue(SelectedBackgroundProperty);
+        }
+        public static void SetSelectedBackground(DependencyObject obj, Brush value)
+        {
+            obj.SetValue(SelectedBackgroundProperty, value);
+        }
+        public static Brush GetMouseOverForeground(DependencyObject obj)
+        {
+            return (Brush)obj.GetValue(MouseOverForegroundProperty);
+        }
+        public static void SetMouseOverForeground(DependencyObject obj, Brush value)
+        {
+            obj.SetValue(MouseOverForegroundProperty, value);
         }
     }
 }

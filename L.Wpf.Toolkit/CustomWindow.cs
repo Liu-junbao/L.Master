@@ -10,10 +10,8 @@ namespace System.Windows
 {
     public class CustomWindow:Window
     {
-        // Using a DependencyProperty as the backing store for HeaderBar.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty HeaderBarProperty =
             DependencyProperty.Register(nameof(HeaderBar), typeof(object), typeof(CustomWindow), new PropertyMetadata(null));
-        // Using a DependencyProperty as the backing store for Header.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty HeaderProperty =
             DependencyProperty.Register(nameof(Header), typeof(object), typeof(CustomWindow), new PropertyMetadata(null));
         static CustomWindow()

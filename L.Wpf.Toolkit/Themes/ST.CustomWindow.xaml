@@ -6,7 +6,9 @@
         <Setter Property="Width" Value="32" />
         <Setter Property="Height" Value="30" />
         <Setter Property="local:UIElementAssist.MouseOverBackground" Value="#FFCCCCCC" />
+        <Setter Property="local:UIElementAssist.MouseOverBackground" Value="Black" />
         <Setter Property="local:UIElementAssist.PressedBackground" Value="#FF867F88" />
+        <Setter Property="VerticalAlignment" Value="Top" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Background" Value="Transparent" />
@@ -55,7 +57,11 @@
                                 </Grid.RowDefinitions>
                                 <ContentPresenter Grid.Row="1" />
                                 <DockPanel WindowChrome.IsHitTestVisibleInChrome="True">
-                                    <local:CustomWindowButton Command="{x:Static SystemCommands.CloseWindowCommand}" DockPanel.Dock="Right">
+                                    <local:CustomWindowButton
+                                        local:UIElementAssist.MouseOverBackground="Red"
+                                        local:UIElementAssist.PressedBackground="#FFE26464"
+                                        Command="{x:Static SystemCommands.CloseWindowCommand}"
+                                        DockPanel.Dock="Right">
                                         <local:CustomWindowButton.Content>
                                             <Path
                                                 Width="13"

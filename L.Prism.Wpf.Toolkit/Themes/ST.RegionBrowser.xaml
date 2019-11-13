@@ -246,7 +246,6 @@
 
     <Style x:Key="st.ComboBox.HeaderPup" TargetType="ComboBox">
         <Setter Property="ItemContainerStyle" Value="{StaticResource st.ComboBoxItem.HeaderPup}" />
-        <Setter Property="ItemTemplate" Value="{StaticResource dt.RegionBrowser.Header}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Width" Value="32" />
         <Setter Property="Template">
@@ -353,7 +352,6 @@
 
     <Style x:Key="st.ListBox.Header" TargetType="ListBox">
         <Setter Property="ItemContainerStyle" Value="{StaticResource st.ListBoxItem.Header}" />
-        <Setter Property="ItemTemplate" Value="{StaticResource dt.RegionBrowser.Header}" />
         <Setter Property="Height" Value="32" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Template">
@@ -375,7 +373,7 @@
                             <ComboBox
                                 Grid.Column="1"
                                 Height="Auto"
-                                ItemTemplate="{StaticResource dt.RegionBrowser.Header}"
+                                ItemTemplate="{TemplateBinding ItemTemplate}"
                                 ItemsSource="{TemplateBinding ItemsSource}"
                                 SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource TemplatedParent}}"
                                 Style="{StaticResource st.ComboBox.HeaderPup}"
@@ -396,7 +394,6 @@
 
     <Style x:Key="st.ListBox.Header.Vertical" TargetType="ListBox">
         <Setter Property="ItemContainerStyle" Value="{StaticResource st.ListBoxItem.Header}" />
-        <Setter Property="ItemTemplate" Value="{StaticResource dt.RegionBrowser.Header}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Template">
             <Setter.Value>
@@ -405,7 +402,7 @@
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition />
-                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <ScrollViewer
                                 x:Name="sv"
@@ -417,7 +414,7 @@
                             <ComboBox
                                 Grid.Row="1"
                                 Height="32"
-                                ItemTemplate="{StaticResource dt.RegionBrowser.Header}"
+                                ItemTemplate="{TemplateBinding ItemTemplate}"
                                 ItemsSource="{TemplateBinding ItemsSource}"
                                 SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource TemplatedParent}}"
                                 Style="{StaticResource st.ComboBox.HeaderPup}"
@@ -439,6 +436,7 @@
     <Style x:Key="st.RegionBrowser" TargetType="local:RegionBrowser">
         <Setter Property="Padding" Value="3" />
         <Setter Property="Background" Value="{StaticResource br.RegionBrowser.Background}" />
+        <Setter Property="HeaderTemplate" Value="{StaticResource dt.RegionBrowser.Header}" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="VerticalContentAlignment" Value="Stretch" />
         <Setter Property="Template">
@@ -452,6 +450,7 @@
                             </Grid.RowDefinitions>
                             <ListBox
                                 x:Name="PART_Header"
+                                ItemTemplate="{TemplateBinding HeaderTemplate}"
                                 ItemsSource="{TemplateBinding Views}"
                                 SelectedItem="{TemplateBinding Content}"
                                 Style="{StaticResource st.ListBox.Header}" />
@@ -468,7 +467,7 @@
             </Setter.Value>
         </Setter>
         <Style.Triggers>
-            <Trigger Property="Orientation" Value="Vertical">
+            <Trigger Property="BarLocation" Value="Left">
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="local:RegionBrowser">
@@ -480,10 +479,71 @@
                                     </Grid.ColumnDefinitions>
                                     <ListBox
                                         x:Name="PART_Header"
+                                        ItemTemplate="{TemplateBinding HeaderTemplate}"
                                         ItemsSource="{TemplateBinding Views}"
                                         SelectedItem="{TemplateBinding Content}"
                                         Style="{StaticResource st.ListBox.Header.Vertical}" />
                                     <Border Grid.Column="1" Background="{StaticResource br.RegionBrowser.ContentBackground}">
+                                        <ContentPresenter
+                                            Margin="{TemplateBinding Padding}"
+                                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+            <Trigger Property="BarLocation" Value="Bottom">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="local:RegionBrowser">
+                            <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <ListBox
+                                        x:Name="PART_Header"
+                                        Grid.Row="1"
+                                        ItemTemplate="{TemplateBinding HeaderTemplate}"
+                                        ItemsSource="{TemplateBinding Views}"
+                                        SelectedItem="{TemplateBinding Content}"
+                                        Style="{StaticResource st.ListBox.Header}" />
+                                    <Border Background="{StaticResource br.RegionBrowser.ContentBackground}">
+                                        <ContentPresenter
+                                            Margin="{TemplateBinding Padding}"
+                                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+            <Trigger Property="BarLocation" Value="Right">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="local:RegionBrowser">
+                            <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ListBox
+                                        x:Name="PART_Header"
+                                        Grid.Column="1"
+                                        ItemTemplate="{TemplateBinding HeaderTemplate}"
+                                        ItemsSource="{TemplateBinding Views}"
+                                        SelectedItem="{TemplateBinding Content}"
+                                        Style="{StaticResource st.ListBox.Header.Vertical}" />
+                                    <Border Background="{StaticResource br.RegionBrowser.ContentBackground}">
                                         <ContentPresenter
                                             Margin="{TemplateBinding Padding}"
                                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
