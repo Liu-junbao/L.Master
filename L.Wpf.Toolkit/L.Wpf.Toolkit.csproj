@@ -8,7 +8,7 @@
     <OutputType>library</OutputType>
     <RootNamespace>System.Windows</RootNamespace>
     <AssemblyName>L.Wpf.Toolkit</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -37,7 +37,6 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Windows" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -80,64 +79,12 @@
     <Compile Include="Transitions\TransitionWipes\SlideWipe.cs" />
     <Compile Include="Transitions\TransitionWipes\TransitionWipeBase.cs" />
     <Compile Include="UIElementAssist.cs" />
-    <Page Include="Charts\Plots\Markers\MarkerTemplates.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="Charts\Axes\Axis.cs" />
-    <Compile Include="Charts\Axes\AxisGrid.cs" />
-    <Compile Include="Charts\Axes\AxisOrientation.cs" />
-    <Compile Include="Charts\Axes\ILabelProvider.cs" />
-    <Compile Include="Charts\Axes\LabelProvider.cs" />
-    <Compile Include="Charts\Axes\MinorTicksProvider.cs" />
-    <Compile Include="Charts\Axes\PlotAxis.cs" />
-    <Compile Include="Charts\Axes\RoundHelper.cs" />
-    <Compile Include="Charts\Axes\TicksProvider.cs" />
-    <Compile Include="Charts\Chart.cs" />
-    <Compile Include="Charts\Common\ArrayHelper.cs" />
-    <Compile Include="Charts\Common\DataRect.cs" />
-    <Compile Include="Charts\Common\IPalette.cs" />
-    <Compile Include="Charts\Common\MathHelper.cs" />
-    <Compile Include="Charts\Common\Palette.cs" />
-    <Compile Include="Charts\Common\Range.cs" />
-    <Compile Include="Charts\Figure.cs" />
-    <Compile Include="Charts\Legend\CountToVisibilityConverter.cs" />
-    <Compile Include="Charts\Legend\Legend.cs" />
-    <Compile Include="Charts\Legend\LegendItemsPanel.cs" />
-    <Compile Include="Charts\Legend\LocalLegendDataTemplateSelector.cs" />
-    <Compile Include="Charts\Legend\SizeLegendControl.cs" />
-    <Compile Include="Charts\Navigation\KeyboardNavigation.cs" />
-    <Compile Include="Charts\Navigation\MouseNavigation.cs" />
-    <Compile Include="Charts\Palette\Palette.Converters.cs" />
-    <Compile Include="Charts\Palette\PaletteControl.cs" />
-    <Compile Include="Charts\PlotBase.cs" />
-    <Compile Include="Charts\PlotCompositionChange.cs" />
-    <Compile Include="Charts\Plots\Base\BackgroundBitmapRenderer.cs" />
-    <Compile Include="Charts\Plots\Base\Plot.cs" />
-    <Compile Include="Charts\Plots\BingMaps\BingMapsChart.cs" />
-    <Compile Include="Charts\Plots\Heatmap\HeatmapBuilder.cs" />
-    <Compile Include="Charts\Plots\Heatmap\HeatmapGraph.cs" />
-    <Compile Include="Charts\Plots\Heatmap\HeatmapTooltipLayer.cs" />
-    <Compile Include="Charts\Plots\Line\LineGraph.cs" />
-    <Compile Include="Charts\Plots\Markers\CartesianMarkerGraph.cs" />
-    <Compile Include="Charts\Plots\Markers\DataSeries.cs" />
-    <Compile Include="Charts\Plots\Markers\DynamicMarkerViewModel.cs" />
-    <Compile Include="Charts\Plots\Markers\GenericDataSeries.cs" />
-    <Compile Include="Charts\Plots\Markers\MarkerGraph.Converters.cs" />
-    <Compile Include="Charts\Plots\Markers\MarkerGraph.cs" />
-    <Compile Include="Charts\Plots\Markers\MarkerGraphsWithTemplates.cs" />
-    <Compile Include="Charts\Transforms\DataTransforms.cs" />
-    <Compile Include="Charts\VerticalContentControl.cs" />
     <Compile Include="Converters\SecondsToTimeSpanConverter.cs" />
     <Page Include="Themes\RS.CustomWipe.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Themes\ST.Charts.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -176,14 +123,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\star.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Maps.MapControl.WPF">
-      <Version>1.0.0.3</Version>
-    </PackageReference>
-    <PackageReference Include="System.Reactive">
-      <Version>4.2.0</Version>
-    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Charts;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -34,23 +33,23 @@ namespace ModuleF.Views
         public event EventHandler IsActiveChanged;
         private async void InitializeLines()
         {
-            var cpu = await Task.Run(()=> new PerformanceCounter("Processor", "% Processor Time", "_Total"));
-            var lg = new LineGraph();
-            lines.Children.Add(lg);
-            lg.Stroke = new SolidColorBrush(Colors.YellowGreen);
-            lg.Description = "CPU";
-            lg.StrokeThickness = 2;
-            RunLineAsync(lg,cpu,0,new List<double>(),new List<double>());
+            //var cpu = await Task.Run(()=> new PerformanceCounter("Processor", "% Processor Time", "_Total"));
+            //var lg = new LineGraph();
+            //lines.Children.Add(lg);
+            //lg.Stroke = new SolidColorBrush(Colors.YellowGreen);
+            //lg.Description = "CPU";
+            //lg.StrokeThickness = 2;
+            //RunLineAsync(lg,cpu,0,new List<double>(),new List<double>());
         }
-        private async void RunLineAsync(LineGraph line, PerformanceCounter cpu, int index, List<double> x, List<double> y)
-        {
-            index++;
-            x.Add(index);
-            y.Add(cpu.NextValue());
-            line.Plot(x, y);
-            await Task.Delay(100);
-            RunLineAsync(line, cpu, index, x, y);
-        }
+        //private async void RunLineAsync(LineGraph line, PerformanceCounter cpu, int index, List<double> x, List<double> y)
+        //{
+        //    index++;
+        //    x.Add(index);
+        //    y.Add(cpu.NextValue());
+        //    line.Plot(x, y);
+        //    await Task.Delay(100);
+        //    RunLineAsync(line, cpu, index, x, y);
+        //}
     }
 
     public class VisibilityToCheckedConverter : IValueConverter

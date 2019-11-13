@@ -12,7 +12,7 @@
     RegionBrowserAssist.Header="模块F"
     RegionBrowserAssist.ToolTip="曲线图"
     mc:Ignorable="d">
-    <UserControl.Resources>
+    <!--<UserControl.Resources>
         <local:VisibilityToCheckedConverter x:Key="VisibilityToCheckedConverter" />
     </UserControl.Resources>
     <Grid>
@@ -27,5 +27,5 @@
             </Chart.Title>
             <Grid Name="lines" />
         </Chart>
-    </Grid>
+    </Grid>-->
 </UserControl>

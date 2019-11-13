@@ -7,7 +7,6 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/ST.CustomWindow.xaml" />
         <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/ST.Transitions.xaml" />
-        <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/ST.Charts.xaml" />
     </ResourceDictionary.MergedDictionaries>
     <Style BasedOn="{StaticResource st.CustomWindowButton}" TargetType="local:CustomWindowButton" />
     <Style BasedOn="{StaticResource st.CustomWindow}" TargetType="local:CustomWindow" />
@@ -15,8 +14,4 @@
     <Style BasedOn="{StaticResource st.TransitioningContent}" TargetType="trans:TransitioningContent" />
     <Style BasedOn="{StaticResource st.TransitionerSlide}" TargetType="trans:TransitionerSlide" />
     <Style BasedOn="{StaticResource st.TransitionerSlideBox}" TargetType="trans:TransitionerSlideBox" />
-    <Style BasedOn="{StaticResource st.PlotAxis}" TargetType="charts:PlotAxis" />
-    <Style BasedOn="{StaticResource st.Legend}" TargetType="charts:Legend" />
-    <Style BasedOn="{StaticResource st.VerticalContentControl}" TargetType="charts:VerticalContentControl" />
-    <Style BasedOn="{StaticResource st.Chart}" TargetType="charts:Chart" />
 </ResourceDictionary>

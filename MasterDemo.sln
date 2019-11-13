@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29503.13
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MasterDemo", "MasterDemo\MasterDemo.csproj", "{01FDC75D-0787-42CB-B466-DFFCC34198EB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MasterDemo", "MasterDemo\MasterDemo.csproj", "{01FDC75D-0787-42CB-B466-DFFCC34198EB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.Wpf.Toolkit", "L.Wpf.Toolkit\L.Wpf.Toolkit.csproj", "{E45EAEBB-A1D8-4CF7-98DC-89E0013A06D1}"
 EndProject
