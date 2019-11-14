@@ -75,7 +75,7 @@
                     <RegionBrowser
                         x:Name="rb"
                         prism:RegionManager.RegionName="ContentRegion"
-                        BarLocation="Bottom">
+                        BarDock="Bottom">
                         <RegionBrowser.ContentTemplate>
                             <DataTemplate>
                                 <TransitionerBox Content="{Binding}" TransitionWipe="{LocalCustomWipe Kind=FadeInWipe}" />

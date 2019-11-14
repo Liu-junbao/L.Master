@@ -14,7 +14,7 @@ namespace ModuleC
 
         public void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            containerRegistry.RegisterView<ViewA>("ContentRegion");
+            containerRegistry.RegisterView<ViewA>();
         }
     }
 }

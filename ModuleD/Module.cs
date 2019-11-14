@@ -10,12 +10,12 @@ namespace ModuleD
     {
         public void OnInitialized(IContainerProvider containerProvider)
         {
-            containerProvider.RegisterView<ViewA>("MenuRegion");
+            containerProvider.NavigateToView<ViewA>("MenuRegion");
         }
 
         public void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            containerRegistry.RegisterView<ViewA>("ContentRegion");
+            containerRegistry.RegisterView<ViewA>();
         }
     }
 }

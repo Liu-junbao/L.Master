@@ -34,12 +34,12 @@ namespace Prism
                 if (string.IsNullOrEmpty(viewName))
                     viewName = parameter?.ToString();
                 if (string.IsNullOrEmpty(viewName) == false)
-                    region.RequestNavigate(viewName, i => i.Publish());
+                    region.RequestNavigate(viewName, i => i.Publich());
             }
         }
         public event EventHandler CanExecuteChanged;
     }
-    public class NavigateToExtension : UnityMarkupExtenions<NavigateTo>
+    public class NavigateToExtension : InstanceExtenions<NavigateTo>
     {
         public NavigateToExtension() { }
         public NavigateToExtension(string viewName)

@@ -152,7 +152,7 @@
                         <Trigger Property="WindowStyle" Value="None">
                             <Setter TargetName="Closeable" Property="Visibility" Value="Collapsed" />
                         </Trigger>
-                        <Trigger Property="WindowStyle" Value="SingleBorderWindow">
+                        <Trigger Property="WindowStyle" Value="ToolWindow">
                             <Setter TargetName="Restoreable" Property="Visibility" Value="Collapsed" />
                         </Trigger>
                         <Trigger Property="WindowState" Value="Maximized">

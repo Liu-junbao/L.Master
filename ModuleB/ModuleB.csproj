@@ -80,7 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj">
-      <Project>{3cdafe86-0774-435e-94af-91d881368dd1}</Project>
+      <Project>{49e8d090-1cb1-45ac-b5e4-ce1a08dd9c66}</Project>
       <Name>L.Prism.Wpf.Toolkit</Name>
     </ProjectReference>
     <ProjectReference Include="..\Prism.Wpf.Controls\Prism.Wpf.Controls.csproj">

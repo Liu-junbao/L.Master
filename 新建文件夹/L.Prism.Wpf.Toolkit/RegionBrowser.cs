@@ -8,25 +8,26 @@ using System.Windows.Input;
 
 namespace Prism
 {
-    [StyleTypedProperty(Property = nameof(HeaderBoxStyle), StyleTargetType = typeof(BrowserBar))]
-    [StyleTypedProperty(Property = nameof(ContentBoxStyle), StyleTargetType = typeof(RegionBrowserContentControl))]
+    [TemplatePart(Name =PART_Header,Type =typeof(ListBox))]
     public class RegionBrowser : ContentControl
     {
+        public const string PART_Header = nameof(PART_Header);
+
         #region commands
-        private static RoutedUICommand _closePage;
+        private static RoutedUICommand _closeTab;
         private static RoutedUICommand _navigateTo;
 
-        public static ICommand ClosePage
+        public static ICommand CloseTab
         {
             get
             {
-                if (_closePage == null)
+                if (_closeTab == null)
                 {
-                    _closePage = new RoutedUICommand("close page", nameof(ClosePage), typeof(RegionBrowser));
+                    _closeTab = new RoutedUICommand("close tab", nameof(CloseTab), typeof(RegionBrowser));
                     //注册热键
-                    _closePage.InputGestures.Add(new KeyGesture(Key.F4, ModifierKeys.Control));
+                    _closeTab.InputGestures.Add(new KeyGesture(Key.F4,ModifierKeys.Control));
                 }
-                return _closePage;
+                return _closeTab;
             }
         }
         public static ICommand NavigateTo
@@ -50,29 +51,20 @@ namespace Prism
         public static readonly DependencyProperty RegionProperty = RegionPropertyKey.DependencyProperty;
         private static readonly DependencyPropertyKey ViewsPropertyKey =
             DependencyProperty.RegisterReadOnly(nameof(Views), typeof(IEnumerable), typeof(RegionBrowser), new PropertyMetadata(null));
-        public static readonly DependencyProperty ActiveViewProperty =
-            DependencyProperty.Register(nameof(ActiveView), typeof(object), typeof(RegionBrowser), new PropertyMetadata(null, OnActiveViewChanged));
         public static readonly DependencyProperty ViewsProperty = ViewsPropertyKey.DependencyProperty;
-        public static readonly DependencyProperty BarDockProperty =
-            DependencyProperty.Register(nameof(BarDock), typeof(Dock), typeof(RegionBrowser), new PropertyMetadata(Dock.Top));
+        public static readonly DependencyProperty BarLocationProperty =
+            DependencyProperty.Register(nameof(BarLocation), typeof(Location), typeof(RegionBrowser), new PropertyMetadata(Location.Top));
         public static readonly DependencyProperty HeaderTemplateProperty =
             DependencyProperty.Register(nameof(HeaderTemplate), typeof(DataTemplate), typeof(RegionBrowser), new PropertyMetadata(null));
-        public static readonly DependencyProperty HeaderBoxStyleProperty =
-          DependencyProperty.Register(nameof(HeaderBoxStyle), typeof(Style), typeof(RegionBrowser), new PropertyMetadata(null));
-        public static readonly DependencyProperty ContentBoxStyleProperty =
-         DependencyProperty.Register(nameof(ContentBoxStyle), typeof(Style), typeof(RegionBrowser), new PropertyMetadata(null));
 
-        private static void OnActiveViewChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            ((RegionBrowser)d)?.OnActiveViewChanged(e.NewValue);
-        }
         static RegionBrowser()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(RegionBrowser), new FrameworkPropertyMetadata(typeof(RegionBrowser)));
         }
+        private ListBox _headerBox;
         public RegionBrowser()
         {
-            this.CommandBindings.Add(new CommandBinding(ClosePage, OnCloseTabHandler));
+            this.CommandBindings.Add(new CommandBinding(CloseTab, OnCloseTabHandler));
         }
         public IRegion Region
         {
@@ -84,30 +76,15 @@ namespace Prism
             get { return (IEnumerable)GetValue(ViewsProperty); }
             protected set { SetValue(ViewsPropertyKey, value); }
         }
-        public object ActiveView
+        public Location BarLocation
         {
-            get { return (object)GetValue(ActiveViewProperty); }
-            set { SetValue(ActiveViewProperty, value); }
-        }
-        public Dock BarDock
-        {
-            get { return (Dock)GetValue(BarDockProperty); }
-            set { SetValue(BarDockProperty, value); }
+            get { return (Location)GetValue(BarLocationProperty); }
+            set { SetValue(BarLocationProperty, value); }
         }
         public DataTemplate HeaderTemplate
         {
             get { return (DataTemplate)GetValue(HeaderTemplateProperty); }
             set { SetValue(HeaderTemplateProperty, value); }
-        }
-        public Style HeaderBoxStyle
-        {
-            get { return (Style)GetValue(HeaderBoxStyleProperty); }
-            set { SetValue(HeaderBoxStyleProperty, value); }
-        }
-        public Style ContentBoxStyle
-        {
-            get { return (Style)GetValue(ContentBoxStyleProperty); }
-            set { SetValue(ContentBoxStyleProperty, value); }
         }
         private void ApplyRegion()
         {
@@ -150,23 +127,32 @@ namespace Prism
             {
                 Region = region;
                 Views = region.Views;
-                ActiveView = region.ActiveViews.FirstOrDefault();
-                region.ActiveViews.CollectionChanged += (s, e) => this.Dispatcher.BeginInvoke(new Action(() => ActiveView = region.ActiveViews.FirstOrDefault()));
             }
         }
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
+            _headerBox = this.Template.FindName(PART_Header, this) as ListBox;
+            if (_headerBox != null) _headerBox.SelectionChanged += (s, e) => OnHeaderChanged(_headerBox.SelectedItem);
             ApplyRegion();
         }
-        private void OnActiveViewChanged(object active)
+        protected void OnHeaderChanged(object header)
         {
-            if (active != null)
+            if (header != null)
             {
                 var activeView = Region?.ActiveViews.FirstOrDefault();
-                if (activeView != active)
-                    Region?.Activate(active);
+                if (activeView!=header)
+                    Region?.Activate(header);
             }
+        }
+        protected override void OnContentChanged(object oldContent, object newContent)
+        {
+            if (_headerBox != null)
+            {
+                _headerBox.SelectedItem = newContent;
+                _headerBox.ScrollIntoView(newContent);
+            }
+            base.OnContentChanged(oldContent, newContent);
         }
         private void OnCloseTabHandler(object sender, ExecutedRoutedEventArgs e)
         {
@@ -185,11 +171,12 @@ namespace Prism
             }
         }
     }
-    public class RegionBrowserContentControl : ContentControl
+
+    public enum Location
     {
-        static RegionBrowserContentControl()
-        {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(RegionBrowserContentControl), new FrameworkPropertyMetadata(typeof(RegionBrowserContentControl)));
-        }
+        Top,
+        Left,
+        Right,
+        Bottom
     }
 }

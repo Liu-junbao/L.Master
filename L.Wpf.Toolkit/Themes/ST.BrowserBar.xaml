@@ -145,7 +145,7 @@
                     <Condition Property="IsMouseOver" Value="True" />
                     <Condition Property="IsSelected" Value="False" />
                 </MultiTrigger.Conditions>
-                <Setter Property="Background" Value="#FF3E3E42" />
+                <Setter Property="Background" Value="#FF959595" />
             </MultiTrigger>
             <Trigger Property="IsSelected" Value="True">
                 <Setter Property="Background" Value="#FFF2F2F2" />
