@@ -28,6 +28,7 @@ namespace System.Windows
             DependencyProperty.Register(nameof(SelectedIndex), typeof(int), typeof(BrowserBar), new PropertyMetadata(-1));
         public static readonly DependencyProperty ItemTemplateProperty =
             DependencyProperty.Register(nameof(ItemTemplate), typeof(DataTemplate), typeof(BrowserBar), new PropertyMetadata(null));
+
         static BrowserBar()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(BrowserBar), new FrameworkPropertyMetadata(typeof(BrowserBar)));

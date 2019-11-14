@@ -9,6 +9,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj" />
-    <ProjectReference Include="..\L.Wpf.Toolkit\L.Wpf.Toolkit.csproj" />
   </ItemGroup>
 </Project>

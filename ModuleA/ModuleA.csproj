@@ -83,10 +83,6 @@
       <Project>{3cdafe86-0774-435e-94af-91d881368dd1}</Project>
       <Name>L.Prism.Wpf.Toolkit</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Prism.Wpf.Controls\Prism.Wpf.Controls.csproj">
-      <Project>{b8c0e292-ab01-4975-a43f-bdb1031f5ebb}</Project>
-      <Name>Prism.Wpf.Controls</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Page Include="Views\ViewA.xaml">
