@@ -39,6 +39,7 @@
         <Setter Property="Background" Value="#FFF2F2F2" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="prism:RegionManager.RegionName" Value="{Binding RegionName, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:RegionBrowser}}}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:RegionBrowserContentControl">
@@ -56,6 +57,23 @@
         </Setter>
     </Style>
 
+    <Style
+        x:Key="st.RegionBrowserBar"
+        BasedOn="{StaticResource {x:Type BrowserBar}}"
+        TargetType="local:RegionBrowserBar">
+        <Setter Property="ClosePageCommand" Value="{x:Static local:RegionBrowser.ClosePage}" />
+        <Setter Property="ItemsSource" Value="{Binding Views, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:RegionBrowser}}}" />
+        <Setter Property="ItemTemplate" Value="{Binding HeaderTemplate, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:RegionBrowser}}}" />
+        <Setter Property="SelectedItem" Value="{Binding ActiveView, Mode=TwoWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:RegionBrowser}}}" />
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="BrowserBarItem">
+                    <Setter Property="CanClose" Value="{Binding (RegionBrowserAssist.CanClose)}" />
+                </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style x:Key="st.RegionBrowser" TargetType="local:RegionBrowser">
         <Setter Property="Padding" Value="3" />
         <Setter Property="Background" Value="#FFCCCCCC" />
@@ -66,17 +84,12 @@
             <Setter.Value>
                 <ControlTemplate TargetType="local:RegionBrowser">
                     <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
-                        <DockPanel>
-                            <BrowserBar
-                                DockPanel.Dock="{TemplateBinding BarDock}"
-                                ItemTemplate="{TemplateBinding HeaderTemplate}"
-                                ItemsSource="{TemplateBinding Views}"
-                                Orientation="{TemplateBinding BarDock,
-                                                              Converter={cvt:DockToOrientation}}"
-                                SelectedItem="{Binding ActiveView, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-                                Style="{TemplateBinding HeaderBoxStyle}" />
-                            <local:RegionBrowserContentControl Content="{TemplateBinding Content}" Style="{TemplateBinding ContentBoxStyle}" />
-                        </DockPanel>
+                        <ContentPresenter
+                            Margin="{TemplateBinding Padding}"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                            Content="{TemplateBinding Content}"
+                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                     </Border>
                 </ControlTemplate>
             </Setter.Value>

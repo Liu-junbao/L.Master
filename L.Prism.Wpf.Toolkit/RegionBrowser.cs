@@ -1,16 +1,18 @@
-﻿using Prism.Regions;
+﻿using Prism.Ioc;
+using Prism.Regions;
 using System;
 using System.Collections;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Markup;
 
 namespace Prism
 {
-    [StyleTypedProperty(Property = nameof(HeaderBoxStyle), StyleTargetType = typeof(BrowserBar))]
-    [StyleTypedProperty(Property = nameof(ContentBoxStyle), StyleTargetType = typeof(RegionBrowserContentControl))]
-    public class RegionBrowser : ContentControl
+
+    [ContentProperty(nameof(Content))]
+    public class RegionBrowser : Control
     {
         #region commands
         private static RoutedUICommand _closePage;
@@ -45,6 +47,10 @@ namespace Prism
         #endregion
 
         public static RoutedCommand CloseViewCommand = new RoutedCommand();
+        public static readonly DependencyProperty ContentProperty =
+            DependencyProperty.Register(nameof(Content), typeof(object), typeof(RegionBrowser), new PropertyMetadata(null));
+        public static readonly DependencyProperty RegionNameProperty =
+            DependencyProperty.Register(nameof(RegionName), typeof(string), typeof(RegionBrowser), new PropertyMetadata(null));
         private static readonly DependencyPropertyKey RegionPropertyKey =
             DependencyProperty.RegisterReadOnly(nameof(Region), typeof(IRegion), typeof(RegionBrowser), new PropertyMetadata(null));
         public static readonly DependencyProperty RegionProperty = RegionPropertyKey.DependencyProperty;
@@ -53,14 +59,8 @@ namespace Prism
         public static readonly DependencyProperty ActiveViewProperty =
             DependencyProperty.Register(nameof(ActiveView), typeof(object), typeof(RegionBrowser), new PropertyMetadata(null, OnActiveViewChanged));
         public static readonly DependencyProperty ViewsProperty = ViewsPropertyKey.DependencyProperty;
-        public static readonly DependencyProperty BarDockProperty =
-            DependencyProperty.Register(nameof(BarDock), typeof(Dock), typeof(RegionBrowser), new PropertyMetadata(Dock.Top));
         public static readonly DependencyProperty HeaderTemplateProperty =
             DependencyProperty.Register(nameof(HeaderTemplate), typeof(DataTemplate), typeof(RegionBrowser), new PropertyMetadata(null));
-        public static readonly DependencyProperty HeaderBoxStyleProperty =
-          DependencyProperty.Register(nameof(HeaderBoxStyle), typeof(Style), typeof(RegionBrowser), new PropertyMetadata(null));
-        public static readonly DependencyProperty ContentBoxStyleProperty =
-         DependencyProperty.Register(nameof(ContentBoxStyle), typeof(Style), typeof(RegionBrowser), new PropertyMetadata(null));
 
         private static void OnActiveViewChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -70,9 +70,21 @@ namespace Prism
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(RegionBrowser), new FrameworkPropertyMetadata(typeof(RegionBrowser)));
         }
+        private IRegionManager _regionManager;
         public RegionBrowser()
         {
             this.CommandBindings.Add(new CommandBinding(ClosePage, OnCloseTabHandler));
+            this.CommandBindings.Add(new CommandBinding(NavigateTo, OnNavigateToHandler));
+        }
+        public object Content
+        {
+            get { return (object)GetValue(ContentProperty); }
+            set { SetValue(ContentProperty, value); }
+        }
+        public string RegionName
+        {
+            get { return (string)GetValue(RegionNameProperty); }
+            set { SetValue(RegionNameProperty, value); }
         }
         public IRegion Region
         {
@@ -89,25 +101,15 @@ namespace Prism
             get { return (object)GetValue(ActiveViewProperty); }
             set { SetValue(ActiveViewProperty, value); }
         }
-        public Dock BarDock
-        {
-            get { return (Dock)GetValue(BarDockProperty); }
-            set { SetValue(BarDockProperty, value); }
-        }
         public DataTemplate HeaderTemplate
         {
             get { return (DataTemplate)GetValue(HeaderTemplateProperty); }
             set { SetValue(HeaderTemplateProperty, value); }
         }
-        public Style HeaderBoxStyle
+        public override void OnApplyTemplate()
         {
-            get { return (Style)GetValue(HeaderBoxStyleProperty); }
-            set { SetValue(HeaderBoxStyleProperty, value); }
-        }
-        public Style ContentBoxStyle
-        {
-            get { return (Style)GetValue(ContentBoxStyleProperty); }
-            set { SetValue(ContentBoxStyleProperty, value); }
+            base.OnApplyTemplate();
+            ApplyRegion();
         }
         private void ApplyRegion()
         {
@@ -116,7 +118,8 @@ namespace Prism
                 regionManager = CommonServiceLocator.ServiceLocator.Current.GetInstance<IRegionManager>();
             if (regionManager != null)
             {
-                var regionName = RegionManager.GetRegionName(this);
+                _regionManager = regionManager;
+                var regionName = this.RegionName;
                 if (string.IsNullOrEmpty(regionName) == false)
                 {
                     if (regionManager.Regions.ContainsRegionWithName(regionName))
@@ -153,12 +156,7 @@ namespace Prism
                 ActiveView = region.ActiveViews.FirstOrDefault();
                 region.ActiveViews.CollectionChanged += (s, e) => this.Dispatcher.BeginInvoke(new Action(() => ActiveView = region.ActiveViews.FirstOrDefault()));
             }
-        }
-        public override void OnApplyTemplate()
-        {
-            base.OnApplyTemplate();
-            ApplyRegion();
-        }
+        }     
         private void OnActiveViewChanged(object active)
         {
             if (active != null)
@@ -183,6 +181,22 @@ namespace Prism
                     }
                 }
             }
+        }
+        private void OnNavigateToHandler(object sender, ExecutedRoutedEventArgs e)
+        {
+            var param = e.Parameter;
+            if (param == null) return;
+            if (param is string)
+                this._regionManager?.NavigateToView(RegionName, param.ToString());
+            else
+                this._regionManager?.NavigateToView(RegionName, param);
+        }
+    }
+    public class RegionBrowserBar : BrowserBar
+    {
+        static RegionBrowserBar()
+        {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(RegionBrowserBar), new FrameworkPropertyMetadata(typeof(RegionBrowserBar)));
         }
     }
     public class RegionBrowserContentControl : ContentControl

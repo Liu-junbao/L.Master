@@ -39,11 +39,41 @@ namespace Prism.Ioc
         /// <summary>
         /// 指定区域导航到指定页面
         /// </summary>
+        /// <param name="regionManager"></param>
+        /// <param name="view"></param>
+        /// <param name="regionName"></param>
+        public static void NavigateToView(this IRegionManager regionManager, string regionName, object view)
+        {
+            regionManager.RequestNavigate(regionName, view.GetType().FullName.Replace(".", "/"));
+        }
+        /// <summary>
+        /// 指定区域导航到指定页面
+        /// </summary>
         /// <param name="view"></param>
         /// <param name="regionName"></param>
         public static void NavigateToView<TView>(this object obj, string regionName)
         {
             obj.GetInstance<IRegionManager>()?.RequestNavigate(regionName, typeof(TView).FullName.Replace(".", "/"), OnNavigated);
+        }
+        /// <summary>
+        /// 指定区域导航到指定页面
+        /// </summary>
+        /// <typeparam name="TView"></typeparam>
+        /// <param name="regionManager"></param>
+        /// <param name="regionName"></param>
+        public static void NavigateToView<TView>(this IRegionManager regionManager, string regionName)
+        {
+            regionManager.RequestNavigate(regionName, typeof(TView).FullName.Replace(".", "/"), OnNavigated);
+        }
+        /// <summary>
+        /// 指定区域导航到指定页面
+        /// </summary>
+        /// <param name="regionManager"></param>
+        /// <param name="regionName"></param>
+        /// <param name="viewName"></param>
+        public static void NavigateToView(this IRegionManager regionManager, string regionName, string viewName)
+        {
+            regionManager.RequestNavigate(regionName, viewName, OnNavigated);
         }
         /// <summary>
         /// 在区域内注册页面
@@ -53,6 +83,16 @@ namespace Prism.Ioc
         public static void RegisterViewWithRegion<TView>(this IContainerProvider provider, string regionName)
         {
             provider.Resolve<IRegionManager>().RegisterViewWithRegion(regionName, typeof(TView));
+        }
+        /// <summary>
+        /// 在区域内注册页面
+        /// </summary>
+        /// <typeparam name="TView"></typeparam>
+        /// <param name="regionManager"></param>
+        /// <param name="regionName"></param>
+        public static void RegisterViewWithRegion<TView>(this IRegionManager regionManager, string regionName)
+        {
+            regionManager.RegisterViewWithRegion(regionName, typeof(TView));
         }
         /// <summary>
         /// 注册页面
@@ -103,10 +143,21 @@ namespace Prism.Ioc
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="onApplicationInitialized"></param>
-        public static void SubscribeApplicationInitialized(this object obj,Action onApplicationInitialized)
+        public static void SubscribeApplicationInitialized(this object obj, Action onApplicationInitialized)
         {
-            obj.GetInstance<IEventAggregator>()?.GetEvent<PrismApplicationInitializedEvent>().Subscribe(onApplicationInitialized,ThreadOption.UIThread);
-        }
+            var prismApplicationInitializedEvent = obj.GetInstance<IEventAggregator>()?.GetEvent<PrismApplicationInitializedEvent>();
+            if (prismApplicationInitializedEvent != null)
+            {
+                Action action = null;
+                action = () =>
+                {
+                    onApplicationInitialized?.Invoke();
+                    prismApplicationInitializedEvent.Unsubscribe(action);
+                };
+                prismApplicationInitializedEvent.Subscribe(action, true);
+            }
+        }      
         #endregion
     }
+
 }

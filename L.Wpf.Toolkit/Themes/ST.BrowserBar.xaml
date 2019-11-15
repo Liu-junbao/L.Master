@@ -281,6 +281,7 @@
         <Style.Triggers>
             <Trigger Property="Orientation" Value="Vertical">
                 <Setter Property="Height" Value="Auto" />
+                <Setter Property="Width" Value="100" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="local:BrowserBar">

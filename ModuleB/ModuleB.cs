@@ -1,15 +1,16 @@
 ﻿using System;
-using ModuleF.Views;
+using ModuleB.Views;
 using Prism.Ioc;
 using Prism.Modularity;
 using Prism.Regions;
 
-namespace ModuleF
+namespace ModuleB
 {
-    public class ModuleFModule : IModule
+    public class ModuleB : IModule
     {
         public void OnInitialized(IContainerProvider containerProvider)
         {
+            this.NavigateToView<ViewA>("ContentRegion");
             this.SubscribeApplicationInitialized(OnApplicationInitialized);
         }
 

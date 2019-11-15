@@ -50,7 +50,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Module.cs" />
+    <Compile Include="ModuleB.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -79,16 +79,6 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj">
-      <Project>{49e8d090-1cb1-45ac-b5e4-ce1a08dd9c66}</Project>
-      <Name>L.Prism.Wpf.Toolkit</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Prism.Wpf.Controls\Prism.Wpf.Controls.csproj">
-      <Project>{b8c0e292-ab01-4975-a43f-bdb1031f5ebb}</Project>
-      <Name>Prism.Wpf.Controls</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Page Include="Views\ViewA.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -96,6 +86,16 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Prism.Wpf" Version="7.2.0.1367" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj">
+      <Project>{49e8d090-1cb1-45ac-b5e4-ce1a08dd9c66}</Project>
+      <Name>L.Prism.Wpf.Toolkit</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\L.Wpf.Toolkit\L.Wpf.Toolkit.csproj">
+      <Project>{dbc0c9ad-2fa0-4ea2-813f-999558ccf3b8}</Project>
+      <Name>L.Wpf.Toolkit</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -8,8 +8,7 @@ using Prism.Regions;
 
 namespace ModuleA
 {
-    [Module(ModuleName = nameof(ModuleA))]
-    public class Module : IModule
+    public class ModuleA : IModule
     {
         public  void OnInitialized(IContainerProvider containerProvider)
         {
@@ -18,6 +17,12 @@ namespace ModuleA
         public void RegisterTypes(IContainerRegistry containerRegistry)
         {
             containerRegistry.RegisterView<ViewA>();
+            this.SubscribeApplicationInitialized(OnInitialized);
+        }
+
+        private void OnInitialized()
+        {
+           
         }
     }
 }

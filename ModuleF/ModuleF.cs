@@ -1,16 +1,21 @@
-﻿using ModuleD.Views;
+﻿using System;
+using ModuleF.Views;
 using Prism.Ioc;
 using Prism.Modularity;
 using Prism.Regions;
 
-namespace ModuleD
+namespace ModuleF
 {
-    [Module(ModuleName =nameof(ModuleD))]
-    public class Module : IModule
+    public class ModuleF : IModule
     {
         public void OnInitialized(IContainerProvider containerProvider)
         {
-            containerProvider.NavigateToView<ViewA>("MenuRegion");
+            this.SubscribeApplicationInitialized(OnApplicationInitialized);
+        }
+
+        private void OnApplicationInitialized()
+        {
+           
         }
 
         public void RegisterTypes(IContainerRegistry containerRegistry)
