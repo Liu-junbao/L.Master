@@ -99,11 +99,13 @@ namespace Prism.Ioc
             app.GetInstance<IEventAggregator>()?.GetEvent<PrismApplicationInitializedEvent>().Publish();
         }
         /// <summary>
-        /// 订阅程序初始化完成事件
+        ///  订阅程序初始化完成事件
         /// </summary>
-        public static void SubscribeApplicationInitialized(this object obj,Action onApplictionInitialized)
+        /// <param name="obj"></param>
+        /// <param name="onApplicationInitialized"></param>
+        public static void SubscribeApplicationInitialized(this object obj,Action onApplicationInitialized)
         {
-            obj.GetInstance<IEventAggregator>()?.GetEvent<PrismApplicationInitializedEvent>().Subscribe(onApplictionInitialized,ThreadOption.UIThread);
+            obj.GetInstance<IEventAggregator>()?.GetEvent<PrismApplicationInitializedEvent>().Subscribe(onApplicationInitialized,ThreadOption.UIThread);
         }
         #endregion
     }

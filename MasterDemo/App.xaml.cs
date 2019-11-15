@@ -22,5 +22,10 @@ namespace MasterDemo
         {
 
         }
+        protected override void OnInitialized()
+        {
+            base.OnInitialized();
+            this.PublishInitialized();
+        }
     }
 }
