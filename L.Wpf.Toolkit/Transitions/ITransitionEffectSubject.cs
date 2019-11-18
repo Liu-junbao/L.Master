@@ -1,5 +1,3 @@
-using System;
-
 namespace System.Windows.Transitions
 {
     public interface ITransitionEffectSubject

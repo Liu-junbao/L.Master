@@ -1,5 +1,3 @@
-using System.Windows;
-
 namespace System.Windows.Transitions
 {
     public interface ITransitionWipe

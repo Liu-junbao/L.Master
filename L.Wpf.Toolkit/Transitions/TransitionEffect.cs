@@ -1,5 +1,3 @@
-using System;
-using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 
@@ -26,7 +24,7 @@ namespace System.Windows.Transitions
 
         public TimeSpan OffsetTime { get; set; } = TimeSpan.Zero;
 
-        public TimeSpan Duration { get; set; } = TimeSpan.FromMilliseconds(400);        
+        public TimeSpan Duration { get; set; } = TimeSpan.FromMilliseconds(400);
 
         public override Timeline Build<TSubject>(TSubject effectSubject)
         {
@@ -102,7 +100,7 @@ namespace System.Windows.Transitions
         }
 
         private Timeline CreateExpandIn(ITransitionEffectSubject effectSubject)
-        {            
+        {
             var scaleXAnimation = new DoubleAnimationUsingKeyFrames();
             var zeroFrame = new DiscreteDoubleKeyFrame(0.0);
             var startFrame = new DiscreteDoubleKeyFrame(.5, effectSubject.Offset + OffsetTime);
@@ -123,7 +121,7 @@ namespace System.Windows.Transitions
             parallelTimeline.Children.Add(scaleXAnimation);
             parallelTimeline.Children.Add(scaleYAnimation);
 
-            return parallelTimeline;           
+            return parallelTimeline;
         }
     }
 }

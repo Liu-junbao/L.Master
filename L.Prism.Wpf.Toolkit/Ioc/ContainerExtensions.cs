@@ -1,11 +1,6 @@
 ﻿using Prism.Events;
-using Prism.Ioc;
 using Prism.Regions;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Prism.Ioc
 {
@@ -156,7 +151,7 @@ namespace Prism.Ioc
                 };
                 prismApplicationInitializedEvent.Subscribe(action, true);
             }
-        }      
+        }
         #endregion
     }
 

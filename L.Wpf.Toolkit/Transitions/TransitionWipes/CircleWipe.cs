@@ -1,5 +1,3 @@
-using System;
-using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 
@@ -21,7 +19,7 @@ namespace System.Windows.Transitions
             var storyboard = new Storyboard();
 
             storyboard.Children.Add(opacityAnimation);
-            Storyboard.SetTargetProperty(opacityAnimation,new PropertyPath(UIElement.OpacityProperty));
+            Storyboard.SetTargetProperty(opacityAnimation, new PropertyPath(UIElement.OpacityProperty));
 
             return storyboard;
         }

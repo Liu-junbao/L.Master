@@ -1,7 +1,5 @@
-﻿using System.Windows;
-
-namespace System.Windows.Transitions
-{ 
+﻿namespace System.Windows.Transitions
+{
     public class MoveWipeSelector : ITransitionWipeSelector
     {
         public MoveWipeSelector()

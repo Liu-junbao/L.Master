@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
+﻿using System.ComponentModel;
 using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace System.Windows
 {
-    public class CustomPresenter:ContentControl
+    public class CustomPresenter : ContentControl
     {
         public static readonly DependencyProperty BackgroundOpacityProperty =
             DependencyProperty.Register(nameof(BackgroundOpacity), typeof(double), typeof(CustomPresenter), new PropertyMetadata(1.0));
@@ -18,7 +15,7 @@ namespace System.Windows
 
         static CustomPresenter()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(CustomPresenter),new FrameworkPropertyMetadata(typeof(CustomPresenter)));
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(CustomPresenter), new FrameworkPropertyMetadata(typeof(CustomPresenter)));
         }
         [Category("Appearance")]
         public double BackgroundOpacity

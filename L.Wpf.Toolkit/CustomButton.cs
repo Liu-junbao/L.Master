@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
+﻿using System.ComponentModel;
 using System.Windows.Controls;
 using System.Windows.Media;
 
@@ -20,6 +17,6 @@ namespace System.Windows
         {
             get { return (Brush)GetValue(PressedBackgroundProperty); }
             set { SetValue(PressedBackgroundProperty, value); }
-        }       
+        }
     }
 }

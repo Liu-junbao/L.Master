@@ -1,6 +1,4 @@
-﻿using System.Windows;
-
-namespace System.Windows.Transitions
+﻿namespace System.Windows.Transitions
 {
     /// <summary>
     /// Content control to host the content of an individual page within a <see cref="TransitionerSlideBox"/>.
@@ -9,11 +7,11 @@ namespace System.Windows.Transitions
     {
         public static RoutedEvent InTransitionFinished =
             EventManager.RegisterRoutedEvent(nameof(InTransitionFinished), RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(TransitionerSlide));
-        public static readonly DependencyProperty ForwardWipeProperty = 
+        public static readonly DependencyProperty ForwardWipeProperty =
             DependencyProperty.Register(nameof(ForwardWipe), typeof(ITransitionWipe), typeof(TransitionerSlide), new PropertyMetadata(null));
-        public static readonly DependencyProperty BackwardWipeProperty = 
+        public static readonly DependencyProperty BackwardWipeProperty =
             DependencyProperty.Register(nameof(BackwardWipe), typeof(ITransitionWipe), typeof(TransitionerSlide), new PropertyMetadata(null));
-        public static readonly DependencyProperty StateProperty = 
+        public static readonly DependencyProperty StateProperty =
             DependencyProperty.Register(nameof(State), typeof(TransitionerSlideState), typeof(TransitionerSlide), new PropertyMetadata(default(TransitionerSlideState), new PropertyChangedCallback(StatePropertyChangedCallback)));
         public static readonly DependencyProperty TransitionOriginProperty =
             DependencyProperty.Register(nameof(TransitionOrigin), typeof(Point), typeof(TransitionerSlideBox), new PropertyMetadata(new Point(0.5, 0.5)));

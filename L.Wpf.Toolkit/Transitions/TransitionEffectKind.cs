@@ -2,7 +2,7 @@ namespace System.Windows.Transitions
 {
     public enum TransitionEffectKind
     {
-        None,        
+        None,
         ExpandIn,
         FadeIn,
         SlideInFromLeft,

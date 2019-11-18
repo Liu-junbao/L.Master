@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Media.Animation;
+﻿using System.Windows.Media.Animation;
 
 namespace System.Windows.Transitions
 {
@@ -195,7 +189,7 @@ namespace System.Windows.Transitions
         OldPresenterAbove,
     }
     public enum TransitionOrder
-    { 
+    {
         /// <summary>
         /// 同时执行过渡动画
         /// </summary>

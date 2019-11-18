@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -12,7 +6,7 @@ using System.Windows.Media;
 namespace System.Windows
 {
     [StyleTypedProperty(Property = nameof(ItemContainerStyle), StyleTargetType = typeof(BrowserBarItem))]
-    public class BrowserBar:Control
+    public class BrowserBar : Control
     {
         private static RoutedUICommand _closePage;
         public static ICommand ClosePage
@@ -88,7 +82,7 @@ namespace System.Windows
         }
 
         private void OnClosePage(object sender, ExecutedRoutedEventArgs e)
-        {       
+        {
             var command = ClosePageCommand;
             if (command != null && command.CanExecute(e.Parameter))
             {
@@ -112,9 +106,9 @@ namespace System.Windows
     }
     public static class BrowserBarAssist
     {
-       
+
         public static readonly DependencyProperty PupBackgroundProperty =
-           DependencyProperty.RegisterAttached("PupBackground", typeof(Brush), typeof(BrowserBarAssist), new FrameworkPropertyMetadata(default(Brush), FrameworkPropertyMetadataOptions.Inherits| FrameworkPropertyMetadataOptions.AffectsRender));
+           DependencyProperty.RegisterAttached("PupBackground", typeof(Brush), typeof(BrowserBarAssist), new FrameworkPropertyMetadata(default(Brush), FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.AffectsRender));
         public static Brush GetPupBackground(DependencyObject obj)
         {
             return (Brush)obj.GetValue(PupBackgroundProperty);

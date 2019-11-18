@@ -145,7 +145,7 @@ namespace Prism
                 ActiveView = region.ActiveViews.FirstOrDefault();
                 region.ActiveViews.CollectionChanged += (s, e) => this.Dispatcher.BeginInvoke(new Action(() => ActiveView = region.ActiveViews.FirstOrDefault()));
             }
-        }     
+        }
         private void OnActiveViewChanged(object active)
         {
             if (active != null)

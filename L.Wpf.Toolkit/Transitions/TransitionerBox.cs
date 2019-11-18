@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Windows;
+﻿using System.Linq;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Threading;
 
 namespace System.Windows.Transitions
@@ -95,14 +88,14 @@ namespace System.Windows.Transitions
                 else
                 {
                     DoStack(newPresenter, oldPresenter);
-                    if (oldPresenter != null) 
+                    if (oldPresenter != null)
                         oldPresenter.Visibility = Visibility.Hidden;
                 }
             }
             else if (oldPresenter != null || newPresenter != null)
             {
                 DoStack(oldPresenter ?? newPresenter);
-                if (oldPresenter != null) 
+                if (oldPresenter != null)
                     oldPresenter.Visibility = Visibility.Hidden;
             }
         }

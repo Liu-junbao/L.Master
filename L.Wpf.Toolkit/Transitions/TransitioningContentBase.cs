@@ -1,8 +1,6 @@
-using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -23,7 +21,9 @@ namespace System.Windows.Transitions
         private SkewTransform _skewTransform;
         private TranslateTransform _translateTransform;
 
+#pragma warning disable CS0414 // 字段“TransitioningContentBase._isOpeningEffectPending”已被赋值，但从未使用过它的值
         private bool _isOpeningEffectPending;
+#pragma warning restore CS0414 // 字段“TransitioningContentBase._isOpeningEffectPending”已被赋值，但从未使用过它的值
 
         static TransitioningContentBase()
         {

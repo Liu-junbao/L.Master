@@ -1,11 +1,9 @@
-using System;
-using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 
 namespace System.Windows.Transitions
 {
-    public class SlideOutWipe :TransitionWipeBase
+    public class SlideOutWipe : TransitionWipeBase
     {
         private readonly SineEase _sineEase = new SineEase();
         protected override Storyboard CreateStoryboardForOldPresenter(ITransitionContainer container)
@@ -25,14 +23,14 @@ namespace System.Windows.Transitions
             Storyboard storyboard = new Storyboard();
 
             storyboard.Children.Add(scaleAnimation);
-            Storyboard.SetTargetProperty(scaleAnimation,new PropertyPath(ScaleTransform.ScaleXProperty));
+            Storyboard.SetTargetProperty(scaleAnimation, new PropertyPath(ScaleTransform.ScaleXProperty));
             Storyboard.SetTargetProperty(scaleAnimation, new PropertyPath(ScaleTransform.ScaleYProperty));
             storyboard.Children.Add(opacityAnimation);
             Storyboard.SetTargetProperty(opacityAnimation, new PropertyPath(UIElement.OpacityProperty));
 
             return storyboard;
         }
-        
+
         protected override Storyboard CreateStoryboardForNewPresenter(ITransitionContainer container)
         {
             var zeroKeyTime = KeyTime.FromTimeSpan(TimeSpan.Zero);

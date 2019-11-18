@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
 namespace System.Windows
 {
-    public class CustomWindow:Window
+    public class CustomWindow : Window
     {
         public static readonly DependencyProperty HeaderBarProperty =
             DependencyProperty.Register(nameof(HeaderBar), typeof(object), typeof(CustomWindow), new PropertyMetadata(null));
@@ -19,7 +13,7 @@ namespace System.Windows
 
         static CustomWindow()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(CustomWindow),new FrameworkPropertyMetadata(typeof(CustomWindow)));
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(CustomWindow), new FrameworkPropertyMetadata(typeof(CustomWindow)));
         }
         public CustomWindow()
         {
@@ -47,7 +41,7 @@ namespace System.Windows
         {
             base.OnApplyTemplate();
         }
-       
+
         private void OnCanResizeWindow(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = this.ResizeMode == ResizeMode.CanResize || this.ResizeMode == ResizeMode.CanResizeWithGrip;
@@ -56,7 +50,7 @@ namespace System.Windows
         {
             e.CanExecute = this.ResizeMode != ResizeMode.NoResize;
         }
-      
+
         private void OnCloseWindow(object target, ExecutedRoutedEventArgs e)
         {
             SystemCommands.CloseWindow(this);

@@ -1,10 +1,8 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Media.Animation;
+﻿using System.Windows.Media.Animation;
 
 namespace System.Windows.Transitions
 {
-    public class FadeWipe :TransitionWipeBase
+    public class FadeWipe : TransitionWipeBase
     {
         private readonly SineEase _sineEase = new SineEase();
         public FadeWipe()
@@ -21,9 +19,9 @@ namespace System.Windows.Transitions
             fromAnimation.KeyFrames.Add(new EasingDoubleKeyFrame(0, endKeyTime, _sineEase));
 
             var storyboard = new Storyboard();
-            storyboard.Duration= TimeSpan.FromSeconds(3);
+            storyboard.Duration = TimeSpan.FromSeconds(3);
             storyboard.Children.Add(fromAnimation);
-            Storyboard.SetTargetProperty(fromAnimation,new PropertyPath(UIElement.OpacityProperty));
+            Storyboard.SetTargetProperty(fromAnimation, new PropertyPath(UIElement.OpacityProperty));
 
             return storyboard;
         }

@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows.Markup;
@@ -16,7 +15,7 @@ namespace System.Windows.Transitions
         {
             TransitionEffectBase transitionEffect;
 
-            if (value is string stringValue && 
+            if (value is string stringValue &&
                 Enum.TryParse(stringValue, out TransitionEffectKind effectKind))
             {
                 transitionEffect = new TransitionEffect(effectKind);

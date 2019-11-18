@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Windows;
+﻿using System.Linq;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -31,12 +29,12 @@ namespace System.Windows.Transitions
         protected override Storyboard CreateStoryboardForNewPresenter(ITransitionContainer container) => NewStoryboard?.Clone();
         protected override Storyboard PrepareStoryboardForOldPresenter(FrameworkElement oldPresenter, FrameworkElement newPresenter, Point origin, ITransitionContainer container)
         {
-            if (OldPresenterStyle != null)ApplyStyle(oldPresenter, OldPresenterStyle);
+            if (OldPresenterStyle != null) ApplyStyle(oldPresenter, OldPresenterStyle);
             return base.PrepareStoryboardForOldPresenter(oldPresenter, newPresenter, origin, container);
         }
         protected override Storyboard PrepareStoryboardForNewPresenter(FrameworkElement oldPresenter, FrameworkElement newPresenter, Point origin, ITransitionContainer container)
         {
-            if (NewPresenterStyle != null)ApplyStyle(newPresenter, NewPresenterStyle);
+            if (NewPresenterStyle != null) ApplyStyle(newPresenter, NewPresenterStyle);
             return base.PrepareStoryboardForNewPresenter(oldPresenter, newPresenter, origin, container);
         }
         protected override void OnCompletedTransition(Storyboard oldStoryboard, FrameworkElement oldPresenter, Storyboard newStoryboard, FrameworkElement newPresenter, Point origin, ITransitionContainer container)
@@ -54,7 +52,9 @@ namespace System.Windows.Transitions
                 if (origin != null) element.RenderTransformOrigin = (Point)origin;
                 element.RenderTransform = (Transform)settings?.FirstOrDefault(i => i.Property == FrameworkElement.RenderTransformProperty)?.Value;
                 element.OpacityMask = (Brush)settings?.FirstOrDefault(i => i.Property == FrameworkElement.OpacityMaskProperty)?.Value;
+#pragma warning disable CS0618 // '“UIElement.BitmapEffect”已过时:“BitmapEffects are deprecated and no longer function.  Consider using Effects where appropriate instead.”
                 element.BitmapEffect = (BitmapEffect)settings?.FirstOrDefault(i => i.Property == FrameworkElement.BitmapEffectProperty)?.Value;
+#pragma warning restore CS0618 // '“UIElement.BitmapEffect”已过时:“BitmapEffects are deprecated and no longer function.  Consider using Effects where appropriate instead.”
                 element.Effect = (Effect)settings?.FirstOrDefault(i => i.Property == FrameworkElement.EffectProperty)?.Value;
             }
         }
@@ -65,7 +65,9 @@ namespace System.Windows.Transitions
                 element.RenderTransformOrigin = new Point();
                 element.RenderTransform = null;
                 element.OpacityMask = null;
+#pragma warning disable CS0618 // '“UIElement.BitmapEffect”已过时:“BitmapEffects are deprecated and no longer function.  Consider using Effects where appropriate instead.”
                 element.BitmapEffect = null;
+#pragma warning restore CS0618 // '“UIElement.BitmapEffect”已过时:“BitmapEffects are deprecated and no longer function.  Consider using Effects where appropriate instead.”
                 element.Effect = null;
             }
         }
