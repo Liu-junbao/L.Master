@@ -9,7 +9,7 @@
     d:DesignHeight="300"
     d:DesignWidth="300"
     prism:ViewModelLocator.AutoWireViewModel="True"
-    RegionBrowserAssist.Header="模块D"
+    RegionBrowserAssist.Title="模块D"
     mc:Ignorable="d">
     <Grid>
         <TextBlock

@@ -7,11 +7,13 @@
     Width="525"
     Height="350"
     prism:ViewModelLocator.AutoWireViewModel="True"
-    Background="White"
     WindowStyle="SingleBorderWindow">
+    <CustomWindow.Background>
+        <ImageBrush ImageSource="/MasterDemo;component/Images/background.png" />
+    </CustomWindow.Background>
     <CustomWindow.HeaderBar>
         <StackPanel Orientation="Horizontal">
-            <CustomWindowButton>
+            <CustomButton>
                 <Path
                     Width="13"
                     Height="12"
@@ -19,17 +21,50 @@
                     Stretch="Fill"
                     Stroke="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}"
                     StrokeThickness="0.3" />
-            </CustomWindowButton>
+            </CustomButton>
         </StackPanel>
     </CustomWindow.HeaderBar>
-    <RegionBrowser Background="#FFCCCCCC" RegionName="ContentRegion">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition />
-            </Grid.RowDefinitions>
-            <Menu Background="#FFCCCCCC">
-                <MenuItem Header="模块列表">
+    <CustomWindow.Header>
+        <StackPanel>
+            <TextBlock Text="123" />
+        </StackPanel>
+    </CustomWindow.Header>
+    <Border>
+        <RegionBrowser
+            prism:RegionManager.RegionName="ContentRegion"
+            CustomSelectablePresenterAssist.SelectedBackground="LightGray">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Menu Background="Transparent">
+                    <MenuItem Header="模块列表">
+                        <MenuItem
+                            Command="{x:Static RegionBrowser.NavigateTo}"
+                            CommandParameter="ModuleA/Views/ViewA"
+                            Header="模块A" />
+                        <MenuItem
+                            Command="{x:Static RegionBrowser.NavigateTo}"
+                            CommandParameter="ModuleB/Views/ViewA"
+                            Header="模块B" />
+                        <MenuItem
+                            Command="{x:Static RegionBrowser.NavigateTo}"
+                            CommandParameter="ModuleC/Views/ViewA"
+                            Header="模块C" />
+                        <MenuItem
+                            Command="{x:Static RegionBrowser.NavigateTo}"
+                            CommandParameter="ModuleD/Views/ViewA"
+                            Header="模块D" />
+                        <MenuItem
+                            Command="{x:Static RegionBrowser.NavigateTo}"
+                            CommandParameter="ModuleE/Views/ViewA"
+                            Header="模块E" />
+                        <MenuItem
+                            Command="{x:Static RegionBrowser.NavigateTo}"
+                            CommandParameter="ModuleF/Views/ViewA"
+                            Header="模块F" />
+                    </MenuItem>
                     <MenuItem
                         Command="{x:Static RegionBrowser.NavigateTo}"
                         CommandParameter="ModuleA/Views/ViewA"
@@ -54,45 +89,28 @@
                         Command="{x:Static RegionBrowser.NavigateTo}"
                         CommandParameter="ModuleF/Views/ViewA"
                         Header="模块F" />
-                </MenuItem>
-                <MenuItem
-                    Command="{x:Static RegionBrowser.NavigateTo}"
-                    CommandParameter="ModuleA/Views/ViewA"
-                    Header="模块A" />
-                <MenuItem
-                    Command="{x:Static RegionBrowser.NavigateTo}"
-                    CommandParameter="ModuleB/Views/ViewA"
-                    Header="模块B" />
-                <MenuItem
-                    Command="{x:Static RegionBrowser.NavigateTo}"
-                    CommandParameter="ModuleC/Views/ViewA"
-                    Header="模块C" />
-                <MenuItem
-                    Command="{x:Static RegionBrowser.NavigateTo}"
-                    CommandParameter="ModuleD/Views/ViewA"
-                    Header="模块D" />
-                <MenuItem
-                    Command="{x:Static RegionBrowser.NavigateTo}"
-                    CommandParameter="ModuleE/Views/ViewA"
-                    Header="模块E" />
-                <MenuItem
-                    Command="{x:Static RegionBrowser.NavigateTo}"
-                    CommandParameter="ModuleF/Views/ViewA"
-                    Header="模块F" />
-            </Menu>
-            <Grid Grid.Row="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition />
-                </Grid.RowDefinitions>
-                <RegionBrowserBar Grid.Column="1" />
-                <RegionBrowserBar Grid.Row="1" Orientation="Vertical" />
-                <RegionBrowserContentControl Grid.Row="1" Grid.Column="1" />
+                </Menu>
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <RegionBrowserBar Grid.Column="1" />
+                    <RegionBrowserBar Grid.Row="2" Grid.Column="1" />
+                    <RegionBrowserBar Grid.Row="1" Orientation="Vertical" />
+                    <RegionBrowserBar
+                        Grid.Row="1"
+                        Grid.Column="2"
+                        Orientation="Vertical" />
+                    <RegionBrowserContentControl Grid.Row="1" Grid.Column="1" />
+                </Grid>
             </Grid>
-        </Grid>
-    </RegionBrowser>
+        </RegionBrowser>
+    </Border>
 </CustomWindow>

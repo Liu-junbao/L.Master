@@ -14,6 +14,9 @@ namespace System.Windows
             DependencyProperty.Register(nameof(HeaderBar), typeof(object), typeof(CustomWindow), new PropertyMetadata(null));
         public static readonly DependencyProperty HeaderProperty =
             DependencyProperty.Register(nameof(Header), typeof(object), typeof(CustomWindow), new PropertyMetadata(null));
+        public static readonly DependencyProperty ShouldNotifyIconProperty =
+           DependencyProperty.Register(nameof(ShouldNotifyIcon), typeof(bool), typeof(CustomWindow), new PropertyMetadata(false));
+
         static CustomWindow()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(CustomWindow),new FrameworkPropertyMetadata(typeof(CustomWindow)));
@@ -35,7 +38,16 @@ namespace System.Windows
             get { return (object)GetValue(HeaderProperty); }
             set { SetValue(HeaderProperty, value); }
         }
-
+        public bool ShouldNotifyIcon
+        {
+            get { return (bool)GetValue(ShouldNotifyIconProperty); }
+            set { SetValue(ShouldNotifyIconProperty, value); }
+        }
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+        }
+       
         private void OnCanResizeWindow(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = this.ResizeMode == ResizeMode.CanResize || this.ResizeMode == ResizeMode.CanResizeWithGrip;
@@ -44,7 +56,7 @@ namespace System.Windows
         {
             e.CanExecute = this.ResizeMode != ResizeMode.NoResize;
         }
-
+      
         private void OnCloseWindow(object target, ExecutedRoutedEventArgs e)
         {
             SystemCommands.CloseWindow(this);
@@ -62,15 +74,6 @@ namespace System.Windows
         private void OnRestoreWindow(object target, ExecutedRoutedEventArgs e)
         {
             SystemCommands.RestoreWindow(this);
-        }
-
-    }
-
-    public class CustomWindowButton:Button
-    {
-        static CustomWindowButton()
-        {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(CustomWindowButton), new FrameworkPropertyMetadata(typeof(CustomWindowButton)));
         }
     }
 }

@@ -9,7 +9,7 @@
     d:DesignHeight="300"
     d:DesignWidth="300"
     prism:ViewModelLocator.AutoWireViewModel="True"
-    RegionBrowserAssist.Header="模块F"
+    RegionBrowserAssist.Title="模块F"
     RegionBrowserAssist.ToolTip="曲线图"
     mc:Ignorable="d">
     <!--<UserControl.Resources>

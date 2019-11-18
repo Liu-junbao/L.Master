@@ -10,11 +10,13 @@
     d:DesignHeight="300"
     d:DesignWidth="300"
     prism:ViewModelLocator.AutoWireViewModel="True"
+    Background="LightGray"
+    
     RegionBrowserAssist.CanClose="False"
-    RegionBrowserAssist.Header="模块A"
     RegionBrowserAssist.Icon="/ModuleA;component/YF.ico"
+    RegionBrowserAssist.Title="模块A"
     RegionBrowserAssist.ToolTip="Home"
-    mc:Ignorable="d" Background="LightGray">
+    mc:Ignorable="d">
     <Grid>
         <TextBlock
             HorizontalAlignment="Center"

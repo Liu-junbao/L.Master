@@ -4,11 +4,15 @@
     xmlns:local="clr-namespace:System.Windows"
     xmlns:trans="clr-namespace:System.Windows.Transitions">
     <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/ST.CustomPresenter.xaml" />
+        <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/ST.CustomButton.xaml" />
         <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/ST.CustomWindow.xaml" />
         <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/ST.Transitions.xaml" />
         <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/ST.BrowserBar.xaml" />
     </ResourceDictionary.MergedDictionaries>
-    <Style BasedOn="{StaticResource st.CustomWindowButton}" TargetType="local:CustomWindowButton" />
+    <Style BasedOn="{StaticResource st.CustomPresenter}" TargetType="local:CustomPresenter" />
+    <Style BasedOn="{StaticResource st.CustomSelectablePresenter}" TargetType="local:CustomSelectablePresenter" />
+    <Style BasedOn="{StaticResource st.CustomButton}" TargetType="local:CustomButton" />
     <Style BasedOn="{StaticResource st.CustomWindow}" TargetType="local:CustomWindow" />
     <Style BasedOn="{StaticResource st.TransitionerBox}" TargetType="trans:TransitionerBox" />
     <Style BasedOn="{StaticResource st.TransitioningContent}" TargetType="trans:TransitioningContent" />

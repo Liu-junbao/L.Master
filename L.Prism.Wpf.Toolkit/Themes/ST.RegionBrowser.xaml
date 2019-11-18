@@ -31,19 +31,19 @@
                 x:Name="tb"
                 Margin="3"
                 VerticalAlignment="Center"
-                Text="{Binding (RegionBrowserAssist.Header)}" />
+                Text="{Binding (RegionBrowserAssist.Title)}" />
         </StackPanel>
     </DataTemplate>
 
     <Style x:Key="st.RegionBrowserContentControl" TargetType="local:RegionBrowserContentControl">
-        <Setter Property="Background" Value="#FFF2F2F2" />
+        <Setter Property="Background" Value="{Binding RelativeSource={RelativeSource Self}, Path=(CustomSelectablePresenterAssist.SelectedBackground)}" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="VerticalContentAlignment" Value="Stretch" />
-        <Setter Property="prism:RegionManager.RegionName" Value="{Binding RegionName, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:RegionBrowser}}}" />
+        <Setter Property="Content" Value="{Binding Content, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:RegionBrowser}}}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:RegionBrowserContentControl">
-                    <Border Background="{TemplateBinding Background}">
+                    <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
                         <TransitionerBox
                             Margin="{TemplateBinding Padding}"
                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
@@ -61,6 +61,7 @@
         x:Key="st.RegionBrowserBar"
         BasedOn="{StaticResource {x:Type BrowserBar}}"
         TargetType="local:RegionBrowserBar">
+        <Setter Property="Background" Value="Transparent" />
         <Setter Property="ClosePageCommand" Value="{x:Static local:RegionBrowser.ClosePage}" />
         <Setter Property="ItemsSource" Value="{Binding Views, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:RegionBrowser}}}" />
         <Setter Property="ItemTemplate" Value="{Binding HeaderTemplate, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:RegionBrowser}}}" />
@@ -75,20 +76,24 @@
     </Style>
 
     <Style x:Key="st.RegionBrowser" TargetType="local:RegionBrowser">
-        <Setter Property="Padding" Value="3" />
-        <Setter Property="Background" Value="#FFCCCCCC" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="CustomPresenterAssit.MouseOverBackground" Value="#FF959595" />
+        <Setter Property="CustomSelectablePresenterAssist.SelectedBackground" Value="#FFF2F2F2" />
         <Setter Property="HeaderTemplate" Value="{StaticResource dt.RegionBrowser.Header}" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="VerticalContentAlignment" Value="Stretch" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:RegionBrowser">
-                    <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
+                    <Border
+                        Background="{TemplateBinding Background}"
+                        ClipToBounds="True"
+                        SnapsToDevicePixels="true">
                         <ContentPresenter
                             Margin="{TemplateBinding Padding}"
                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                            Content="{TemplateBinding Content}"
+                            Content="{TemplateBinding Child}"
                             SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                     </Border>
                 </ControlTemplate>

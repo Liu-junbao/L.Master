@@ -11,8 +11,8 @@ using System.Windows.Markup;
 namespace Prism
 {
 
-    [ContentProperty(nameof(Content))]
-    public class RegionBrowser : Control
+    [ContentProperty(nameof(Child))]
+    public class RegionBrowser : ContentControl
     {
         #region commands
         private static RoutedUICommand _closePage;
@@ -25,8 +25,6 @@ namespace Prism
                 if (_closePage == null)
                 {
                     _closePage = new RoutedUICommand("close page", nameof(ClosePage), typeof(RegionBrowser));
-                    //注册热键
-                    _closePage.InputGestures.Add(new KeyGesture(Key.F4, ModifierKeys.Control));
                 }
                 return _closePage;
             }
@@ -37,20 +35,14 @@ namespace Prism
             {
                 if (_navigateTo == null)
                 {
-                    _navigateTo = new RoutedUICommand("Navigate to", nameof(NavigateTo), typeof(RegionBrowser));
-                    //注册热键
-                    //_navigateTo.InputGestures.Add(new KeyGesture(Key.B,ModifierKeys.Alt));
+                    _navigateTo = new RoutedUICommand("navigate to", nameof(NavigateTo), typeof(RegionBrowser));
                 }
                 return _navigateTo;
             }
         }
         #endregion
-
-        public static RoutedCommand CloseViewCommand = new RoutedCommand();
-        public static readonly DependencyProperty ContentProperty =
-            DependencyProperty.Register(nameof(Content), typeof(object), typeof(RegionBrowser), new PropertyMetadata(null));
-        public static readonly DependencyProperty RegionNameProperty =
-            DependencyProperty.Register(nameof(RegionName), typeof(string), typeof(RegionBrowser), new PropertyMetadata(null));
+        public static readonly DependencyProperty ChildProperty =
+           DependencyProperty.Register(nameof(Child), typeof(object), typeof(RegionBrowser), new PropertyMetadata(null));
         private static readonly DependencyPropertyKey RegionPropertyKey =
             DependencyProperty.RegisterReadOnly(nameof(Region), typeof(IRegion), typeof(RegionBrowser), new PropertyMetadata(null));
         public static readonly DependencyProperty RegionProperty = RegionPropertyKey.DependencyProperty;
@@ -70,21 +62,24 @@ namespace Prism
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(RegionBrowser), new FrameworkPropertyMetadata(typeof(RegionBrowser)));
         }
+
         private IRegionManager _regionManager;
         public RegionBrowser()
         {
-            this.CommandBindings.Add(new CommandBinding(ClosePage, OnCloseTabHandler));
+            this.CommandBindings.Add(new CommandBinding(ClosePage, OnClosePageHandler));
             this.CommandBindings.Add(new CommandBinding(NavigateTo, OnNavigateToHandler));
+            this.LostFocus += RegionBrowser_LostFocus;
         }
-        public object Content
+
+        private void RegionBrowser_LostFocus(object sender, RoutedEventArgs e)
         {
-            get { return (object)GetValue(ContentProperty); }
-            set { SetValue(ContentProperty, value); }
+           
         }
-        public string RegionName
+
+        public object Child
         {
-            get { return (string)GetValue(RegionNameProperty); }
-            set { SetValue(RegionNameProperty, value); }
+            get { return (object)GetValue(ChildProperty); }
+            set { SetValue(ChildProperty, value); }
         }
         public IRegion Region
         {
@@ -115,11 +110,11 @@ namespace Prism
         {
             var regionManager = RegionManager.GetRegionManager(this);
             if (regionManager == null && CommonServiceLocator.ServiceLocator.IsLocationProviderSet)
-                regionManager = CommonServiceLocator.ServiceLocator.Current.GetInstance<IRegionManager>();
+                regionManager = CommonServiceLocator.ServiceLocator.Current?.GetInstance<IRegionManager>();
             if (regionManager != null)
             {
                 _regionManager = regionManager;
-                var regionName = this.RegionName;
+                var regionName = RegionManager.GetRegionName(this);
                 if (string.IsNullOrEmpty(regionName) == false)
                 {
                     if (regionManager.Regions.ContainsRegionWithName(regionName))
@@ -166,7 +161,7 @@ namespace Prism
                     Region?.Activate(active);
             }
         }
-        private void OnCloseTabHandler(object sender, ExecutedRoutedEventArgs e)
+        private void OnClosePageHandler(object sender, ExecutedRoutedEventArgs e)
         {
             var region = Region;
             if (region?.Views?.Contains(e.Parameter) == true)
@@ -187,9 +182,9 @@ namespace Prism
             var param = e.Parameter;
             if (param == null) return;
             if (param is string)
-                this._regionManager?.NavigateToView(RegionName, param.ToString());
+                this._regionManager?.NavigateToView(RegionManager.GetRegionName(this), param.ToString());
             else
-                this._regionManager?.NavigateToView(RegionName, param);
+                this._regionManager?.NavigateToView(RegionManager.GetRegionName(this), param);
         }
     }
     public class RegionBrowserBar : BrowserBar

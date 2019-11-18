@@ -10,14 +10,16 @@ namespace Prism
 {
     public static class RegionBrowserAssist
     {
+        public static readonly DependencyProperty SelectedBackgroundProperty =
+            DependencyProperty.RegisterAttached("SelectedBackground", typeof(Brush), typeof(RegionBrowserAssist), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.AffectsRender));
         public static readonly DependencyProperty CanCloseProperty =
             DependencyProperty.RegisterAttached("CanClose", typeof(bool), typeof(RegionBrowserAssist), new PropertyMetadata(true));
         public static readonly DependencyProperty IconProperty =
             DependencyProperty.RegisterAttached("Icon", typeof(ImageSource), typeof(RegionBrowserAssist), new PropertyMetadata(null));
         public static readonly DependencyProperty DataProperty =
             DependencyProperty.RegisterAttached("Data", typeof(Geometry), typeof(RegionBrowserAssist), new PropertyMetadata(null));
-        public static readonly DependencyProperty HeaderProperty =
-            DependencyProperty.RegisterAttached("Header", typeof(string), typeof(RegionBrowserAssist), new PropertyMetadata(null));
+        public static readonly DependencyProperty TitleProperty =
+            DependencyProperty.RegisterAttached("Title", typeof(string), typeof(RegionBrowserAssist), new PropertyMetadata("标题"));
         public static readonly DependencyProperty ToolTipProperty =
             DependencyProperty.RegisterAttached("ToolTip", typeof(object), typeof(RegionBrowserAssist), new PropertyMetadata(null));
         public static readonly DependencyProperty FillProperty =
@@ -26,7 +28,14 @@ namespace Prism
             DependencyProperty.RegisterAttached("Stroke", typeof(Brush), typeof(RegionBrowserAssist), new PropertyMetadata(SystemColors.WindowTextBrush));
         public static readonly DependencyProperty StrokeThicknessProperty =
             DependencyProperty.RegisterAttached("StrokeThickness", typeof(double), typeof(RegionBrowserAssist), new PropertyMetadata(0.3));
-
+        public static Brush GetSelectedBackground(DependencyObject obj)
+        {
+            return (Brush)obj.GetValue(SelectedBackgroundProperty);
+        }
+        public static void SetSelectedBackground(DependencyObject obj, Brush value)
+        {
+            obj.SetValue(SelectedBackgroundProperty, value);
+        }
         public static bool GetCanClose(DependencyObject obj)
         {
             return (bool)obj.GetValue(CanCloseProperty);
@@ -35,7 +44,6 @@ namespace Prism
         {
             obj.SetValue(CanCloseProperty, value);
         }
-
         public static ImageSource GetIcon(DependencyObject obj)
         {
             return (ImageSource)obj.GetValue(IconProperty);
@@ -52,13 +60,13 @@ namespace Prism
         {
             obj.SetValue(DataProperty, value);
         }
-        public static string GetHeader(DependencyObject obj)
+        public static string GetTitle(DependencyObject obj)
         {
-            return (string)obj.GetValue(HeaderProperty);
+            return (string)obj.GetValue(TitleProperty);
         }
-        public static void SetHeader(DependencyObject obj, string value)
+        public static void SetTitle(DependencyObject obj, string value)
         {
-            obj.SetValue(HeaderProperty, value);
+            obj.SetValue(TitleProperty, value);
         }
         public static object GetToolTip(DependencyObject obj)
         {
@@ -92,5 +100,6 @@ namespace Prism
         {
             obj.SetValue(StrokeThicknessProperty, value);
         }
+
     }
 }

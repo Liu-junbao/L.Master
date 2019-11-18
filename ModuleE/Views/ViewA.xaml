@@ -9,7 +9,7 @@
     xmlns:root="clr-namespace:ModuleE"
     d:DesignHeight="300"
     d:DesignWidth="300"
-    RegionBrowserAssist.Header="模块E"
+    RegionBrowserAssist.Title="模块E"
     RegionBrowserAssist.CanClose="False"
     prism:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">

@@ -81,20 +81,10 @@ namespace System.Windows
             }
         }
     }
-    public class BrowserBarItem : ContentControl
+    public class BrowserBarItem : CustomSelectablePresenter
     {
         public static readonly DependencyProperty CanCloseProperty =
            DependencyProperty.Register(nameof(CanClose), typeof(bool), typeof(BrowserBarItem), new PropertyMetadata(true));
-        public static readonly DependencyProperty IsSelectedProperty =
-           DependencyProperty.Register(nameof(IsSelected), typeof(bool), typeof(BrowserBarItem), new PropertyMetadata(false,OnIsSelectedChanged));
-        private static void OnIsSelectedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            BrowserBarItem item = (BrowserBarItem)d;
-            if ((bool)e.NewValue == true)
-            {
-                item.BringIntoView();
-            }
-        }
         static BrowserBarItem()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(BrowserBarItem), new FrameworkPropertyMetadata(typeof(BrowserBarItem)));
@@ -103,11 +93,6 @@ namespace System.Windows
         {
             get { return (bool)GetValue(CanCloseProperty); }
             set { SetValue(CanCloseProperty, value); }
-        }
-        public bool IsSelected
-        {
-            get { return (bool)GetValue(IsSelectedProperty); }
-            set { SetValue(IsSelectedProperty, value); }
         }
     }
     public static class BrowserBarAssist
