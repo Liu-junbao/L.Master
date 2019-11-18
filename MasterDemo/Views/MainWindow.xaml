@@ -11,7 +11,7 @@
     </CustomWindow.Background>
     <CustomWindow.HeaderBar>
         <StackPanel Orientation="Horizontal">
-            <CustomButton>
+            <CustomButton Width="32" Height="30">
                 <Path
                     Width="13"
                     Height="12"

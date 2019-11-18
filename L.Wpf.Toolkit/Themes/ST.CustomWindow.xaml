@@ -30,13 +30,18 @@
                                 <DockPanel WindowChrome.IsHitTestVisibleInChrome="True">
                                     <StackPanel
                                         x:Name="Closeable"
+                                        VerticalAlignment="Top"
                                         DockPanel.Dock="Right"
                                         Orientation="Horizontal">
                                         <StackPanel
                                             x:Name="Restoreable"
                                             DockPanel.Dock="Right"
                                             Orientation="Horizontal">
-                                            <local:CustomButton Command="{x:Static SystemCommands.MinimizeWindowCommand}" DockPanel.Dock="Right">
+                                            <local:CustomButton
+                                                Width="32"
+                                                Height="30"
+                                                Command="{x:Static SystemCommands.MinimizeWindowCommand}"
+                                                DockPanel.Dock="Right">
                                                 <Path
                                                     Width="13"
                                                     Height="12"
@@ -48,6 +53,8 @@
                                             <Grid Margin="1,0,1,0">
                                                 <local:CustomButton
                                                     x:Name="Restore"
+                                                    Width="32"
+                                                    Height="30"
                                                     Command="{x:Static SystemCommands.RestoreWindowCommand}"
                                                     Visibility="Collapsed">
                                                     <Path
@@ -58,7 +65,11 @@
                                                         Stroke="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:CustomButton}}"
                                                         StrokeThickness="0.7" />
                                                 </local:CustomButton>
-                                                <local:CustomButton x:Name="Maximize" Command="{x:Static SystemCommands.MaximizeWindowCommand}">
+                                                <local:CustomButton
+                                                    x:Name="Maximize"
+                                                    Width="32"
+                                                    Height="30"
+                                                    Command="{x:Static SystemCommands.MaximizeWindowCommand}">
                                                     <Path
                                                         Width="13"
                                                         Height="12"
@@ -69,7 +80,11 @@
                                                 </local:CustomButton>
                                             </Grid>
                                         </StackPanel>
-                                        <local:CustomButton Command="{x:Static SystemCommands.CloseWindowCommand}" Style="{StaticResource st.CustomWindowButton.Close}">
+                                        <local:CustomButton
+                                            Width="32"
+                                            Height="30"
+                                            Command="{x:Static SystemCommands.CloseWindowCommand}"
+                                            Style="{StaticResource st.CustomWindowButton.Close}">
                                             <local:CustomButton.Content>
                                                 <Path
                                                     Width="13"
@@ -81,7 +96,10 @@
                                             </local:CustomButton.Content>
                                         </local:CustomButton>
                                     </StackPanel>
-                                    <ContentPresenter Content="{TemplateBinding HeaderBar}" DockPanel.Dock="Right" />
+                                    <ContentPresenter
+                                        VerticalAlignment="Top"
+                                        Content="{TemplateBinding HeaderBar}"
+                                        DockPanel.Dock="Right" />
                                     <ContentPresenter Content="{TemplateBinding Header}" DockPanel.Dock="Left" />
                                     <Border />
                                 </DockPanel>
