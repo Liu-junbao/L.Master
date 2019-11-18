@@ -68,12 +68,6 @@ namespace Prism
         {
             this.CommandBindings.Add(new CommandBinding(ClosePage, OnClosePageHandler));
             this.CommandBindings.Add(new CommandBinding(NavigateTo, OnNavigateToHandler));
-            this.LostFocus += RegionBrowser_LostFocus;
-        }
-
-        private void RegionBrowser_LostFocus(object sender, RoutedEventArgs e)
-        {
-           
         }
 
         public object Child

@@ -20,6 +20,6 @@ namespace System.Windows
         {
             get { return (Brush)GetValue(PressedBackgroundProperty); }
             set { SetValue(PressedBackgroundProperty, value); }
-        }
+        }       
     }
 }

@@ -4,7 +4,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:prism="http://prismlibrary.com/"
     Title="{Binding Title}"
-    Height="350"
     prism:ViewModelLocator.AutoWireViewModel="True"
     WindowStyle="SingleBorderWindow">
     <CustomWindow.Background>
