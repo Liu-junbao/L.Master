@@ -272,7 +272,6 @@
 
     <Style x:Key="st.BrowserBar" TargetType="local:BrowserBar">
         <Setter Property="Background" Value="#FFCCCCCC" />
-        <Setter Property="local:BrowserBarAssist.PupBackground" Value="LightGray" />
         <Setter Property="local:CustomPresenterAssit.BackgroundOpacity" Value="0.5" />
         <Setter Property="local:CustomPresenterAssit.MouseOverBackground" Value="#FF959595" />
         <Setter Property="local:CustomSelectablePresenterAssist.SelectedBackground" Value="#FFF2F2F2" />
