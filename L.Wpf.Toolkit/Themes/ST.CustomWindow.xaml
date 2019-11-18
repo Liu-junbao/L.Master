@@ -10,18 +10,8 @@
         x:Key="st.CustomWindowButton.Close"
         BasedOn="{StaticResource st.CustomButton}"
         TargetType="local:CustomButton">
-        <Setter Property="local:CustomPresenterAssit.MouseOverBackground" Value="Transparent" />
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="Red" />
-            </Trigger>
-            <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="#FFDE7D7D" />
-            </Trigger>
-            <Trigger Property="IsEnabled" Value="false">
-                <Setter Property="Opacity" Value="0.23" />
-            </Trigger>
-        </Style.Triggers>
+        <Setter Property="local:CustomPresenterAssit.MouseOverBackground" Value="Red" />
+        <Setter Property="PressedBackground" Value="Red" />
     </Style>
 
     <Style x:Key="st.CustomWindow" TargetType="local:CustomWindow">

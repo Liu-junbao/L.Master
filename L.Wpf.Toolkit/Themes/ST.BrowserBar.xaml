@@ -117,7 +117,7 @@
                         BorderThickness="{TemplateBinding BorderThickness}"
                         SnapsToDevicePixels="True">
                         <Grid>
-                            <Rectangle Fill="{TemplateBinding Background}" Opacity="{TemplateBinding MouseOverBackOpacity}" />
+                            <Rectangle Fill="{TemplateBinding Background}" Opacity="{TemplateBinding BackgroundOpacity}" />
                             <Rectangle
                                 x:Name="rect"
                                 Fill="{TemplateBinding MouseOverBackground}"
@@ -165,7 +165,7 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 SnapsToDevicePixels="True">
                                 <Grid>
-                                    <Rectangle Fill="{TemplateBinding SelectedBackground}" Opacity="{TemplateBinding MouseOverBackOpacity}" />
+                                    <Rectangle Fill="{TemplateBinding SelectedBackground}" Opacity="{TemplateBinding BackgroundOpacity}" />
                                     <ContentPresenter
                                         Margin="{TemplateBinding Padding}"
                                         HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
