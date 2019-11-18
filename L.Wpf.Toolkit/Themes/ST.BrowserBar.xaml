@@ -113,21 +113,21 @@
             <Setter.Value>
                 <ControlTemplate TargetType="local:BrowserBarItem">
                     <Border
-                        Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
                         SnapsToDevicePixels="True">
                         <Grid>
-                            <ContentPresenter
-                                Margin="{TemplateBinding Padding}"
-                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            <Rectangle Fill="{TemplateBinding Background}" Opacity="{TemplateBinding MouseOverBackOpacity}" />
                             <Rectangle
                                 x:Name="rect"
                                 Fill="{TemplateBinding MouseOverBackground}"
                                 Opacity="{TemplateBinding MouseOverBackOpacity}"
                                 Visibility="Hidden" />
+                            <ContentPresenter
+                                Margin="{TemplateBinding Padding}"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                             <Border
                                 Margin="{TemplateBinding Padding}"
                                 HorizontalAlignment="Right"
@@ -139,7 +139,7 @@
                                     x:Name="bt"
                                     Width="16"
                                     Height="16"
-                                    Command="{x:Static local:BrowserBarAssist.ClosePage}"
+                                    Command="{x:Static local:BrowserBar.ClosePage}"
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource st.Button.CloseButton}"
                                     Visibility="Collapsed" />
@@ -161,16 +161,18 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="local:BrowserBarItem">
                             <Border
-                                Background="{TemplateBinding SelectedBackground}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 SnapsToDevicePixels="True">
-                                <Grid Margin="{TemplateBinding Padding}">
+                                <Grid>
+                                    <Rectangle Fill="{TemplateBinding SelectedBackground}" Opacity="{TemplateBinding MouseOverBackOpacity}" />
                                     <ContentPresenter
+                                        Margin="{TemplateBinding Padding}"
                                         HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                         SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                                     <Border
+                                        Margin="{TemplateBinding Padding}"
                                         HorizontalAlignment="Right"
                                         VerticalAlignment="Center"
                                         Background="Transparent"
@@ -180,7 +182,7 @@
                                             x:Name="bt"
                                             Width="16"
                                             Height="16"
-                                            Command="{x:Static local:BrowserBarAssist.ClosePage}"
+                                            Command="{x:Static local:BrowserBar.ClosePage}"
                                             CommandParameter="{Binding}"
                                             Style="{StaticResource st.Button.CloseButton}" />
                                     </Border>
@@ -227,17 +229,14 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBox">
-                    <Border
-                        Grid.Column="1"
-                        Background="{TemplateBinding Background}"
-                        SnapsToDevicePixels="True">
+                    <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
                         <Grid>
                             <Popup
                                 AllowsTransparency="true"
                                 IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
                                 Placement="Bottom"
                                 PopupAnimation="{DynamicResource {x:Static SystemParameters.ComboBoxPopupAnimationKey}}">
-                                <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                <Border Background="{TemplateBinding local:BrowserBarAssist.PupBackground}" SnapsToDevicePixels="True">
                                     <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                                 </Border>
                             </Popup>
@@ -273,6 +272,8 @@
 
     <Style x:Key="st.BrowserBar" TargetType="local:BrowserBar">
         <Setter Property="Background" Value="#FFCCCCCC" />
+        <Setter Property="local:BrowserBarAssist.PupBackground" Value="LightGray" />
+        <Setter Property="local:CustomPresenterAssit.BackgroundOpacity" Value="0.5" />
         <Setter Property="local:CustomPresenterAssit.MouseOverBackground" Value="#FF959595" />
         <Setter Property="local:CustomSelectablePresenterAssist.SelectedBackground" Value="#FFF2F2F2" />
         <Setter Property="Height" Value="32" />

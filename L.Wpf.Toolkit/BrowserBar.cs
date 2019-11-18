@@ -14,6 +14,20 @@ namespace System.Windows
     [StyleTypedProperty(Property = nameof(ItemContainerStyle), StyleTargetType = typeof(BrowserBarItem))]
     public class BrowserBar:Control
     {
+        private static RoutedUICommand _closePage;
+        public static ICommand ClosePage
+        {
+            get
+            {
+                if (_closePage == null)
+                {
+                    _closePage = new RoutedUICommand("Close Page", nameof(ClosePage), typeof(BrowserBar));
+                    //注册热键
+                    //_close.InputGestures.Add(new KeyGesture(Key.B,ModifierKeys.Alt));
+                }
+                return _closePage;
+            }
+        }
         public static readonly DependencyProperty OrientationProperty =
             DependencyProperty.Register(nameof(Orientation), typeof(Orientation), typeof(BrowserBar), new PropertyMetadata(Orientation.Horizontal));
         public static readonly DependencyProperty ClosePageCommandProperty =
@@ -35,7 +49,7 @@ namespace System.Windows
         }
         public BrowserBar()
         {
-            this.CommandBindings.Add(new CommandBinding(BrowserBarAssist.ClosePage, new ExecutedRoutedEventHandler(OnClosePage)));
+            this.CommandBindings.Add(new CommandBinding(BrowserBar.ClosePage, new ExecutedRoutedEventHandler(OnClosePage)));
         }
         public Style ItemContainerStyle
         {
@@ -72,6 +86,7 @@ namespace System.Windows
             get { return (DataTemplate)GetValue(ItemTemplateProperty); }
             set { SetValue(ItemTemplateProperty, value); }
         }
+
         private void OnClosePage(object sender, ExecutedRoutedEventArgs e)
         {       
             var command = ClosePageCommand;
@@ -97,101 +112,16 @@ namespace System.Windows
     }
     public static class BrowserBarAssist
     {
-        private static RoutedUICommand _closePage;
-        public static ICommand ClosePage
+       
+        public static readonly DependencyProperty PupBackgroundProperty =
+           DependencyProperty.RegisterAttached("PupBackground", typeof(Brush), typeof(BrowserBarAssist), new FrameworkPropertyMetadata(default(Brush), FrameworkPropertyMetadataOptions.Inherits| FrameworkPropertyMetadataOptions.AffectsRender));
+        public static Brush GetPupBackground(DependencyObject obj)
         {
-            get
-            {
-                if (_closePage == null)
-                {
-                    _closePage = new RoutedUICommand("Close Page", nameof(ClosePage), typeof(BrowserBarAssist));
-                    //注册热键
-                    //_close.InputGestures.Add(new KeyGesture(Key.B,ModifierKeys.Alt));
-                }
-                return _closePage;
-            }
+            return (Brush)obj.GetValue(PupBackgroundProperty);
         }
-
-        public static readonly DependencyProperty CanCloseProperty =
-           DependencyProperty.RegisterAttached("CanClose", typeof(bool), typeof(BrowserBarAssist), new PropertyMetadata(true));
-        public static readonly DependencyProperty IconProperty =
-            DependencyProperty.RegisterAttached("Icon", typeof(ImageSource), typeof(BrowserBarAssist), new PropertyMetadata(null));
-        public static readonly DependencyProperty DataProperty =
-            DependencyProperty.RegisterAttached("Data", typeof(Geometry), typeof(BrowserBarAssist), new PropertyMetadata(null));
-        public static readonly DependencyProperty HeaderProperty =
-            DependencyProperty.RegisterAttached("Header", typeof(string), typeof(BrowserBarAssist), new PropertyMetadata(null));
-        public static readonly DependencyProperty ToolTipProperty =
-            DependencyProperty.RegisterAttached("ToolTip", typeof(object), typeof(BrowserBarAssist), new PropertyMetadata(null));
-        public static readonly DependencyProperty FillProperty =
-            DependencyProperty.RegisterAttached("Fill", typeof(Brush), typeof(BrowserBarAssist), new PropertyMetadata(null));
-        public static readonly DependencyProperty StrokeProperty =
-            DependencyProperty.RegisterAttached("Stroke", typeof(Brush), typeof(BrowserBarAssist), new PropertyMetadata(SystemColors.WindowTextBrush));
-        public static readonly DependencyProperty StrokeThicknessProperty =
-            DependencyProperty.RegisterAttached("StrokeThickness", typeof(double), typeof(BrowserBarAssist), new PropertyMetadata(0.3));
-
-        public static bool GetCanClose(DependencyObject obj)
+        public static void SetPupBackground(DependencyObject obj, Brush value)
         {
-            return (bool)obj.GetValue(CanCloseProperty);
-        }
-        public static void SetCanClose(DependencyObject obj, bool value)
-        {
-            obj.SetValue(CanCloseProperty, value);
-        }
-        public static ImageSource GetIcon(DependencyObject obj)
-        {
-            return (ImageSource)obj.GetValue(IconProperty);
-        }
-        public static void SetIcon(DependencyObject obj, ImageSource value)
-        {
-            obj.SetValue(IconProperty, value);
-        }
-        public static Geometry GetData(DependencyObject obj)
-        {
-            return (Geometry)obj.GetValue(DataProperty);
-        }
-        public static void SetData(DependencyObject obj, Geometry value)
-        {
-            obj.SetValue(DataProperty, value);
-        }
-        public static string GetHeader(DependencyObject obj)
-        {
-            return (string)obj.GetValue(HeaderProperty);
-        }
-        public static void SetHeader(DependencyObject obj, string value)
-        {
-            obj.SetValue(HeaderProperty, value);
-        }
-        public static object GetToolTip(DependencyObject obj)
-        {
-            return (object)obj.GetValue(ToolTipProperty);
-        }
-        public static void SetToolTip(DependencyObject obj, object value)
-        {
-            obj.SetValue(ToolTipProperty, value);
-        }
-        public static Brush GetFill(DependencyObject obj)
-        {
-            return (Brush)obj.GetValue(FillProperty);
-        }
-        public static void SetFill(DependencyObject obj, Brush value)
-        {
-            obj.SetValue(FillProperty, value);
-        }
-        public static Brush GetStroke(DependencyObject obj)
-        {
-            return (Brush)obj.GetValue(StrokeProperty);
-        }
-        public static void SetStroke(DependencyObject obj, Brush value)
-        {
-            obj.SetValue(StrokeProperty, value);
-        }
-        public static double GetStrokeThickness(DependencyObject obj)
-        {
-            return (double)obj.GetValue(StrokeThicknessProperty);
-        }
-        public static void SetStrokeThickness(DependencyObject obj, double value)
-        {
-            obj.SetValue(StrokeThicknessProperty, value);
+            obj.SetValue(PupBackgroundProperty, value);
         }
     }
 }

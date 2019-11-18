@@ -14,5 +14,5 @@
     RegionBrowserAssist.StrokeThickness="0.1"
     RegionBrowserAssist.ToolTip="模块B"
     mc:Ignorable="d">
-    <Grid Background="YellowGreen" />
+    <Grid Background="Transparent" />
 </UserControl>

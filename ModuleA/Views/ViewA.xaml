@@ -10,7 +10,7 @@
     d:DesignHeight="300"
     d:DesignWidth="300"
     prism:ViewModelLocator.AutoWireViewModel="True"
-    Background="LightGray"
+    Background="Transparent"
     
     RegionBrowserAssist.CanClose="False"
     RegionBrowserAssist.Icon="/ModuleA;component/YF.ico"

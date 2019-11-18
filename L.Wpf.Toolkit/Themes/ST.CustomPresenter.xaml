@@ -8,27 +8,29 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="IsTabStop" Value="False" />
         <Setter Property="Background" Value="Transparent" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="BackgroundOpacity" Value="{Binding RelativeSource={RelativeSource Self}, Path=(local:CustomPresenterAssit.BackgroundOpacity)}" />
         <Setter Property="MouseOverBackground" Value="{Binding RelativeSource={RelativeSource Self}, Path=(local:CustomPresenterAssit.MouseOverBackground)}" />
         <Setter Property="MouseOverBackOpacity" Value="{Binding RelativeSource={RelativeSource Self}, Path=(local:CustomPresenterAssit.MouseOverBackOpacity)}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:CustomPresenter">
                     <Border
-                        Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
                         SnapsToDevicePixels="True">
                         <Grid>
-                            <ContentPresenter
-                                Margin="{TemplateBinding Padding}"
-                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            <Rectangle Fill="{TemplateBinding Background}" Opacity="{TemplateBinding MouseOverBackOpacity}" />
                             <Rectangle
                                 x:Name="rect"
                                 Fill="{TemplateBinding MouseOverBackground}"
                                 Opacity="{TemplateBinding MouseOverBackOpacity}"
                                 Visibility="Hidden" />
+                            <ContentPresenter
+                                Margin="{TemplateBinding Padding}"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -53,15 +55,17 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="local:CustomSelectablePresenter">
                             <Border
-                                Background="{TemplateBinding SelectedBackground}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 SnapsToDevicePixels="True">
-                                <ContentPresenter
-                                    Margin="{TemplateBinding Padding}"
-                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                <Grid>
+                                    <Rectangle Fill="{TemplateBinding SelectedBackground}" Opacity="{TemplateBinding MouseOverBackOpacity}" />
+                                    <ContentPresenter
+                                        Margin="{TemplateBinding Padding}"
+                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                </Grid>
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>
