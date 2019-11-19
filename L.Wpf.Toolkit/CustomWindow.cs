@@ -52,7 +52,7 @@ namespace System.Windows
     public class CustomWindowButton:Control
     {
         public static readonly DependencyProperty WindowStyleProperty =
-          DependencyProperty.Register(nameof(WindowStyle), typeof(WindowStyle), typeof(CustomWindowButton), new PropertyMetadata(WindowStyle.SingleBorderWindow));
+           DependencyProperty.Register(nameof(WindowStyle), typeof(WindowStyle), typeof(CustomWindowButton), new PropertyMetadata(WindowStyle.SingleBorderWindow));
         public static readonly DependencyProperty WindowStateProperty =
            DependencyProperty.Register(nameof(WindowState), typeof(WindowState), typeof(CustomWindowButton), new PropertyMetadata(WindowState.Normal));
         static CustomWindowButton()
@@ -74,30 +74,47 @@ namespace System.Windows
 
     public class CustomWindowDrager:ContentControl
     {
-        public static readonly DependencyProperty DragWindowProperty =
-          DependencyProperty.Register(nameof(DragWindow), typeof(Window), typeof(CustomWindowDrager), new PropertyMetadata(null));
+        public static readonly DependencyProperty IsDoubleClickableProperty =
+           DependencyProperty.Register(nameof(IsDoubleClickable), typeof(bool), typeof(CustomWindowDrager), new PropertyMetadata(true));
         static CustomWindowDrager()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(CustomWindowDrager),new FrameworkPropertyMetadata(typeof(CustomWindowDrager)));
         }
-        public Window DragWindow
+        private bool _isDoublePressed;
+        public bool IsDoubleClickable
         {
-            get { return (Window)GetValue(DragWindowProperty); }
-            set { SetValue(DragWindowProperty, value); }
+            get { return (bool)GetValue(IsDoubleClickableProperty); }
+            set { SetValue(IsDoubleClickableProperty, value); }
         }
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
-            if (e.LeftButton == MouseButtonState.Pressed)
+            if (e.LeftButton == MouseButtonState.Pressed && _isDoublePressed == false)
             {
-                DragWindow?.DragMove();
+                var window = Window.GetWindow(this);
+                if (window != null)
+                {
+                    window.DragMove();
+                }
             }
+        }
+        protected override void OnPreviewMouseDown(MouseButtonEventArgs e)
+        {
+            _isDoublePressed = false;
+            base.OnPreviewMouseDown(e);
         }
         protected override void OnMouseDoubleClick(MouseButtonEventArgs e)
         {
+            _isDoublePressed = true;
             base.OnMouseDoubleClick(e);
-            if (DragWindow != null)
-                DragWindow.WindowState = DragWindow.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+            if (IsDoubleClickable)
+            {
+                var window = Window.GetWindow(this);
+                if (window != null)
+                {
+                    window.WindowState = window.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+                }
+            }
         }
     }
 }

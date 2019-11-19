@@ -172,7 +172,6 @@ namespace System.Windows
     }
     public static class BrowserBarAssist
     {
-
         public static readonly DependencyProperty PupBackgroundProperty =
            DependencyProperty.RegisterAttached("PupBackground", typeof(Brush), typeof(BrowserBarAssist), new FrameworkPropertyMetadata(default(Brush), FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.AffectsRender));
         public static Brush GetPupBackground(DependencyObject obj)

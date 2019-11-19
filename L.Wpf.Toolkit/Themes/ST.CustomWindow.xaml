@@ -15,9 +15,8 @@
     </Style>
 
     <Style x:Key="st.CustomWindowDrager" TargetType="local:CustomWindowDrager">
-        <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+        <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True" />
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="DragWindow" Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:CustomWindow}}}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:CustomWindowDrager">
