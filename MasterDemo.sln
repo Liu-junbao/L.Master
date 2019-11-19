@@ -21,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModuleF", "ModuleF\ModuleF.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "L.Wpf.Toolkit", "L.Wpf.Toolkit\L.Wpf.Toolkit.csproj", "{DBC0C9AD-2FA0-4EA2-813F-999558CCF3B8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.Prism.Wpf.Toolkit", "L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj", "{49E8D090-1CB1-45AC-B5E4-CE1A08DD9C66}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "L.Prism.Wpf.Toolkit", "L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj", "{49E8D090-1CB1-45AC-B5E4-CE1A08DD9C66}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

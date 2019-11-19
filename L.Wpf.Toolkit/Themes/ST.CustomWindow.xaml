@@ -14,6 +14,118 @@
         <Setter Property="PressedBackground" Value="Red" />
     </Style>
 
+    <Style x:Key="st.CustomWindowDrager" TargetType="local:CustomWindowDrager">
+        <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="DragWindow" Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:CustomWindow}}}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:CustomWindowDrager">
+                    <Border Background="{TemplateBinding Background}">
+                        <ContentPresenter />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+    </Style>
+
+    <Style x:Key="st.CustomWindowButton" TargetType="local:CustomWindowButton">
+        <Setter Property="WindowState" Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:CustomWindow}}, Path=WindowState}" />
+        <Setter Property="WindowStyle" Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:CustomWindow}}, Path=WindowStyle}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:CustomWindowButton">
+                    <StackPanel
+                        x:Name="Closeable"
+                        VerticalAlignment="Top"
+                        DockPanel.Dock="Right"
+                        Orientation="Horizontal">
+                        <StackPanel
+                            x:Name="Restoreable"
+                            DockPanel.Dock="Right"
+                            Orientation="Horizontal">
+                            <local:CustomButton
+                                Width="32"
+                                Height="30"
+                                Command="{x:Static SystemCommands.MinimizeWindowCommand}"
+                                DockPanel.Dock="Right">
+                                <Path
+                                    Width="13"
+                                    Height="12"
+                                    Data="M0,6 L8,6"
+                                    Stretch="Fill"
+                                    Stroke="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}"
+                                    StrokeThickness="0.7" />
+                            </local:CustomButton>
+                            <Grid Margin="1,0,1,0">
+                                <local:CustomButton
+                                    x:Name="Restore"
+                                    Width="32"
+                                    Height="30"
+                                    Command="{x:Static SystemCommands.RestoreWindowCommand}"
+                                    Visibility="Collapsed">
+                                    <Path
+                                        Width="13"
+                                        Height="12"
+                                        Data="M2,0 L8,0 L8,6 M0,3 L6,3 M0,2 L6,2 L6,8 L0,8 Z"
+                                        Stretch="Fill"
+                                        Stroke="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:CustomButton}}"
+                                        StrokeThickness="0.7" />
+                                </local:CustomButton>
+                                <local:CustomButton
+                                    x:Name="Maximize"
+                                    Width="32"
+                                    Height="30"
+                                    Command="{x:Static SystemCommands.MaximizeWindowCommand}">
+                                    <Path
+                                        Width="13"
+                                        Height="12"
+                                        Data="M0,1 L9,1 L9,8 L0,8 Z"
+                                        Stretch="Fill"
+                                        Stroke="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:CustomButton}}"
+                                        StrokeThickness="0.7" />
+                                </local:CustomButton>
+                            </Grid>
+                        </StackPanel>
+                        <local:CustomButton
+                            Width="32"
+                            Height="30"
+                            Command="{x:Static SystemCommands.CloseWindowCommand}"
+                            Style="{StaticResource st.CustomWindowButton.Close}">
+                            <local:CustomButton.Content>
+                                <Path
+                                    Width="13"
+                                    Height="12"
+                                    Data="M0,0 L1,1 M0,1 L1,0"
+                                    Stretch="Fill"
+                                    Stroke="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:CustomButton}}"
+                                    StrokeThickness="0.7" />
+                            </local:CustomButton.Content>
+                        </local:CustomButton>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="WindowStyle" Value="None">
+                            <Setter TargetName="Closeable" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="WindowStyle" Value="ToolWindow">
+                            <Setter TargetName="Restoreable" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="WindowState" Value="Maximized">
+                            <Setter TargetName="Maximize" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="Restore" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="WindowState" Value="Normal">
+                            <Setter TargetName="Maximize" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="Restore" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style x:Key="st.CustomWindow" TargetType="local:CustomWindow">
         <Setter Property="Background" Value="Gray" />
         <Setter Property="Template">
@@ -22,87 +134,7 @@
                     <Border Background="{TemplateBinding Background}">
                         <AdornerDecorator Margin="{TemplateBinding Padding}">
                             <Grid x:Name="LayoutRoot">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
-                                <ContentPresenter Grid.Row="1" />
-                                <DockPanel WindowChrome.IsHitTestVisibleInChrome="True">
-                                    <StackPanel
-                                        x:Name="Closeable"
-                                        VerticalAlignment="Top"
-                                        DockPanel.Dock="Right"
-                                        Orientation="Horizontal">
-                                        <StackPanel
-                                            x:Name="Restoreable"
-                                            DockPanel.Dock="Right"
-                                            Orientation="Horizontal">
-                                            <local:CustomButton
-                                                Width="32"
-                                                Height="30"
-                                                Command="{x:Static SystemCommands.MinimizeWindowCommand}"
-                                                DockPanel.Dock="Right">
-                                                <Path
-                                                    Width="13"
-                                                    Height="12"
-                                                    Data="M0,6 L8,6"
-                                                    Stretch="Fill"
-                                                    Stroke="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}"
-                                                    StrokeThickness="0.7" />
-                                            </local:CustomButton>
-                                            <Grid Margin="1,0,1,0">
-                                                <local:CustomButton
-                                                    x:Name="Restore"
-                                                    Width="32"
-                                                    Height="30"
-                                                    Command="{x:Static SystemCommands.RestoreWindowCommand}"
-                                                    Visibility="Collapsed">
-                                                    <Path
-                                                        Width="13"
-                                                        Height="12"
-                                                        Data="M2,0 L8,0 L8,6 M0,3 L6,3 M0,2 L6,2 L6,8 L0,8 Z"
-                                                        Stretch="Fill"
-                                                        Stroke="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:CustomButton}}"
-                                                        StrokeThickness="0.7" />
-                                                </local:CustomButton>
-                                                <local:CustomButton
-                                                    x:Name="Maximize"
-                                                    Width="32"
-                                                    Height="30"
-                                                    Command="{x:Static SystemCommands.MaximizeWindowCommand}">
-                                                    <Path
-                                                        Width="13"
-                                                        Height="12"
-                                                        Data="M0,1 L9,1 L9,8 L0,8 Z"
-                                                        Stretch="Fill"
-                                                        Stroke="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:CustomButton}}"
-                                                        StrokeThickness="0.7" />
-                                                </local:CustomButton>
-                                            </Grid>
-                                        </StackPanel>
-                                        <local:CustomButton
-                                            Width="32"
-                                            Height="30"
-                                            Command="{x:Static SystemCommands.CloseWindowCommand}"
-                                            Style="{StaticResource st.CustomWindowButton.Close}">
-                                            <local:CustomButton.Content>
-                                                <Path
-                                                    Width="13"
-                                                    Height="12"
-                                                    Data="M0,0 L1,1 M0,1 L1,0"
-                                                    Stretch="Fill"
-                                                    Stroke="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:CustomButton}}"
-                                                    StrokeThickness="0.7" />
-                                            </local:CustomButton.Content>
-                                        </local:CustomButton>
-                                    </StackPanel>
-                                    <ContentPresenter
-                                        VerticalAlignment="Top"
-                                        Content="{TemplateBinding HeaderBar}"
-                                        DockPanel.Dock="Right" />
-                                    <ContentPresenter Content="{TemplateBinding Header}" DockPanel.Dock="Left" />
-                                    <Border />
-                                </DockPanel>
+                                <ContentPresenter />
                                 <Grid
                                     x:Name="ResizeGrip"
                                     Grid.Row="2"
@@ -123,20 +155,8 @@
                         </AdornerDecorator>
                     </Border>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="WindowStyle" Value="None">
-                            <Setter TargetName="Closeable" Property="Visibility" Value="Collapsed" />
-                        </Trigger>
-                        <Trigger Property="WindowStyle" Value="ToolWindow">
-                            <Setter TargetName="Restoreable" Property="Visibility" Value="Collapsed" />
-                        </Trigger>
                         <Trigger Property="WindowState" Value="Maximized">
-                            <Setter TargetName="Maximize" Property="Visibility" Value="Collapsed" />
-                            <Setter TargetName="Restore" Property="Visibility" Value="Visible" />
                             <Setter TargetName="LayoutRoot" Property="Margin" Value="7" />
-                        </Trigger>
-                        <Trigger Property="WindowState" Value="Normal">
-                            <Setter TargetName="Maximize" Property="Visibility" Value="Visible" />
-                            <Setter TargetName="Restore" Property="Visibility" Value="Collapsed" />
                         </Trigger>
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
@@ -159,4 +179,5 @@
             </Setter.Value>
         </Setter>
     </Style>
+
 </ResourceDictionary>

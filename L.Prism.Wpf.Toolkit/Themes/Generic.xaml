@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:Prism">
     <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/L.Prism.Wpf.Toolkit;;component/Themes/ST.RegionBrowser.xaml" />
+        <ResourceDictionary Source="/L.Prism.Wpf.Toolkit;component/Themes/ST.RegionBrowser.xaml" />
     </ResourceDictionary.MergedDictionaries>
     <Style BasedOn="{StaticResource st.RegionBrowserBar}" TargetType="local:RegionBrowserBar" />
     <Style BasedOn="{StaticResource st.RegionBrowserContentControl}" TargetType="local:RegionBrowserContentControl" />

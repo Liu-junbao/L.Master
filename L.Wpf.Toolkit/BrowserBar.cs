@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 
 namespace System.Windows
@@ -31,12 +32,13 @@ namespace System.Windows
         public static readonly DependencyProperty ItemsSourceProperty =
             DependencyProperty.Register(nameof(ItemsSource), typeof(IEnumerable), typeof(BrowserBar), new PropertyMetadata(null));
         public static readonly DependencyProperty SelectedItemProperty =
-            DependencyProperty.Register(nameof(SelectedItem), typeof(object), typeof(BrowserBar), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(SelectedItem), typeof(object), typeof(BrowserBar), new FrameworkPropertyMetadata(null,FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
         public static readonly DependencyProperty SelectedIndexProperty =
-            DependencyProperty.Register(nameof(SelectedIndex), typeof(int), typeof(BrowserBar), new PropertyMetadata(-1));
+            DependencyProperty.Register(nameof(SelectedIndex), typeof(int), typeof(BrowserBar), new FrameworkPropertyMetadata(-1,FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
         public static readonly DependencyProperty ItemTemplateProperty =
             DependencyProperty.Register(nameof(ItemTemplate), typeof(DataTemplate), typeof(BrowserBar), new PropertyMetadata(null));
-
+        public static readonly DependencyProperty IsOpenDownProperty =
+            DependencyProperty.Register(nameof(IsOpenDown), typeof(bool), typeof(BrowserBar), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
         static BrowserBar()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(BrowserBar), new FrameworkPropertyMetadata(typeof(BrowserBar)));
@@ -44,6 +46,11 @@ namespace System.Windows
         public BrowserBar()
         {
             this.CommandBindings.Add(new CommandBinding(BrowserBar.ClosePage, new ExecutedRoutedEventHandler(OnClosePage)));
+        }
+        public bool IsOpenDown
+        {
+            get { return (bool)GetValue(IsOpenDownProperty); }
+            set { SetValue(IsOpenDownProperty, value); }
         }
         public Style ItemContainerStyle
         {
@@ -80,7 +87,6 @@ namespace System.Windows
             get { return (DataTemplate)GetValue(ItemTemplateProperty); }
             set { SetValue(ItemTemplateProperty, value); }
         }
-
         private void OnClosePage(object sender, ExecutedRoutedEventArgs e)
         {
             var command = ClosePageCommand;
@@ -90,10 +96,70 @@ namespace System.Windows
             }
         }
     }
+
+    [StyleTypedProperty(Property = nameof(ItemContainerStyle), StyleTargetType = typeof(BrowserBarItem))]
+    [ContentProperty(nameof(Header))]
+    public class BrowserPupBox:Control
+    {
+        static BrowserPupBox()
+        {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(BrowserPupBox), new FrameworkPropertyMetadata(typeof(BrowserPupBox)));
+        }
+        public static readonly DependencyProperty ItemContainerStyleProperty =
+          DependencyProperty.Register(nameof(ItemContainerStyle), typeof(Style), typeof(BrowserPupBox), new PropertyMetadata(null));
+        public static readonly DependencyProperty ItemsSourceProperty =
+            DependencyProperty.Register(nameof(ItemsSource), typeof(IEnumerable), typeof(BrowserPupBox), new PropertyMetadata(null));
+        public static readonly DependencyProperty SelectedItemProperty =
+            DependencyProperty.Register(nameof(SelectedItem), typeof(object), typeof(BrowserPupBox), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+        public static readonly DependencyProperty SelectedIndexProperty =
+            DependencyProperty.Register(nameof(SelectedIndex), typeof(int), typeof(BrowserPupBox), new FrameworkPropertyMetadata(-1, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+        public static readonly DependencyProperty ItemTemplateProperty =
+            DependencyProperty.Register(nameof(ItemTemplate), typeof(DataTemplate), typeof(BrowserPupBox), new PropertyMetadata(null));
+        public static readonly DependencyProperty HeaderProperty =
+          DependencyProperty.Register(nameof(Header), typeof(object), typeof(BrowserPupBox), new PropertyMetadata(null));
+        public static readonly DependencyProperty IsOpenDownProperty =
+           DependencyProperty.Register(nameof(IsOpenDown), typeof(bool), typeof(BrowserPupBox), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+
+        public Style ItemContainerStyle
+        {
+            get { return (Style)GetValue(ItemContainerStyleProperty); }
+            set { SetValue(ItemContainerStyleProperty, value); }
+        }
+        public IEnumerable ItemsSource
+        {
+            get { return (IEnumerable)GetValue(ItemsSourceProperty); }
+            set { SetValue(ItemsSourceProperty, value); }
+        }
+        public object SelectedItem
+        {
+            get { return (object)GetValue(SelectedItemProperty); }
+            set { SetValue(SelectedItemProperty, value); }
+        }
+        public int SelectedIndex
+        {
+            get { return (int)GetValue(SelectedIndexProperty); }
+            set { SetValue(SelectedIndexProperty, value); }
+        }
+        public object Header
+        {
+            get { return (object)GetValue(HeaderProperty); }
+            set { SetValue(HeaderProperty, value); }
+        }
+        public bool IsOpenDown
+        {
+            get { return (bool)GetValue(IsOpenDownProperty); }
+            set { SetValue(IsOpenDownProperty, value); }
+        }
+        public DataTemplate ItemTemplate
+        {
+            get { return (DataTemplate)GetValue(ItemTemplateProperty); }
+            set { SetValue(ItemTemplateProperty, value); }
+        }
+    }
     public class BrowserBarItem : CustomSelectablePresenter
     {
         public static readonly DependencyProperty CanCloseProperty =
-           DependencyProperty.Register(nameof(CanClose), typeof(bool), typeof(BrowserBarItem), new PropertyMetadata(true));
+           DependencyProperty.Register(nameof(CanClose), typeof(bool), typeof(BrowserBarItem), new PropertyMetadata(false));
         static BrowserBarItem()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(BrowserBarItem), new FrameworkPropertyMetadata(typeof(BrowserBarItem)));

@@ -13,11 +13,15 @@
     <Style BasedOn="{StaticResource st.CustomPresenter}" TargetType="local:CustomPresenter" />
     <Style BasedOn="{StaticResource st.CustomSelectablePresenter}" TargetType="local:CustomSelectablePresenter" />
     <Style BasedOn="{StaticResource st.CustomButton}" TargetType="local:CustomButton" />
+    <Style BasedOn="{StaticResource st.CustomToggleButton}" TargetType="local:CustomToggleButton" />
+    <Style BasedOn="{StaticResource st.CustomWindowDrager}" TargetType="local:CustomWindowDrager" />
+    <Style BasedOn="{StaticResource st.CustomWindowButton}" TargetType="local:CustomWindowButton" />
     <Style BasedOn="{StaticResource st.CustomWindow}" TargetType="local:CustomWindow" />
     <Style BasedOn="{StaticResource st.TransitionerBox}" TargetType="trans:TransitionerBox" />
     <Style BasedOn="{StaticResource st.TransitioningContent}" TargetType="trans:TransitioningContent" />
     <Style BasedOn="{StaticResource st.TransitionerSlide}" TargetType="trans:TransitionerSlide" />
     <Style BasedOn="{StaticResource st.TransitionerSlideBox}" TargetType="trans:TransitionerSlideBox" />
     <Style BasedOn="{StaticResource st.BrowserBarItem}" TargetType="local:BrowserBarItem" />
+    <Style BasedOn="{StaticResource st.BrowserPupBox}" TargetType="local:BrowserPupBox" />
     <Style BasedOn="{StaticResource st.BrowserBar}" TargetType="local:BrowserBar" />
 </ResourceDictionary>

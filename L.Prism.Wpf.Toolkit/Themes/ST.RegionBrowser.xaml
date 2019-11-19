@@ -40,7 +40,10 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:RegionBrowserContentControl">
-                    <CustomSelectablePresenter IsSelected="True" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                    <CustomSelectablePresenter
+                        HorizontalContentAlignment="Stretch"
+                        VerticalContentAlignment="Stretch"
+                        IsSelected="True">
                         <TransitionerBox
                             Margin="{TemplateBinding Padding}"
                             Content="{TemplateBinding Content}"
@@ -85,7 +88,7 @@
                         Background="{TemplateBinding Background}"
                         ClipToBounds="True"
                         SnapsToDevicePixels="true">
-                        <ContentPresenter
+                        <ContentControl
                             Margin="{TemplateBinding Padding}"
                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"

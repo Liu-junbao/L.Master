@@ -1,7 +1,10 @@
-﻿using Prism.Ioc;
+﻿using CommonServiceLocator;
+using Prism.Ioc;
 using Prism.Regions;
+using Prism.Regions.Behaviors;
 using System;
 using System.Collections;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,9 +13,8 @@ using System.Windows.Markup;
 
 namespace Prism
 {
-
     [ContentProperty(nameof(Child))]
-    public class RegionBrowser : ContentControl
+    public class RegionBrowser :ContentControl
     {
         #region commands
         private static RoutedUICommand _closePage;
@@ -41,6 +43,7 @@ namespace Prism
             }
         }
         #endregion
+
         public static readonly DependencyProperty ChildProperty =
            DependencyProperty.Register(nameof(Child), typeof(object), typeof(RegionBrowser), new PropertyMetadata(null));
         private static readonly DependencyPropertyKey RegionPropertyKey =
@@ -53,7 +56,6 @@ namespace Prism
         public static readonly DependencyProperty ViewsProperty = ViewsPropertyKey.DependencyProperty;
         public static readonly DependencyProperty HeaderTemplateProperty =
             DependencyProperty.Register(nameof(HeaderTemplate), typeof(DataTemplate), typeof(RegionBrowser), new PropertyMetadata(null));
-
         private static void OnActiveViewChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             ((RegionBrowser)d)?.OnActiveViewChanged(e.NewValue);
@@ -62,14 +64,12 @@ namespace Prism
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(RegionBrowser), new FrameworkPropertyMetadata(typeof(RegionBrowser)));
         }
-
         private IRegionManager _regionManager;
         public RegionBrowser()
         {
             this.CommandBindings.Add(new CommandBinding(ClosePage, OnClosePageHandler));
             this.CommandBindings.Add(new CommandBinding(NavigateTo, OnNavigateToHandler));
         }
-
         public object Child
         {
             get { return (object)GetValue(ChildProperty); }

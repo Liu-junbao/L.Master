@@ -21,41 +21,7 @@
             ContentTemplate="{TemplateBinding ContentTemplate}" />
     </ControlTemplate>
 
-    <Style x:Key="st.BrowserBar.ToggleButton" TargetType="ToggleButton">
-        <Setter Property="Padding" Value="3" />
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ToggleButton">
-                    <Border
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}">
-                        <Viewbox Margin="{TemplateBinding Padding}">
-                            <Border Width="32" Height="16">
-                                <Path
-                                    x:Name="ph"
-                                    Data="M0,0 1,1 2,0"
-                                    Opacity="0.7"
-                                    Stretch="Fill"
-                                    Stroke="{TemplateBinding Foreground}"
-                                    StrokeThickness="4" />
-                            </Border>
-                        </Viewbox>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="ph" Property="Data" Value="M0,1 1,0 2,1" />
-                        </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="ph" Property="Opacity" Value="1" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
+
 
     <Style x:Key="st.Button.CloseButton" TargetType="Button">
         <Setter Property="Padding" Value="3" />
@@ -230,22 +196,15 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBox">
                     <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                        <Grid>
-                            <Popup
-                                AllowsTransparency="true"
-                                IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
-                                Placement="Bottom"
-                                PopupAnimation="{DynamicResource {x:Static SystemParameters.ComboBoxPopupAnimationKey}}">
-                                <Border Background="{TemplateBinding local:BrowserBarAssist.PupBackground}" SnapsToDevicePixels="True">
-                                    <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                </Border>
-                            </Popup>
-                            <ToggleButton
-                                Padding="8"
-                                IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-                                Opacity="0.7"
-                                Style="{StaticResource st.BrowserBar.ToggleButton}" />
-                        </Grid>
+                        <Popup
+                            AllowsTransparency="true"
+                            IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                            Placement="Bottom"
+                            PopupAnimation="{DynamicResource {x:Static SystemParameters.ComboBoxPopupAnimationKey}}">
+                            <Border Background="{TemplateBinding local:BrowserBarAssist.PupBackground}" SnapsToDevicePixels="True">
+                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Border>
+                        </Popup>
                     </Border>
                 </ControlTemplate>
             </Setter.Value>
@@ -266,6 +225,35 @@
                         </Setter.Value>
                     </Setter>
                 </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="st.BrowserPupBox" TargetType="local:BrowserPupBox">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:BrowserPupBox">
+                    <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                        <Grid>
+                            <ComboBox
+                                x:Name="cb"
+                                IsDropDownOpen="{Binding IsOpenDown, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                ItemTemplate="{TemplateBinding ItemTemplate}"
+                                ItemsSource="{TemplateBinding ItemsSource}"
+                                SelectedIndex="{Binding SelectedIndex, RelativeSource={RelativeSource TemplatedParent}}"
+                                SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource TemplatedParent}}"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                Style="{StaticResource st.BrowserBarItemComboBox}" />
+                            <local:CustomToggleButton
+                                Padding="8"
+                                Content="{TemplateBinding Header}"
+                                IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, ElementName=cb}"
+                                Opacity="0.7"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
@@ -291,6 +279,7 @@
                                 Template="{StaticResource st.ScrollViewer.BrowserBar}"
                                 VerticalScrollBarVisibility="Disabled">
                                 <ListBox
+                                    x:Name="lb"
                                     ItemTemplate="{TemplateBinding ItemTemplate}"
                                     ItemsSource="{TemplateBinding ItemsSource}"
                                     SelectedIndex="{Binding SelectedIndex, RelativeSource={RelativeSource TemplatedParent}}"
@@ -304,19 +293,36 @@
                                     </ListBox.ItemsPanel>
                                 </ListBox>
                             </ScrollViewer>
-                            <ComboBox
+                            <local:BrowserPupBox
                                 Grid.Column="1"
                                 Width="32"
                                 Background="{TemplateBinding Background}"
+                                IsOpenDown="{Binding IsOpenDown, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
                                 ItemTemplate="{TemplateBinding ItemTemplate}"
                                 ItemsSource="{TemplateBinding ItemsSource}"
-                                SelectedIndex="{Binding SelectedIndex, RelativeSource={RelativeSource TemplatedParent}}"
-                                SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource TemplatedParent}}"
+                                SelectedIndex="{Binding SelectedIndex, ElementName=lb}"
+                                SelectedItem="{Binding SelectedItem, ElementName=lb}"
                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
-                                Style="{StaticResource st.BrowserBarItemComboBox}"
-                                Visibility="{Binding ElementName=sv, Path=ComputedHorizontalScrollBarVisibility}" />
+                                Visibility="{Binding ElementName=sv, Path=ComputedHorizontalScrollBarVisibility}">
+                                <Viewbox Margin="{TemplateBinding Padding}">
+                                    <Border Width="32" Height="16">
+                                        <Path
+                                            x:Name="ph"
+                                            Data="M0,0 1,1 2,0"
+                                            Opacity="0.7"
+                                            Stretch="Fill"
+                                            Stroke="{TemplateBinding Foreground}"
+                                            StrokeThickness="4" />
+                                    </Border>
+                                </Viewbox>
+                            </local:BrowserPupBox>
                         </Grid>
                     </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsOpenDown" Value="True">
+                            <Setter TargetName="ph" Property="Data" Value="M0,1 1,0 2,1" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
