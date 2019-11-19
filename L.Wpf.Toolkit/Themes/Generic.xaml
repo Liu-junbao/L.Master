@@ -9,6 +9,7 @@
         <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/ST.CustomWindow.xaml" />
         <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/ST.Transitions.xaml" />
         <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/ST.BrowserBar.xaml" />
+        <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/ST.PupBox.xaml" />
     </ResourceDictionary.MergedDictionaries>
     <Style BasedOn="{StaticResource st.CustomPresenter}" TargetType="local:CustomPresenter" />
     <Style BasedOn="{StaticResource st.CustomSelectablePresenter}" TargetType="local:CustomSelectablePresenter" />
@@ -24,4 +25,5 @@
     <Style BasedOn="{StaticResource st.BrowserBarItem}" TargetType="local:BrowserBarItem" />
     <Style BasedOn="{StaticResource st.BrowserPupBox}" TargetType="local:BrowserPupBox" />
     <Style BasedOn="{StaticResource st.BrowserBar}" TargetType="local:BrowserBar" />
+    <Style BasedOn="{StaticResource st.PupBox}" TargetType="local:PupBox" />
 </ResourceDictionary>

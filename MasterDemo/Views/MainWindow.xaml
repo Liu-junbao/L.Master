@@ -11,9 +11,10 @@
     <CustomWindow.Background>
         <ImageBrush ImageSource="/MasterDemo;component/Images/background.png" />
     </CustomWindow.Background>
-    <RegionBrowser prism:RegionManager.RegionName="ContentRegion">
+    <RegionBrowser x:Name="rb" prism:RegionManager.RegionName="ContentRegion">
         <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition />
             </Grid.RowDefinitions>
@@ -23,60 +24,68 @@
                     <Menu Background="Transparent" DockPanel.Dock="Left">
                         <MenuItem Header="模块列表">
                             <MenuItem
+                                Command="{x:Static RegionBrowser.NavigateTo}"
+                                CommandParameter="ModuleA/Views/ViewA"
+                                Header="模块A" />
+                            <MenuItem
+                                Command="{x:Static RegionBrowser.NavigateTo}"
+                                CommandParameter="ModuleB/Views/ViewA"
+                                Header="模块B" />
+                            <MenuItem
+                                Command="{x:Static RegionBrowser.NavigateTo}"
+                                CommandParameter="ModuleC/Views/ViewA"
+                                Header="模块C" />
+                            <MenuItem
+                                Command="{x:Static RegionBrowser.NavigateTo}"
+                                CommandParameter="ModuleD/Views/ViewA"
+                                Header="模块D" />
+                            <MenuItem
+                                Command="{x:Static RegionBrowser.NavigateTo}"
+                                CommandParameter="ModuleE/Views/ViewA"
+                                Header="模块E" />
+                            <MenuItem
+                                Command="{x:Static RegionBrowser.NavigateTo}"
+                                CommandParameter="ModuleF/Views/ViewA"
+                                Header="模块F" />
+                        </MenuItem>
+                        <MenuItem
                             Command="{x:Static RegionBrowser.NavigateTo}"
                             CommandParameter="ModuleA/Views/ViewA"
                             Header="模块A" />
-                            <MenuItem
+                        <MenuItem
                             Command="{x:Static RegionBrowser.NavigateTo}"
                             CommandParameter="ModuleB/Views/ViewA"
                             Header="模块B" />
-                            <MenuItem
+                        <MenuItem
                             Command="{x:Static RegionBrowser.NavigateTo}"
                             CommandParameter="ModuleC/Views/ViewA"
                             Header="模块C" />
-                            <MenuItem
+                        <MenuItem
                             Command="{x:Static RegionBrowser.NavigateTo}"
                             CommandParameter="ModuleD/Views/ViewA"
                             Header="模块D" />
-                            <MenuItem
+                        <MenuItem
                             Command="{x:Static RegionBrowser.NavigateTo}"
                             CommandParameter="ModuleE/Views/ViewA"
                             Header="模块E" />
-                            <MenuItem
+                        <MenuItem
                             Command="{x:Static RegionBrowser.NavigateTo}"
                             CommandParameter="ModuleF/Views/ViewA"
                             Header="模块F" />
-                        </MenuItem>
-                        <MenuItem
-                        Command="{x:Static RegionBrowser.NavigateTo}"
-                        CommandParameter="ModuleA/Views/ViewA"
-                        Header="模块A" />
-                        <MenuItem
-                        Command="{x:Static RegionBrowser.NavigateTo}"
-                        CommandParameter="ModuleB/Views/ViewA"
-                        Header="模块B" />
-                        <MenuItem
-                        Command="{x:Static RegionBrowser.NavigateTo}"
-                        CommandParameter="ModuleC/Views/ViewA"
-                        Header="模块C" />
-                        <MenuItem
-                        Command="{x:Static RegionBrowser.NavigateTo}"
-                        CommandParameter="ModuleD/Views/ViewA"
-                        Header="模块D" />
-                        <MenuItem
-                        Command="{x:Static RegionBrowser.NavigateTo}"
-                        CommandParameter="ModuleE/Views/ViewA"
-                        Header="模块E" />
-                        <MenuItem
-                        Command="{x:Static RegionBrowser.NavigateTo}"
-                        CommandParameter="ModuleF/Views/ViewA"
-                        Header="模块F" />
                     </Menu>
-                    <Border/>
+                    <Border />
                 </DockPanel>
             </CustomWindowDrager>
-
-            <Grid Grid.Row="1">
+            <PupBox
+                Grid.Row="1" HorizontalAlignment="Center"
+                ItemTemplate="{Binding ElementName=rb, Path=HeaderTemplate}"
+                ItemsSource="{Binding ElementName=rb, Path=Views}"
+                SelectedItem="{Binding ElementName=rb, Path=ActiveView, Mode=TwoWay}">
+                <StackPanel>
+                    <TextBlock Text="PupBox" />
+                </StackPanel>
+            </PupBox>
+            <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition />

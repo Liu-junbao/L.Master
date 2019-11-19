@@ -204,7 +204,7 @@
                             IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
                             Placement="Bottom"
                             PopupAnimation="{DynamicResource {x:Static SystemParameters.ComboBoxPopupAnimationKey}}">
-                            <Border Background="{TemplateBinding local:BrowserBarAssist.PupBackground}" SnapsToDevicePixels="True">
+                            <Border Background="{TemplateBinding local:PupBoxAssist.PupBackground}" SnapsToDevicePixels="True">
                                 <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                             </Border>
                         </Popup>

@@ -11,7 +11,7 @@
         BasedOn="{StaticResource st.CustomButton}"
         TargetType="local:CustomButton">
         <Setter Property="local:CustomPresenterAssit.MouseOverBackground" Value="Red" />
-        <Setter Property="PressedBackground" Value="Red" />
+        <Setter Property="local:CustomButtonAssit.PressedBackground" Value="Red" />
     </Style>
 
     <Style x:Key="st.CustomWindowDrager" TargetType="local:CustomWindowDrager">
