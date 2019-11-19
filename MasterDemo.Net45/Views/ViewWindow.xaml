@@ -1,0 +1,8 @@
+﻿<CustomWindow
+    x:Class="MasterDemo.Views.ViewWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:prism="http://prismlibrary.com/"
+    prism:ViewModelLocator.AutoWireViewModel="True">
+   
+</CustomWindow>

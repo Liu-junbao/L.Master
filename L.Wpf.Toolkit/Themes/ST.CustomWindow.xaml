@@ -31,6 +31,7 @@
     </Style>
 
     <Style x:Key="st.CustomWindowButton" TargetType="local:CustomWindowButton">
+        <Setter Property="VerticalAlignment" Value="Top" />
         <Setter Property="WindowState" Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:CustomWindow}}, Path=WindowState}" />
         <Setter Property="WindowStyle" Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:CustomWindow}}, Path=WindowStyle}" />
         <Setter Property="Template">
