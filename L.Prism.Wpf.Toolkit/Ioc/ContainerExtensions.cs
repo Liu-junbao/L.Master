@@ -1,4 +1,5 @@
 ﻿using Prism.Events;
+using Prism.Modularity;
 using Prism.Regions;
 using System;
 
@@ -78,6 +79,16 @@ namespace Prism.Ioc
         public static void RegisterViewWithRegion<TView>(this IContainerProvider provider, string regionName)
         {
             provider.Resolve<IRegionManager>().RegisterViewWithRegion(regionName, typeof(TView));
+        }
+        /// <summary>
+        ///  在区域内注册页面
+        /// </summary>
+        /// <typeparam name="TView"></typeparam>
+        /// <param name="module"></param>
+        /// <param name="regionName"></param>
+        public static void RegisterViewWithRegion<TView>(this IModule module, string regionName)
+        {
+            module.GetInstance<IRegionManager>().RegisterViewWithRegion(regionName, typeof(TView));
         }
         /// <summary>
         /// 在区域内注册页面

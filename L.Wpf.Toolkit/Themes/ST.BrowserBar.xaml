@@ -75,6 +75,9 @@
         <Setter Property="MinWidth" Value="100" />
         <Setter Property="MinHeight" Value="32" />
         <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BackgroundOpacity" Value="{Binding RelativeSource={RelativeSource Self}, Path=(local:CustomPresenterAssit.BackgroundOpacity)}" />
+        <Setter Property="MouseOverBackground" Value="{Binding RelativeSource={RelativeSource Self}, Path=(local:CustomPresenterAssit.MouseOverBackground)}" />
+        <Setter Property="MouseOverBackOpacity" Value="{Binding RelativeSource={RelativeSource Self}, Path=(local:CustomPresenterAssit.MouseOverBackOpacity)}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:BrowserBarItem">
