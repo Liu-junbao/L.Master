@@ -146,13 +146,13 @@ namespace Prism
                 region.ActiveViews.CollectionChanged += (s, e) => this.Dispatcher.BeginInvoke(new Action(() => ActiveView = region.ActiveViews.FirstOrDefault()));
             }
         }
-        private void OnActiveViewChanged(object active)
+        private void OnActiveViewChanged(object activeView)
         {
-            if (active != null)
+            if (activeView != null)
             {
-                var activeView = Region?.ActiveViews.FirstOrDefault();
-                if (activeView != active)
-                    Region?.Activate(active);
+                var currActiveView = Region?.ActiveViews.FirstOrDefault();
+                if (activeView != currActiveView)
+                    this._regionManager?.NavigateToView(RegionManager.GetRegionName(this), activeView);
             }
         }
         private void OnClosePageHandler(object sender, ExecutedRoutedEventArgs e)
