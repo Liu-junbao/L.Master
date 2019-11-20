@@ -42,7 +42,7 @@ namespace System.Windows
         public static readonly DependencyProperty BackgroundOpacityProperty =
           DependencyProperty.RegisterAttached("BackgroundOpacity", typeof(double), typeof(CustomPresenterAssit), new FrameworkPropertyMetadata(1.0, FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.AffectsRender));
         public static readonly DependencyProperty MouseOverBackgroundProperty =
-           DependencyProperty.RegisterAttached("MouseOverBackground", typeof(Brush), typeof(CustomPresenterAssit), new FrameworkPropertyMetadata(default(Brush), FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.AffectsRender));
+           DependencyProperty.RegisterAttached("MouseOverBackground", typeof(Brush), typeof(CustomPresenterAssit), new FrameworkPropertyMetadata(new SolidColorBrush(Colors.LightGray), FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.AffectsRender));
         public static readonly DependencyProperty MouseOverBackOpacityProperty =
            DependencyProperty.RegisterAttached("MouseOverBackOpacity", typeof(double), typeof(CustomPresenterAssit), new FrameworkPropertyMetadata(0.5, FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.AffectsRender));
         public static double GetBackgroundOpacity(DependencyObject obj)
