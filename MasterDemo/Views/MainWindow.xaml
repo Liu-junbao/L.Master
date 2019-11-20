@@ -15,7 +15,7 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
+                <RowDefinition Height="50" />
                 <RowDefinition />
             </Grid.RowDefinitions>
             <CustomWindowDrager>
@@ -77,7 +77,8 @@
                 </DockPanel>
             </CustomWindowDrager>
             <PupBox
-                Grid.Row="1" HorizontalAlignment="Center"
+                Grid.Row="1"
+                HorizontalAlignment="Center"
                 ItemTemplate="{Binding ElementName=rb, Path=HeaderTemplate}"
                 ItemsSource="{Binding ElementName=rb, Path=Views}"
                 SelectedItem="{Binding ElementName=rb, Path=ActiveView, Mode=TwoWay}">
