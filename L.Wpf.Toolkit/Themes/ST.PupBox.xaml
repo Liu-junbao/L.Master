@@ -15,13 +15,25 @@
                 <ControlTemplate TargetType="local:PupBox">
                     <Border Background="Transparent">
                         <Grid>
-                            <local:CustomPresenter
-                                Padding="{TemplateBinding Padding}"
-                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                Background="{TemplateBinding Background}"
-                                Content="{TemplateBinding Header}"
-                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            <Border
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                SnapsToDevicePixels="True">
+                                <Grid>
+                                    <Rectangle Fill="{TemplateBinding Background}" Opacity="{TemplateBinding local:CustomPresenterAssit.BackgroundOpacity}" />
+                                    <Rectangle
+                                        x:Name="rect"
+                                        Fill="{TemplateBinding local:CustomPresenterAssit.MouseOverBackground}"
+                                        Opacity="{TemplateBinding local:CustomPresenterAssit.MouseOverBackOpacity}"
+                                        Visibility="Hidden" />
+                                    <ContentPresenter
+                                        Margin="{TemplateBinding Padding}"
+                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                        Content="{TemplateBinding Header}"
+                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                </Grid>
+                            </Border>
                             <Popup
                                 x:Name="PART_Popup"
                                 AllowsTransparency="true"
@@ -34,6 +46,11 @@
                             </Popup>
                         </Grid>
                     </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="rect" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

@@ -6,7 +6,7 @@
     <RootNamespace>Prism</RootNamespace>
     <AssemblyVersion>6.6.6.0</AssemblyVersion>
     <FileVersion>6.6.6.0</FileVersion>
-    <Version>6.6.6</Version>
+    <Version>6.6.9</Version>
     <PackageProjectUrl>https://github.com/Liu-junbao/L.Master.git</PackageProjectUrl>
   </PropertyGroup>
 

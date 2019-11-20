@@ -79,13 +79,10 @@
             <PupBox
                 Grid.Row="1"
                 HorizontalAlignment="Center"
+                Header="菜单列表"
                 ItemTemplate="{Binding ElementName=rb, Path=HeaderTemplate}"
                 ItemsSource="{Binding ElementName=rb, Path=Views}"
-                SelectedItem="{Binding ElementName=rb, Path=ActiveView, Mode=TwoWay}">
-                <StackPanel>
-                    <TextBlock Text="PupBox" />
-                </StackPanel>
-            </PupBox>
+                SelectedItem="{Binding ElementName=rb, Path=ActiveView, Mode=TwoWay}" />
             <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
