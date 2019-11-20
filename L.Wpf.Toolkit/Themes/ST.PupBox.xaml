@@ -7,38 +7,42 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="local:CustomPresenterAssit.MouseOverBackground" Value="Gray" />
         <Setter Property="local:CustomPresenterAssit.MouseOverBackOpacity" Value="0.23" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="Padding" Value="3" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:PupBox">
-                    <Grid>
-                        <local:CustomPresenter
-                            x:Name="PART_Header"
-                            Margin="{TemplateBinding Padding}"
-                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                            Background="{TemplateBinding Background}"
-                            Content="{TemplateBinding Header}"
-                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                        <Popup
-                            x:Name="PART_Popup"
-                            AllowsTransparency="true"
-                            IsOpen="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-                            Placement="{TemplateBinding Placement}"
-                            PopupAnimation="{DynamicResource {x:Static SystemParameters.ComboBoxPopupAnimationKey}}">
-                            <Border Background="{TemplateBinding local:PupBoxAssist.PupBackground}" SnapsToDevicePixels="True">
-                                <ItemsPresenter />
-                            </Border>
-                        </Popup>
-                    </Grid>
+                    <Border Background="Transparent">
+                        <Grid>
+                            <local:CustomPresenter
+                                Padding="{TemplateBinding Padding}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                Background="{TemplateBinding Background}"
+                                Content="{TemplateBinding Header}"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            <Popup
+                                x:Name="PART_Popup"
+                                AllowsTransparency="true"
+                                IsOpen="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                Placement="{TemplateBinding Placement}"
+                                PopupAnimation="{DynamicResource {x:Static SystemParameters.ComboBoxPopupAnimationKey}}">
+                                <Border Background="{TemplateBinding local:PupBoxAssist.PupBackground}" SnapsToDevicePixels="True">
+                                    <ItemsPresenter />
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
         <Setter Property="ItemContainerStyle">
             <Setter.Value>
-                <Style TargetType="ComboBoxItem">
+                <Style TargetType="ListBoxItem">
                     <Setter Property="Template">
                         <Setter.Value>
-                            <ControlTemplate TargetType="ComboBoxItem">
+                            <ControlTemplate TargetType="ListBoxItem">
                                 <local:BrowserBarItem
                                     IsSelected="{TemplateBinding IsSelected}"
                                     SnapsToDevicePixels="True"
