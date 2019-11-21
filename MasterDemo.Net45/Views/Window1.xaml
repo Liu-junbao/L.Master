@@ -1,9 +1,33 @@
-﻿<Window x:Class="MasterDemo.Views.Window1"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:prism="http://prismlibrary.com/"             
-             prism:ViewModelLocator.AutoWireViewModel="True">
+﻿<Window
+    x:Class="MasterDemo.Views.Window1"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:MasterDemo"
+    xmlns:prism="http://prismlibrary.com/"
+    prism:ViewModelLocator.AutoWireViewModel="True">
+    <Window.Resources>
+        <x:Array x:Key="s.Model" Type="local:Model">
+            <local:Model Name="N1" Group="G1" />
+            <local:Model Name="N212346579879" Group="G2" />
+            <local:Model Name="N3" Group="G3" />
+            <local:Model Name="N4" Group="G1" />
+        </x:Array>
+    </Window.Resources>
     <Grid>
-            
+        <DataGrid
+            AutoGenerateColumns="True"
+            IsReadOnly="True"
+            ItemsSource="{StaticResource s.Model}">
+            <DataGrid.RowHeaderTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding RowIndex}" />
+                </DataTemplate>
+            </DataGrid.RowHeaderTemplate>
+            <DataGrid.RowDetailsTemplate>
+                <DataTemplate>
+                    <Button Margin="5" Content="1" />
+                </DataTemplate>
+            </DataGrid.RowDetailsTemplate>
+        </DataGrid>
     </Grid>
 </Window>

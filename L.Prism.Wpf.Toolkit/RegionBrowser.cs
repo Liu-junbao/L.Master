@@ -143,7 +143,11 @@ namespace Prism
                 Region = region;
                 Views = region.Views;
                 ActiveView = region.ActiveViews.FirstOrDefault();
-                region.ActiveViews.CollectionChanged += (s, e) => this.Dispatcher.BeginInvoke(new Action(() => ActiveView = region.ActiveViews.FirstOrDefault()));
+                region.ActiveViews.CollectionChanged += (s, e) => this.Dispatcher.BeginInvoke(new Action(() => {
+                    var activeView = region.ActiveViews.FirstOrDefault();
+                    if (ActiveView!=activeView)
+                        ActiveView = activeView;
+                }));
             }
         }
         private void OnActiveViewChanged(object activeView)

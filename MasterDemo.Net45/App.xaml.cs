@@ -11,7 +11,7 @@ namespace MasterDemo
     public partial class App
     {
         protected override Window CreateShell()
-        {
+        { 
             return Container.Resolve<MainWindow>();
         }
         protected override IModuleCatalog CreateModuleCatalog()
