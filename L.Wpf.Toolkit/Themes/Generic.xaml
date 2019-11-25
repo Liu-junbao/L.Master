@@ -10,6 +10,7 @@
         <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/ST.Transitions.xaml" />
         <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/ST.BrowserBar.xaml" />
         <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/ST.PupBox.xaml" />
+        <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/Templates.xaml" />
     </ResourceDictionary.MergedDictionaries>
     <Style BasedOn="{StaticResource st.CustomPresenter}" TargetType="local:CustomPresenter" />
     <Style BasedOn="{StaticResource st.CustomSelectablePresenter}" TargetType="local:CustomSelectablePresenter" />

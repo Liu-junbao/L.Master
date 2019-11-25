@@ -1,0 +1,67 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:System.Windows">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/L.Wpf.Toolkit;component/Themes/ST.CustomButton.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <ControlTemplate x:Key="ct.TextBlock" TargetType="Control">
+        <TextBlock VerticalAlignment="Center" Text="{Binding EditedValue, Converter={local:ToString}}" />
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="ct.TextBox" TargetType="Control">
+        <TextBox
+            VerticalContentAlignment="Center"
+            Text="{Binding EditedValue, Converter={local:ToString}}"
+            TextWrapping="NoWrap" />
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="ct.Edit" TargetType="Control">
+        <local:CustomButton
+            VerticalAlignment="Center"
+            Command="{Binding EditCommand}"
+            Content="编辑"
+            ToolTip="编辑" />
+    </ControlTemplate>
+    <ControlTemplate x:Key="ct.Editing" TargetType="Control">
+        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+            <local:CustomButton
+                VerticalAlignment="Center"
+                Command="{Binding SaveCommand}"
+                Content="保存"
+                ToolTip="保存" />
+            <local:CustomButton
+                VerticalAlignment="Center"
+                Command="{Binding CancelCommand}"
+                Content="撤销"
+                ToolTip="撤销" />
+        </StackPanel>
+    </ControlTemplate>
+
+    <DataTemplate DataType="{x:Type local:EditableValueEditor}">
+        <Control
+            x:Name="ct"
+            DataContext="{Binding}"
+            IsEnabled="{Binding IsEnabled}"
+            Template="{StaticResource ct.TextBlock}" />
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsEdting}" Value="True">
+                <Setter TargetName="ct" Property="Template" Value="{StaticResource ct.TextBox}" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type local:EditableValueOperation}">
+        <Control
+            x:Name="ct"
+            DataContext="{Binding}"
+            IsEnabled="{Binding IsEnabled}"
+            Template="{StaticResource ct.Edit}" />
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsEdting}" Value="True">
+                <Setter TargetName="ct" Property="Template" Value="{StaticResource ct.Editing}" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+</ResourceDictionary>
