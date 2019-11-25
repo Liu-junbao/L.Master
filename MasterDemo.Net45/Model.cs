@@ -8,6 +8,11 @@ namespace MasterDemo
 {
     public class Model
     {
+        public Model(int id)
+        {
+            Id = id;
+        }
+        public int Id { get; }
         public string Name { get; set; }
         public string Group { get; set; }
     }

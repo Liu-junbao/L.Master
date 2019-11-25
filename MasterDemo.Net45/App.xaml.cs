@@ -12,7 +12,7 @@ namespace MasterDemo
     {
         protected override Window CreateShell()
         { 
-            return Container.Resolve<MainWindow>();
+            return Container.Resolve<Window1>();
         }
         protected override IModuleCatalog CreateModuleCatalog()
         {

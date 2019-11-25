@@ -6,26 +6,89 @@
     xmlns:prism="http://prismlibrary.com/"
     prism:ViewModelLocator.AutoWireViewModel="True">
     <Window.Resources>
-        <x:Array x:Key="s.Model" Type="local:Model">
-            <local:Model Name="N1" Group="G1" />
-            <local:Model Name="N212346579879" Group="G2" />
-            <local:Model Name="N3" Group="G3" />
-            <local:Model Name="N4" Group="G1" />
-        </x:Array>
+
+        <ControlTemplate x:Key="ct.Text" TargetType="Control">
+            <TextBlock Text="{Binding EditedValue}" />
+        </ControlTemplate>
+        <ControlTemplate x:Key="ct.TextEditing" TargetType="Control">
+            <TextBox Text="{Binding EditedValue}" />
+        </ControlTemplate>
+
+        <ControlTemplate x:Key="ct.Edit" TargetType="Control">
+            <CustomButton Command="{Binding EditCommand}" Content="编辑" />
+        </ControlTemplate>
+        <ControlTemplate x:Key="ct.Editing" TargetType="Control">
+            <StackPanel Orientation="Horizontal">
+                <CustomButton Command="{Binding SaveCommand}" Content="保存" />
+                <CustomButton Command="{Binding CancelCommand}" Content="取消" />
+            </StackPanel>
+        </ControlTemplate>
+
+        <DataTemplate DataType="{x:Type ValueEditorViewModel}">
+            <Control x:Name="ct" Template="{StaticResource ct.Text}" />
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                    <Setter TargetName="ct" Property="Template" Value="{StaticResource ct.TextEditing}" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type OperationEditorViewModel}">
+            <Control x:Name="ct" Template="{StaticResource ct.Edit}" />
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                    <Setter TargetName="ct" Property="Template" Value="{StaticResource ct.Editing}" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
     </Window.Resources>
     <Grid>
-        <DataGrid
-            AutoGenerateColumns="True"
+        <DataGrid HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray" SelectionMode="Single"
+            AutoGenerateColumns="False"
             IsReadOnly="True"
-            ItemsSource="{StaticResource s.Model}">
-            <DataGrid.RowHeaderTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding RowIndex}" />
-                </DataTemplate>
-            </DataGrid.RowHeaderTemplate>
+            ItemsSource="{Binding Items}">
+            <DataGrid.RowStyle>
+                <Style BasedOn="{StaticResource {x:Type DataGridRow}}" TargetType="DataGridRow">
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                </Style>
+            </DataGrid.RowStyle>
+            <DataGrid.CellStyle>
+                <Style BasedOn="{StaticResource {x:Type DataGridCell}}" TargetType="DataGridCell">
+                    <Setter Property="BorderThickness" Value="0" />
+                </Style>
+            </DataGrid.CellStyle>
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="名称">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Source.Name}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="分组" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Source.Group}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
             <DataGrid.RowDetailsTemplate>
                 <DataTemplate>
-                    <Button Margin="5" Content="1" />
+                    <Grid>
+                        <StackPanel>
+                            <TextBlock Text="名称:" />
+                            <ContentControl Content="{Binding ., Converter={ValueEditorViewModelConverter Name}}" />
+                            <TextBlock Text="分组:" />
+                            <ContentControl Content="{Binding ., Converter={ValueEditorViewModelConverter Group}}" />
+
+                        </StackPanel>
+                        <ContentControl
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Content="{Binding ., Converter={OperationEditorViewModelConverter}}" />
+                    </Grid>
                 </DataTemplate>
             </DataGrid.RowDetailsTemplate>
         </DataGrid>
