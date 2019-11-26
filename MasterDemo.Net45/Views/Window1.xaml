@@ -6,70 +6,108 @@
     xmlns:prism="http://prismlibrary.com/"
     prism:ViewModelLocator.AutoWireViewModel="True">
     <Window.Resources>
-
-        <ControlTemplate x:Key="ct.Text" TargetType="Control">
-            <TextBlock Text="{Binding EditedValue}" />
-        </ControlTemplate>
-        <ControlTemplate x:Key="ct.TextEditing" TargetType="Control">
-            <TextBox Text="{Binding EditedValue}" />
-        </ControlTemplate>
-
-        <ControlTemplate x:Key="ct.Edit" TargetType="Control">
-            <CustomButton Command="{Binding EditCommand}" Content="编辑" />
-        </ControlTemplate>
-        <ControlTemplate x:Key="ct.Editing" TargetType="Control">
-            <StackPanel Orientation="Horizontal">
-                <CustomButton Command="{Binding SaveCommand}" Content="保存" />
-                <CustomButton Command="{Binding CancelCommand}" Content="取消" />
-            </StackPanel>
-        </ControlTemplate>
-
-        <DataTemplate DataType="{x:Type ValueEditorViewModel}">
-            <Control x:Name="ct" Template="{StaticResource ct.Text}" />
-            <DataTemplate.Triggers>
-                <DataTrigger Binding="{Binding IsEditing}" Value="True">
-                    <Setter TargetName="ct" Property="Template" Value="{StaticResource ct.TextEditing}" />
-                </DataTrigger>
-            </DataTemplate.Triggers>
-        </DataTemplate>
-
-        <DataTemplate DataType="{x:Type OperationEditorViewModel}">
-            <Control x:Name="ct" Template="{StaticResource ct.Edit}" />
-            <DataTemplate.Triggers>
-                <DataTrigger Binding="{Binding IsEditing}" Value="True">
-                    <Setter TargetName="ct" Property="Template" Value="{StaticResource ct.Editing}" />
-                </DataTrigger>
-            </DataTemplate.Triggers>
-        </DataTemplate>
-
+        <Style x:Key="DataGridRowStyle1" TargetType="{x:Type DataGridRow}">
+            <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"/>
+            <Setter Property="SnapsToDevicePixels" Value="true"/>
+            <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
+            <Setter Property="ValidationErrorTemplate">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <TextBlock Foreground="Red" Margin="2,0,0,0" Text="!" VerticalAlignment="Center"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridRow}">
+                        <Border x:Name="DGR_Border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                            <SelectiveScrollingGrid>
+                                <SelectiveScrollingGrid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </SelectiveScrollingGrid.ColumnDefinitions>
+                                <SelectiveScrollingGrid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </SelectiveScrollingGrid.RowDefinitions>
+                                <DataGridCellsPresenter Grid.Column="1" ItemsPanel="{TemplateBinding ItemsPanel}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                <DataGridDetailsPresenter Grid.Column="1" Grid.Row="1" SelectiveScrollingGrid.SelectiveScrollingOrientation="{Binding AreRowDetailsFrozen, ConverterParameter={x:Static SelectiveScrollingOrientation.Vertical}, Converter={x:Static DataGrid.RowDetailsScrollingConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" Visibility="{TemplateBinding DetailsVisibility}"/>
+                                <DataGridRowHeader Grid.RowSpan="2" SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical" Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Row}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
+                            </SelectiveScrollingGrid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsNewItem" Value="True">
+                    <Setter Property="Margin" Value="{Binding NewItemMargin, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="DataGridCellStyle1" TargetType="{x:Type DataGridCell}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                            <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                </Trigger>
+                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static DataGrid.FocusBorderBrushKey}}"/>
+                </Trigger>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsSelected" Value="true"/>
+                        <Condition Property="Selector.IsSelectionActive" Value="false"/>
+                    </MultiTrigger.Conditions>
+                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}}"/>
+                </MultiTrigger>
+                <Trigger Property="IsEnabled" Value="false">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
     <Grid>
-        <DataGrid HorizontalGridLinesBrush="LightGray" VerticalGridLinesBrush="LightGray" SelectionMode="Single"
+        <DataGrid
             AutoGenerateColumns="False"
+            HorizontalGridLinesBrush="LightGray"
             IsReadOnly="True"
-            ItemsSource="{Binding Items}">
-            <DataGrid.RowStyle>
-                <Style BasedOn="{StaticResource {x:Type DataGridRow}}" TargetType="DataGridRow">
-                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                </Style>
-            </DataGrid.RowStyle>
-            <DataGrid.CellStyle>
-                <Style BasedOn="{StaticResource {x:Type DataGridCell}}" TargetType="DataGridCell">
-                    <Setter Property="BorderThickness" Value="0" />
-                </Style>
-            </DataGrid.CellStyle>
+            ItemsSource="{Binding Items}"
+            SelectionMode="Single"
+            VerticalGridLinesBrush="LightGray" RowStyle="{DynamicResource DataGridRowStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Header="名称">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Source.Name}" />
+                            <ValueEditor EditedSourcePropertyName="Name" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="分组" Width="*">
+                <DataGridTemplateColumn Header="分组">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Source.Group}" />
+                            <ValueEditor EditedSourcePropertyName="Group" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <OperationEditor HorizontalAlignment="Right" VerticalAlignment="Top" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
@@ -79,15 +117,11 @@
                     <Grid>
                         <StackPanel>
                             <TextBlock Text="名称:" />
-                            <ContentControl Content="{Binding ., Converter={ValueEditorViewModelConverter Name}}" />
+                            <ValueEditor EditedSourcePropertyName="Name" />
                             <TextBlock Text="分组:" />
-                            <ContentControl Content="{Binding ., Converter={ValueEditorViewModelConverter Group}}" />
-
+                            <ValueEditor EditedSourcePropertyName="Group" />
                         </StackPanel>
-                        <ContentControl
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Top"
-                            Content="{Binding ., Converter={OperationEditorViewModelConverter}}" />
+                        <OperationEditor HorizontalAlignment="Right" VerticalAlignment="Top" />
                     </Grid>
                 </DataTemplate>
             </DataGrid.RowDetailsTemplate>
