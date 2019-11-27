@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="SCADAModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="INF_Takt">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" Nullable="false" />
+          <Property Name="StationSN" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="RecordFristEnteredTime" Type="datetime" Nullable="false" />
+          <Property Name="RecordLastEnteredTime" Type="datetime" />
+          <Property Name="RecordCount" Type="int" />
+          <Property Name="RecordWorkSeconds" Type="int" />
+          <Property Name="RecordWaitSeconds" Type="int" />
+        </EntityType>
+        <EntityType Name="STA_Alarm">
+          <Key>
+            <PropertyRef Name="SN" />
+          </Key>
+          <Property Name="SN" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="DeviceName" Type="varchar" MaxLength="50" />
+          <Property Name="AlarmName" Type="varchar" MaxLength="200" />
+          <Property Name="IsTurnOn" Type="bit" />
+          <Property Name="AlarmId" Type="int" />
+        </EntityType>
+        <EntityContainer Name="SCADAModelStoreContainer">
+          <EntitySet Name="INF_Takt" EntityType="Self.INF_Takt" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="STA_Alarm" EntityType="Self.STA_Alarm" Schema="dbo" store:Type="Tables" />
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="SCADAModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="INF_Takt">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" />
+          <Property Name="StationSN" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="RecordFristEnteredTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="RecordLastEnteredTime" Type="DateTime" Precision="3" />
+          <Property Name="RecordCount" Type="Int32" />
+          <Property Name="RecordWorkSeconds" Type="Int32" />
+          <Property Name="RecordWaitSeconds" Type="Int32" />
+        </EntityType>
+        <EntityContainer Name="SCADAEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="INF_Takt" EntityType="Self.INF_Takt" />
+          <EntitySet Name="STA_Alarm" EntityType="SCADAModel.STA_Alarm" />
+        </EntityContainer>
+        <EntityType Name="STA_Alarm">
+          <Key>
+            <PropertyRef Name="SN" />
+          </Key>
+          <Property Name="SN" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="DeviceName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="AlarmName" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="IsTurnOn" Type="Boolean" />
+          <Property Name="AlarmId" Type="Int32" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="SCADAModelStoreContainer" CdmEntityContainer="SCADAEntities">
+          <EntitySetMapping Name="INF_Takt">
+            <EntityTypeMapping TypeName="SCADAModel.INF_Takt">
+              <MappingFragment StoreEntitySet="INF_Takt">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="StationSN" ColumnName="StationSN" />
+                <ScalarProperty Name="RecordFristEnteredTime" ColumnName="RecordFristEnteredTime" />
+                <ScalarProperty Name="RecordLastEnteredTime" ColumnName="RecordLastEnteredTime" />
+                <ScalarProperty Name="RecordCount" ColumnName="RecordCount" />
+                <ScalarProperty Name="RecordWorkSeconds" ColumnName="RecordWorkSeconds" />
+                <ScalarProperty Name="RecordWaitSeconds" ColumnName="RecordWaitSeconds" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="STA_Alarm">
+            <EntityTypeMapping TypeName="SCADAModel.STA_Alarm">
+              <MappingFragment StoreEntitySet="STA_Alarm">
+                <ScalarProperty Name="AlarmId" ColumnName="AlarmId" />
+                <ScalarProperty Name="IsTurnOn" ColumnName="IsTurnOn" />
+                <ScalarProperty Name="AlarmName" ColumnName="AlarmName" />
+                <ScalarProperty Name="DeviceName" ColumnName="DeviceName" />
+                <ScalarProperty Name="SN" ColumnName="SN" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="无" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

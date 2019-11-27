@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.0;net45</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\L.EF.Wpf.Toolkit\L.EF.Wpf.Toolkit.csproj" />
+    <ProjectReference Include="..\L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj" />
+    <ProjectReference Include="..\L.Wpf.Toolkit\L.Wpf.Toolkit.csproj" />
+  </ItemGroup>
+
+</Project>

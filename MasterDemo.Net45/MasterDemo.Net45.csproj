@@ -36,8 +36,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="PresentationFramework.Aero2" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -56,7 +59,29 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DataGridRowIndexConverter.cs" />
+    <Compile Include="DbModel.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DbModel.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DbModel.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DbModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DbModel.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DbModel.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="INF_Takt.cs">
+      <DependentUpon>DbModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Model.cs" />
+    <Compile Include="STA_Alarm.cs">
+      <DependentUpon>DbModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="ViewModels\ViewWindowViewModel.cs" />
     <Compile Include="ViewModels\Window1ViewModel.cs" />
     <Compile Include="Views\ViewWindow.xaml.cs">
@@ -105,12 +130,26 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EntityDeploy Include="DbModel.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>DbModel.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <None Include="App.Config" />
+    <None Include="DbModel.edmx.diagram">
+      <DependentUpon>DbModel.edmx</DependentUpon>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="EntityFramework">
+      <Version>6.2.0</Version>
+    </PackageReference>
+    <PackageReference Include="EntityFramework.zh-Hans">
+      <Version>6.2.0</Version>
+    </PackageReference>
     <PackageReference Include="MaterialDesignThemes">
       <Version>2.6.0</Version>
     </PackageReference>
@@ -147,9 +186,17 @@
     <Resource Include="Images\undo.png" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\L.EF.Wpf.Toolkit\L.EF.Wpf.Toolkit.csproj">
+      <Project>{a96717b0-6f51-49a1-99cb-1d315cf2b400}</Project>
+      <Name>L.EF.Wpf.Toolkit</Name>
+    </ProjectReference>
     <ProjectReference Include="..\L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj">
       <Project>{49e8d090-1cb1-45ac-b5e4-ce1a08dd9c66}</Project>
       <Name>L.Prism.Wpf.Toolkit</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\L.Toolkits\L.Toolkits.csproj">
+      <Project>{f09277b3-2ece-42c5-9674-85306d7aee81}</Project>
+      <Name>L.Toolkits</Name>
     </ProjectReference>
     <ProjectReference Include="..\L.Wpf.Toolkit\L.Wpf.Toolkit.csproj">
       <Project>{dbc0c9ad-2fa0-4ea2-813f-999558ccf3b8}</Project>
@@ -171,6 +218,21 @@
       <Project>{bfed935b-74d8-423a-ae79-2c373f673e6d}</Project>
       <Name>ModuleD</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="DbModel.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>DbModel.edmx</DependentUpon>
+      <LastGenOutput>DbModel.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="DbModel.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>DbModel.edmx</DependentUpon>
+      <LastGenOutput>DbModel.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
