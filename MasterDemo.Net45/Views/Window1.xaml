@@ -1,18 +1,26 @@
-﻿<Window x:Class="MasterDemo.Views.Window1"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:prism="http://prismlibrary.com/"             
-             prism:ViewModelLocator.AutoWireViewModel="True">
-    <Grid>
-        <ListView>
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn/>
-                </GridView>
-            </ListView.View>
-        </ListView>
-        <DataGrid>
-            
-        </DataGrid>
-    </Grid>
+﻿<Window
+    x:Class="MasterDemo.Views.Window1"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
+    xmlns:local="clr-namespace:MasterDemo"
+    xmlns:prism="http://prismlibrary.com/"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    prism:ViewModelLocator.AutoWireViewModel="True">
+
+    <DockPanel>
+        <CustomDataGridBar DockPanel.Dock="Top" />
+        <CustomDataGrid>
+            <DataGrid.Columns>
+                <EditableDataGridColumn
+                    EditedPropertyName="ID"
+                    Header="Id"
+                    IsReadOnly="True" />
+                <EditableDataGridColumn EditedPropertyName="ScannerSN" Header="扫码枪编码" />
+                <EditableDataGridColumn EditedPropertyName="ScannedTime" Header="扫码时间" />
+                <EditableDataGridColumn EditedPropertyName="ScannedText" Header="扫码内容" />
+                <EditableDataGridColumn Width="*" Kind="Oper" />
+            </DataGrid.Columns>
+        </CustomDataGrid>
+    </DockPanel>
 </Window>

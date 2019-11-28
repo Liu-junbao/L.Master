@@ -1,0 +1,385 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+    xmlns:local="clr-namespace:System.Windows">
+
+    <Style
+        x:Key="st.CustomDataGrid"
+        BasedOn="{StaticResource {x:Type DataGrid}}"
+        TargetType="local:CustomDataGrid">
+        <Setter Property="IsEnabled" Value="{Binding IsLoading, Converter={local:IsLoadingToEnabled}}" />
+        <Setter Property="ItemsSource" Value="{Binding Items}" />
+        <Setter Property="local:EditableViewModelAssist.SourceService" Value="{Binding}" />
+        <Setter Property="AutoGenerateColumns" Value="False" />
+        <Setter Property="SelectionMode" Value="Single" />
+        <Setter Property="VerticalGridLinesBrush" Value="Transparent" />
+        <Setter Property="HorizontalGridLinesBrush" Value="LightGray" />
+        <Setter Property="RowStyle">
+            <Setter.Value>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type DataGridRow}">
+                                <Border
+                                    x:Name="DGR_Border"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    SnapsToDevicePixels="True">
+                                    <SelectiveScrollingGrid>
+                                        <SelectiveScrollingGrid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </SelectiveScrollingGrid.ColumnDefinitions>
+                                        <SelectiveScrollingGrid.RowDefinitions>
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="Auto" />
+                                        </SelectiveScrollingGrid.RowDefinitions>
+                                        <DataGridCellsPresenter
+                                            Grid.Column="1"
+                                            ItemsPanel="{TemplateBinding ItemsPanel}"
+                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                        <DataGridDetailsPresenter
+                                            Grid.Row="1"
+                                            Grid.Column="1"
+                                            SelectiveScrollingGrid.SelectiveScrollingOrientation="{Binding AreRowDetailsFrozen, ConverterParameter={x:Static SelectiveScrollingOrientation.Vertical}, Converter={x:Static DataGrid.RowDetailsScrollingConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                                            Visibility="{TemplateBinding DetailsVisibility}" />
+                                        <DataGridRowHeader
+                                            Grid.RowSpan="2"
+                                            SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical"
+                                            Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Row}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
+                                    </SelectiveScrollingGrid>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="LightGoldenrodYellow" />
+                            <Setter Property="local:EditableViewModelAssist.IsEditable" Value="True" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="YellowGreen" />
+                            <Setter Property="local:EditableViewModelAssist.IsEditable" Value="True" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="CellStyle">
+            <Setter.Value>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="DataGridCell">
+                                <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                    <ContentPresenter
+                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="True" />
+                                <Condition Property="Selector.IsSelectionActive" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Foreground" Value="Black" />
+                        </MultiTrigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value=".56" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="RowHeaderStyle">
+            <Setter.Value>
+                <Style TargetType="DataGridRowHeader">
+                    <Setter Property="Content">
+                        <Setter.Value>
+                            <MultiBinding Converter="{local:DataGridRowIndexConverter}">
+                                <Binding Path="." RelativeSource="{RelativeSource FindAncestor, AncestorType=DataGrid}" />
+                                <Binding Path="." />
+                            </MultiBinding>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="st.ListBoxItem.CustomDataGridBar" TargetType="ListBoxItem">
+        <Setter Property="Margin" Value="3" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Opacity" Value="0.7" />
+        <Setter Property="Padding" Value="5,1" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Border
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                        <TextBlock
+                            Margin="{TemplateBinding Padding}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Text="{TemplateBinding Content,
+                                                   Converter={local:ToString}}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Opacity" Value="1" />
+                <Setter Property="BorderBrush" Value="LightGray" />
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="YellowGreen" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="st.Button.CustomDataGridBar.MoveToFirst" TargetType="Button">
+        <Setter Property="Width" Value="{Binding RelativeSource={RelativeSource Self}, Path=FontSize, Converter={local:Rate}, ConverterParameter=0.8}" />
+        <Setter Property="Height" Value="{Binding RelativeSource={RelativeSource Self}, Path=FontSize, Converter={local:Rate}, ConverterParameter=1.2}" />
+        <Setter Property="Command" Value="{x:Static local:CustomDataGridBar.MoveToFirstCommand}" />
+        <Setter Property="Opacity" Value="0.7" />
+        <Setter Property="Margin" Value="3" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="Transparent">
+                        <Path
+                            Data="M0,0 0,20 2,20 2,0Z M2,10 10,0 10,20Z"
+                            Fill="{TemplateBinding Foreground}"
+                            Stretch="Fill" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Opacity" Value="1" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Foreground" Value="YellowGreen" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="st.Button.CustomDataGridBar.MoveToLast"
+        BasedOn="{StaticResource st.Button.CustomDataGridBar.MoveToFirst}"
+        TargetType="Button">
+        <Setter Property="Command" Value="{x:Static local:CustomDataGridBar.MoveToLastCommand}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="Transparent">
+                        <Path
+                            Data="M0,0 10,10 0,20Z M10,0 10,20 12,20 12,0Z"
+                            Fill="{TemplateBinding Foreground}"
+                            Stretch="Fill" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style
+        x:Key="st.Button.CustomDataGridBar.MoveToNext"
+        BasedOn="{StaticResource st.Button.CustomDataGridBar.MoveToLast}"
+        TargetType="Button">
+        <Setter Property="Command" Value="{x:Static local:CustomDataGridBar.MoveToNextCommand}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="Transparent">
+                        <Path
+                            Data="M0,0 10,10 0,20Z"
+                            Fill="{TemplateBinding Foreground}"
+                            Stretch="Fill" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style
+        x:Key="st.Button.CustomDataGridBar.MoveToPrevious"
+        BasedOn="{StaticResource st.Button.CustomDataGridBar.MoveToFirst}"
+        TargetType="Button">
+        <Setter Property="Command" Value="{x:Static local:CustomDataGridBar.MoveToPreviousCommand}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="Transparent">
+                        <Path
+                            Data="M2,10 10,0 10,20Z"
+                            Fill="{TemplateBinding Foreground}"
+                            Stretch="Fill" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="st.ListBox.CustomDataGridBar" TargetType="ListBox">
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="ItemContainerStyle" Value="{StaticResource st.ListBoxItem.CustomDataGridBar}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBox">
+                    <Border SnapsToDevicePixels="True">
+                        <ItemsPresenter VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel IsItemsHost="True" Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="st.CustomDataGridBar" TargetType="local:CustomDataGridBar">
+        <Setter Property="IsEnabled" Value="{Binding IsLoading, Converter={local:IsLoadingToEnabled}}" />
+        <Setter Property="PageCount" Value="{Binding PageCount}" />
+        <Setter Property="PageIndex" Value="{Binding PageIndex, Mode=TwoWay}" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="Count" Value="{Binding Count}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:CustomDataGridBar">
+                    <Border Background="Transparent">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Margin="3" VerticalAlignment="Center">
+                                <Run Text="记录总数量:" />
+                                <Run Foreground="Red" Text="{TemplateBinding Count, Converter={local:ToString}}" />
+                                <Run Text="条" />
+                            </TextBlock>
+                            <Button
+                                x:Name="btFirst"
+                                Grid.Column="3"
+                                Margin="3"
+                                Style="{StaticResource st.Button.CustomDataGridBar.MoveToFirst}" />
+                            <Button
+                                x:Name="btPrev"
+                                Grid.Column="4"
+                                Margin="3"
+                                Style="{StaticResource st.Button.CustomDataGridBar.MoveToPrevious}" />
+                            <ListBox
+                                Grid.Column="5"
+                                Margin="3"
+                                ItemsSource="{TemplateBinding DisplayIndexSource}"
+                                Style="{StaticResource st.ListBox.CustomDataGridBar}"
+                                Validation.ErrorTemplate="{x:Null}">
+                                <ListBox.SelectedItem>
+                                    <MultiBinding Converter="{local:ValidSelectedItem}">
+                                        <Binding
+                                            Mode="OneWay"
+                                            Path="DisplayIndexSource"
+                                            RelativeSource="{RelativeSource TemplatedParent}" />
+                                        <Binding
+                                            Mode="TwoWay"
+                                            Path="PageIndex"
+                                            RelativeSource="{RelativeSource TemplatedParent}" />
+                                    </MultiBinding>
+                                </ListBox.SelectedItem>
+                            </ListBox>
+                            <Button
+                                x:Name="btNext"
+                                Grid.Column="6"
+                                Margin="3"
+                                Style="{StaticResource st.Button.CustomDataGridBar.MoveToNext}" />
+                            <Button
+                                x:Name="btLast"
+                                Grid.Column="7"
+                                Margin="3"
+                                Style="{StaticResource st.Button.CustomDataGridBar.MoveToLast}" />
+                            <local:NumericBox
+                                Grid.Column="8"
+                                Height="{Binding RelativeSource={RelativeSource Self}, Path=FontSize, Converter={local:Rate}, ConverterParameter=1.8}"
+                                MinWidth="30"
+                                Margin="3"
+                                MaxFractionDigits="0"
+                                VerticalAlignment="Center"
+                                HorizontalContentAlignment="Right"
+                                VerticalContentAlignment="Center"
+                                Foreground="Red"
+                                Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=PageIndex, Mode=TwoWay, Converter={local:ToString}}">
+                                <i:Interaction.Behaviors>
+                                    <local:TextBoxFilterBehavior TextBoxFilterOptions="Numeric" />
+                                </i:Interaction.Behaviors>
+                            </local:NumericBox>
+                            <local:CustomButton
+                                Grid.Column="9"
+                                VerticalAlignment="Center"
+                                Command="{x:Static local:CustomDataGridBar.MoveToCurrentCommand}"
+                                Content="页"
+                                Cursor="Hand" />
+                            <TextBlock
+                                Grid.Column="10"
+                                Margin="3"
+                                VerticalAlignment="Center"
+                                Focusable="True">
+                                <Run Text="/总共" />
+                                <Run Foreground="Red" Text="{TemplateBinding PageCount, Converter={local:ToString}}" />
+                                <Run Text="页" />
+                            </TextBlock>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="DisplayIndexStatus" Value="Start">
+                            <Setter TargetName="btFirst" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="btPrev" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="DisplayIndexStatus" Value="End">
+                            <Setter TargetName="btLast" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="btNext" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="DisplayIndexStatus" Value="None">
+                            <Setter TargetName="btFirst" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="btPrev" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="btLast" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="btNext" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>
