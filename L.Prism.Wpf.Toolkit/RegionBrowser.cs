@@ -103,8 +103,8 @@ namespace Prism
         private void ApplyRegion()
         {
             var regionManager = RegionManager.GetRegionManager(this);
-            if (regionManager == null && CommonServiceLocator.ServiceLocator.IsLocationProviderSet)
-                regionManager = CommonServiceLocator.ServiceLocator.Current?.GetInstance<IRegionManager>();
+            if (regionManager == null)
+                regionManager = this.GetInstance<IRegionManager>();
             if (regionManager != null)
             {
                 _regionManager = regionManager;

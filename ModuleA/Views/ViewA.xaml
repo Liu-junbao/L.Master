@@ -7,20 +7,41 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prism="http://prismlibrary.com/"
     xmlns:root="clr-namespace:ModuleA"
+    xmlns:s="clr-namespace:System;assembly=mscorlib"
     d:DesignHeight="300"
     d:DesignWidth="300"
     prism:ViewModelLocator.AutoWireViewModel="True"
     Background="Transparent"
-    
     RegionBrowserAssist.CanClose="False"
     RegionBrowserAssist.Icon="/ModuleA;component/YF.ico"
     RegionBrowserAssist.Title="模块A"
     RegionBrowserAssist.ToolTip="Home"
     mc:Ignorable="d">
     <Grid>
-        <TextBlock
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Text="{Binding Message}" />
+        <ListView>
+            <s:String>1</s:String>
+            <s:String>2</s:String>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Width="200" Header="test">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <local:UserControl1
+                                    Width="30"
+                                    Height="30"
+                                    Value="{Binding}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <DataGrid>
+            <DataGridTemplateColumn />
+            <DataGridComboBoxColumn />
+            <DataGridTextColumn />
+            <DataGridCheckBoxColumn />
+            <DataGridHyperlinkColumn />
+        </DataGrid>
     </Grid>
 </UserControl>

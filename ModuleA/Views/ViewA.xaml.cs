@@ -23,6 +23,13 @@ namespace ModuleA.Views
         public ViewA()
         {
             InitializeComponent();
+
+            EventManager.RegisterClassHandler(typeof(UserControl1),UserControl1.TestEvent,new RoutedEventHandler(OnTested));
+        }
+
+        private void OnTested(object sender, RoutedEventArgs e)
+        {
+            
         }
     }
 }
