@@ -9,6 +9,8 @@
     prism:ViewModelLocator.AutoWireViewModel="True">
 
     <DockPanel>
+        <DateTimeTextBox x:Name="dt" DockPanel.Dock="Top" />
+        <ContentControl DockPanel.Dock="Top"  Content="{Binding ElementName=dt,Path=Value}"/>
         <CustomDataGridBar DockPanel.Dock="Top" />
         <CustomDataGrid>
             <DataGrid.Columns>

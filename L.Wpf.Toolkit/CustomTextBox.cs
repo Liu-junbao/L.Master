@@ -60,12 +60,12 @@ namespace System.Windows
 
         public TNumeric? MaxValue
         {
-            get { return (TNumeric)GetValue(MaxValueProperty); }
+            get { return (TNumeric?)GetValue(MaxValueProperty); }
             set { SetValue(MaxValueProperty, value); }
         }
         public TNumeric? MinValue
         {
-            get { return (TNumeric)GetValue(MinValueProperty); }
+            get { return (TNumeric?)GetValue(MinValueProperty); }
             set { SetValue(MinValueProperty, value); }
         }
         public string StringFormat
@@ -83,41 +83,41 @@ namespace System.Windows
             get { return (CultureInfo)GetValue(CultureInfoProperty); }
             set { SetValue(CultureInfoProperty, value); }
         }
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+            if (e.Property == ValueProperty)
+            {
+                Text = ConvertToString(Value);
+            }
+        }
         protected override bool CheckInputText(int caretIndex, string inputText, string newText)
         {
-            TNumeric value;
-            string valueText;
-            int valueCaretIndex;
-            if (TryParseFromFormat(newText,caretIndex,out value, out valueText,out valueCaretIndex))
+            TNumeric value = ParseFrom(newText);
+            //上限控制
+            var max = MaxValue;
+            if (max != null && value.CompareTo(max.Value) > 0)
+                value = max.Value;
+            //下限控制
+            var min = MinValue;
+            if (min != null && value.CompareTo(min.Value) < 0)
+                value = min.Value;
+            //值
+            Value = value;
+            //字符串
+            var valueText = ConvertToString(value);
+            if (valueText != newText)
             {
-                //上限控制
-                var max = MaxValue;
-                if (max != null && value.CompareTo(max.Value) > 0)
-                {
-                    Text = ConvertToString(max.Value, StringFormat);
-                    CaretIndex = Text?.Length ?? 0;
-                    return false;
-                }
-                //下限控制
-                var min = MinValue;
-                if (min != null && value.CompareTo(min.Value) < 0)
-                {
-                    Text = ConvertToString(min.Value, StringFormat);
-                    CaretIndex = Text?.Length ?? 0;
-                    return false;
-                }
-                //修改了输入值
-                if (valueText != newText)
-                {
-                    Text = valueText;
-                }
-                return true;
+                Text = valueText;
+                CaretIndex = Text?.Length ?? 0;
+                return false;
             }
             return true;
         }
-        protected abstract bool TryParseFromFormat(string newText, int caretIndex, out TNumeric value, out string valueText, out int valueCaretIndex);
-        protected virtual string ConvertToString(TNumeric value, string format)
+        protected abstract TNumeric ParseFrom(string newText);
+        protected virtual string ConvertToString(TNumeric value)
         {
+            var format = StringFormat;
             if (string.IsNullOrEmpty(format) == false)
                 return value.ToString(format, CultureInfo);
             return value.ToString();
@@ -125,32 +125,32 @@ namespace System.Windows
     }
     public class IntegerTextBox : NumericalTextBox<int>
     {
-        protected override bool TryParseFromFormat(string newText, int caretIndex, out int value, out string valueText, out int valueCaretIndex)
+        protected override int ParseFrom(string newText)
         {
-            value = 0;
-            valueText = newText;
-            valueCaretIndex = caretIndex;
-            return false;
+            int value;
+            if (int.TryParse(newText, out value))
+                return value;
+            return 0;
         }
     }
     public class DoubleTextBox : NumericalTextBox<double>
     {
-        protected override bool TryParseFromFormat(string newText, int caretIndex, out double value, out string valueText, out int valueCaretIndex)
+        protected override double ParseFrom(string newText)
         {
-            value = 0;
-            valueText = newText;
-            valueCaretIndex = caretIndex;
-            return false;
+            double value;
+            if (double.TryParse(newText, out value))
+                return value;
+            return 0;
         }
     }
     public class DateTimeTextBox : NumericalTextBox<DateTime>
     {
-        protected override bool TryParseFromFormat(string newText, int caretIndex, out DateTime value, out string valueText, out int valueCaretIndex)
+        protected override DateTime ParseFrom(string newText)
         {
-            value = DateTime.Now;
-            valueText = newText;
-            valueCaretIndex = caretIndex;
-            return false;
+            DateTime time;
+            if (DateTime.TryParse(newText, out time))
+                return time;
+            return DateTime.Now.Date;
         }
     }
 }
