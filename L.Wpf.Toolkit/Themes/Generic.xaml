@@ -32,4 +32,5 @@
     <Style BasedOn="{StaticResource st.SelectableValueEditor}" TargetType="local:ListEditor" />
     <Style BasedOn="{StaticResource st.OperationEditor}" TargetType="local:OperEditor" />
     <Style BasedOn="{StaticResource st.CustomDataGrid}" TargetType="local:CustomDataGrid" />
+    <Style BasedOn="{StaticResource st.CustomDataGridBar}" TargetType="local:CustomDataGridBar" />
 </ResourceDictionary>

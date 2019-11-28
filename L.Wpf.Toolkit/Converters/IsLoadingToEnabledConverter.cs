@@ -8,22 +8,18 @@ using System.Windows.Data;
 
 namespace System.Windows
 {
-    public class ToStringConverter : IValueConverter
+    public class IsLoadingToEnabledConverter : IValueConverter
     {
-        private Type _valueType;
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null) return null;
-            _valueType = value.GetType();
-            return value.ToString();
+            return (bool)value ? false : true;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (_valueType == null)
-                return null;
-            return System.Convert.ChangeType(value.ToString(), _valueType);
+            throw new NotImplementedException();
         }
     }
-    public class ToStringExtension : NewMarkupExtension<ToStringConverter> { }
+    public class IsLoadingToEnabledExtension : NewMarkupExtension<IsLoadingToEnabledConverter> { }
 }

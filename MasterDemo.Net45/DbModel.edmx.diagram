@@ -7,6 +7,7 @@
       <Diagram DiagramId="0132755174e34458875403bab68dbbe9" Name="Diagram1">
         <EntityTypeShape EntityType="SCADAModel.INF_Takt" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
         <EntityTypeShape EntityType="SCADAModel.STA_Alarm" Width="1.5" PointX="3.375" PointY="0.75" />
+        <EntityTypeShape EntityType="SCADAModel.INF_Scanned" Width="1.5" PointX="3.375" PointY="3.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

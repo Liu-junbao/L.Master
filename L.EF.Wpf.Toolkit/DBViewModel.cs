@@ -61,7 +61,7 @@ namespace System
         public int PageIndex
         {
             get { return _pageIndex; }
-            set { SetProperty(ref _pageIndex, value); }
+            set { SetProperty(ref _pageIndex, value, OnPageIndexChanged); }
         }
         protected virtual void OnIsActiveChanged(bool oldIsActive, bool newIsActive)
         {
@@ -70,6 +70,11 @@ namespace System
                 Loading();
             }
             IsActiveChanged?.Invoke(this, null);
+        }
+        protected virtual void OnPageIndexChanged(int oldPageIndex, int newPageIndex)
+        {
+            //
+            LoadPage(newPageIndex);
         }
         /// <summary>
         /// 加载数据
@@ -93,6 +98,25 @@ namespace System
                 }
             }
         }
+        private void LoadPage(int pageIndex)
+        {
+            if (_loadTask == null || _loadTask.IsCompleted)
+            {
+                IsLoading = true;
+                try
+                {
+                    _loadTask = LoadPageAsync(pageIndex);
+                }
+                catch (Exception e)
+                {
+                    OnCapturedException(e);
+                }
+                finally
+                {
+                    IsLoading = false;
+                }
+            }
+        }
         private async Task LoadAsync()
         {
             Items = await Task.Run(() =>
@@ -105,18 +129,19 @@ namespace System
                         var count = OnQuery(db.Set<TModel>()).Count();
                         Count = count;
                         var pageSize = DisplayCount;
-                        if (pageSize < 0) pageSize = 1;
+                        if (pageSize <= 0) pageSize = 1;
                         DisplayCount = pageSize;
                         int remain;
                         var pageCount = Math.DivRem(Count, DisplayCount, out remain);
                         if (remain > 0) pageCount++;
                         PageCount = pageCount;
+                        PageIndex = 0;
                         if (count > 0)
                         {
                             var pageIndex = PageIndex;
                             if (pageIndex < 1) pageIndex = 1;
                             PageIndex = pageIndex;
-                            return OnQuery(db.Set<TModel>()).Skip((pageIndex - 1) * pageSize).Take(pageSize).ToList();
+                            return OnQuery(db.Set<TModel>()).Take(pageSize).ToList();
                         }
                     }
                 }
@@ -128,7 +153,27 @@ namespace System
             });
             OnLoaded(Count);
         }
-        protected abstract IQueryable<TModel> OnQuery(IQueryable<TModel> query);
+        private async Task LoadPageAsync(int pageIndex)
+        {
+            var pageSize = DisplayCount;
+            if (pageIndex <= 0 || pageIndex > PageCount|| pageSize <= 0) return;
+            Items = await Task.Run(() =>
+            {
+                try
+                {
+                    using (var db = new TDbContext())
+                    {
+                        return OnQuery(db.Set<TModel>()).Skip((pageIndex - 1) * pageSize).Take(pageSize).ToList();
+                    }
+                }
+                catch (Exception e)
+                {
+                    OnCapturedException(e);
+                }
+                return null;
+            });
+        }
+        protected virtual IQueryable<TModel> OnQuery(IQueryable<TModel> query) => query;
         protected virtual void OnCapturedException(Exception e, [CallerMemberName] string methodName = null) { }
         protected virtual void OnLoaded(int count) { }
         public async virtual Task SaveChangedPropertys(object source, Dictionary<PropertyInfo, object> changedPropertys)

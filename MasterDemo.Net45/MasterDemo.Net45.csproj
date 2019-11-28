@@ -75,6 +75,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>DbModel.edmx</DependentUpon>
     </Compile>
+    <Compile Include="INF_Scanned.cs">
+      <DependentUpon>DbModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="INF_Takt.cs">
       <DependentUpon>DbModel.tt</DependentUpon>
     </Compile>

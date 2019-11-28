@@ -14,7 +14,8 @@ namespace System.Windows
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
             if (values == null) return null;
-            var dg = (DataGrid)values[0];
+            var dg = values[0] as DataGrid;
+            if (dg == null) return null;
             var item = values[1];
             return dg.Items.IndexOf(item)+1;
         }

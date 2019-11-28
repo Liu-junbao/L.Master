@@ -8,52 +8,19 @@
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     prism:ViewModelLocator.AutoWireViewModel="True">
 
-
-    <Grid>
-        <ScrollViewer HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
-            <CustomDataGrid>
-                <DataGrid.Columns>
-                    <EditableDataGridColumn
-                        CanUserSort="True"
-                        EditedPropertyName="SN"
-                        Header="Id" />
-                    <EditableDataGridColumn
-                        CanUserSort="True"
-                        EditedPropertyName="DeviceName"
-                        Header="设备名称"
-                        IsReadOnly="False" />
-                    <EditableDataGridColumn
-                        EditedPropertyName="AlarmName"
-                        Header="故障名称"
-                        IsReadOnly="False" />
-                    <EditableDataGridColumn Width="*" Kind="Oper" />
-                </DataGrid.Columns>
-            </CustomDataGrid>
-        </ScrollViewer>
-        <!--<DataGrid Margin="10"
-                AutoGenerateColumns="False"
-                EditableViewModelAssist.SourceService="{Binding}"
-                HorizontalGridLinesBrush="LightGray"
-                IsReadOnly="True"
-                ItemsSource="{Binding Items}"
-                SelectionMode="Single"
-                VerticalGridLinesBrush="LightGray">
+    <DockPanel>
+        <CustomDataGridBar DockPanel.Dock="Top" />
+        <CustomDataGrid>
             <DataGrid.Columns>
-                <EditableDataGridColumn EditedPropertyName="Name" Header="名称" />
                 <EditableDataGridColumn
-                        EditedPropertyName="Group"
-                        Header="分组"
-                        Kind="List">
-                    <sys:String>1</sys:String>
-                    <sys:String>2</sys:String>
-                    <sys:String>3</sys:String>
-                    <sys:String>4</sys:String>
-                    <sys:String>5</sys:String>
-                    <sys:String>6</sys:String>
-                    <sys:String>7</sys:String>
-                </EditableDataGridColumn>
+                    EditedPropertyName="ID"
+                    Header="Id"
+                    IsReadOnly="True" />
+                <EditableDataGridColumn EditedPropertyName="ScannerSN" Header="扫码枪编码" />
+                <EditableDataGridColumn EditedPropertyName="ScannedTime" Header="扫码时间" />
+                <EditableDataGridColumn EditedPropertyName="ScannedText" Header="扫码内容" />
                 <EditableDataGridColumn Width="*" Kind="Oper" />
             </DataGrid.Columns>
-        </DataGrid>-->
-    </Grid>
+        </CustomDataGrid>
+    </DockPanel>
 </Window>

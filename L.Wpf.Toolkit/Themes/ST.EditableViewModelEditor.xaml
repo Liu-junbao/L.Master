@@ -6,6 +6,7 @@
         <Setter Property="ViewModel" Value="{Binding ., Converter={local:EditableViewModelConverter}}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Padding" Value="3" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:TextEditor">
@@ -36,11 +37,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}">
-                                <TextBox
-                                    Margin="{TemplateBinding Padding}"
-                                    Padding="0"
-                                    VerticalContentAlignment="Center"
-                                    Text="{Binding EditedValue, RelativeSource={RelativeSource TemplatedParent}, Converter={local:ToString}}" />
+                                <TextBox VerticalContentAlignment="Center" Text="{Binding EditedValue, RelativeSource={RelativeSource TemplatedParent}, Converter={local:ToString}}" />
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>
@@ -126,15 +123,15 @@
                                     <local:CustomButton
                                         VerticalAlignment="Center"
                                         Command="Close"
-                                        Content="撤销"
-                                        ToolTip="撤销" />
+                                        Content="取消"
+                                        ToolTip="取消" />
                                 </StackPanel>
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
             </Trigger>
-            <Trigger Property="IsSelected" Value="False">
+            <Trigger Property="IsEditable" Value="False">
                 <Setter Property="Visibility" Value="Hidden" />
             </Trigger>
         </Style.Triggers>

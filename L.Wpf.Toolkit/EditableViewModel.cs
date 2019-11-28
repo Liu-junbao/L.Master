@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -15,6 +16,7 @@ using System.Windows.Media;
 
 namespace System.Windows
 {
+    #region viewModel
     /// <summary>
     /// 可编辑视图
     /// </summary>
@@ -23,7 +25,7 @@ namespace System.Windows
         private object _source;
         private bool _isEnabled;
         private bool _isEditing;
-        private bool _isSelected;
+        private bool _isEditable;
         private ISourceService _sourceService;
         public EditableViewModel()
         {
@@ -49,12 +51,12 @@ namespace System.Windows
             get { return _isEditing; }
             set { SetProperty(ref _isEditing, value); }
         }
-        public bool IsSelected
+        public bool IsEditable
         {
-            get { return _isSelected; }
-            set { SetProperty(ref _isSelected, value, OnIsSelectedChanged); }
+            get { return _isEditable; }
+            set { SetProperty(ref _isEditable, value, OnIsEditableChanged); }
         }
-        protected virtual void OnIsSelectedChanged(bool oldIsSelected, bool newIsSelected)
+        protected virtual void OnIsEditableChanged(bool oldIsSelected, bool newIsSelected)
         {
             //
             if (newIsSelected == false)
@@ -112,7 +114,7 @@ namespace System.Windows
             }
             return changedPropertyValues.Count > 0;
         }
-        private bool TryConvert(object value,Type type,out object result)
+        private bool TryConvert(object value, Type type, out object result)
         {
             result = null;
             try
@@ -132,21 +134,24 @@ namespace System.Windows
         {
             EditedValues = editedValues;
         }
-        public Dictionary<string,object> EditedValues { get; }
+        public Dictionary<string, object> EditedValues { get; }
     }
     public interface ISourceService
     {
-        void OnCaptureErrorEditedValue(string propertyName,object editedValue);
+        void OnCaptureErrorEditedValue(string propertyName, object editedValue);
         Task SaveChangedPropertys(object source, Dictionary<PropertyInfo, object> changedPropertys);
     }
+    #endregion
+
+    #region editor
     public abstract class EditableViewModelEditor : Control
     {
         public static readonly DependencyProperty ViewModelProperty =
             DependencyProperty.Register(nameof(ViewModel), typeof(EditableViewModel), typeof(EditableViewModelEditor), new PropertyMetadata(null, OnEditableViewModelChanged));
         public static readonly DependencyProperty IsEditingProperty =
             DependencyProperty.Register(nameof(IsEditing), typeof(bool), typeof(EditableViewModelEditor), new PropertyMetadata(false, OnIsEditingChanged));
-        public static readonly DependencyProperty IsSelectedProperty =
-            DependencyProperty.Register(nameof(IsSelected), typeof(bool), typeof(EditableViewModelEditor), new PropertyMetadata(false, OnIsSelectedChanged));
+        public static readonly DependencyProperty IsEditableProperty =
+            DependencyProperty.Register(nameof(IsEditable), typeof(bool), typeof(EditableViewModelEditor), new PropertyMetadata(false, OnIsEditableChanged));
         private static void OnEditableViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var editor = (EditableViewModelEditor)d;
@@ -157,15 +162,10 @@ namespace System.Windows
             var editor = (EditableViewModelEditor)d;
             editor.OnIsEditingChanged((bool)e.NewValue);
         }
-        private static void OnIsSelectedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnIsEditableChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var editor = (EditableViewModelEditor)d;
-            editor.OnIsSelectedChanged((bool)e.NewValue);
-        }
-        public EditableViewModelEditor()
-        {
-            BindingOperations.SetBinding(this, IsEditingProperty, new Binding($"{nameof(ViewModel)}.{nameof(ViewModel.IsEditing)}") { Source = this, Mode = BindingMode.TwoWay });
-            BindingOperations.SetBinding(this, IsSelectedProperty, new Binding($"{nameof(ViewModel)}.{nameof(ViewModel.IsSelected)}") { Source = this, Mode = BindingMode.TwoWay });
+            editor.OnIsEditableChanged((bool)e.NewValue);
         }
         public EditableViewModel ViewModel
         {
@@ -177,24 +177,75 @@ namespace System.Windows
             get { return (bool)GetValue(IsEditingProperty); }
             set { SetValue(IsEditingProperty, value); }
         }
-        public bool IsSelected
+        public bool IsEditable
         {
-            get { return (bool)GetValue(IsSelectedProperty); }
-            set { SetValue(IsSelectedProperty, value); }
+            get { return (bool)GetValue(IsEditableProperty); }
+            set { SetValue(IsEditableProperty, value); }
         }
-        protected virtual void OnIsEditingChanged(bool isEditing) { }
-        protected virtual void OnIsSelectedChanged(bool isSelected) { }
+        protected virtual void OnIsEditingChanged(bool isEditing)
+        {
+            var viewModel = ViewModel;
+            if (viewModel != null)
+                viewModel.IsEditing = isEditing;
+        }
+        protected virtual void OnIsEditableChanged(bool isEditable)
+        {
+            var viewModel = ViewModel;
+            if (viewModel != null)
+                viewModel.IsEditable = isEditable;
+        }
         protected virtual void OnEditableViewModelChanged(EditableViewModel oldViewModel, EditableViewModel newViewModel)
         {
             if (oldViewModel != null)
             {
+                newViewModel.PropertyChanged -= ViewModel_PropertyChanged;
                 oldViewModel.SavingEvent -= SaveEvent;
                 oldViewModel.SavedEvent -= SavedEvent;
             }
             if (newViewModel != null)
             {
+                newViewModel.PropertyChanged += ViewModel_PropertyChanged;
                 newViewModel.SavingEvent += SaveEvent;
                 newViewModel.SavedEvent += SavedEvent;
+
+                IsEditing = newViewModel.IsEditing;
+                IsEditable = newViewModel.IsEditable;
+
+                var sourceService = EditableViewModelAssist.GetSourceService(this);
+                if (sourceService != null)
+                    newViewModel.SourceService = sourceService;
+            }
+        }
+        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+           
+            switch (e.PropertyName)
+            {
+                case nameof(EditableViewModel.IsEditing):
+                    IsEditing = ViewModel.IsEditing;
+                    break;
+                case nameof(EditableViewModel.IsEditable):
+                    IsEditable = ViewModel.IsEditable;
+                    break;
+                default:
+                    break;
+            }
+        }
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+            if (e.Property == EditableViewModelAssist.SourceServiceProperty)
+            {
+                var sourceService = EditableViewModelAssist.GetSourceService(this);
+                var viewModel = ViewModel;
+                if (sourceService != null && viewModel != null)
+                {
+                    viewModel.SourceService = sourceService;
+                }
+            }
+            else if (e.Property == EditableViewModelAssist.IsEditableProperty)
+            {
+                IsEditable = EditableViewModelAssist.GetIsEditable(this);
             }
         }
         private void SaveEvent(object sender, EditableViewModelSavingEventArgs e)
@@ -233,7 +284,7 @@ namespace System.Windows
         private BindingExpressionBase _valueBinding;
         static TextEditor()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(TextEditor),new FrameworkPropertyMetadata(typeof(TextEditor)));
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(TextEditor), new FrameworkPropertyMetadata(typeof(TextEditor)));
         }
         public string EditedSourcePropertyName
         {
@@ -292,11 +343,11 @@ namespace System.Windows
         }
     }
     [ContentProperty(nameof(Selections))]
-    public class ListEditor:TextEditor
+    public class ListEditor : TextEditor
     {
         static ListEditor()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(ListEditor),new FrameworkPropertyMetadata(typeof(ListEditor)));
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(ListEditor), new FrameworkPropertyMetadata(typeof(ListEditor)));
         }
         public ListEditor()
         {
@@ -312,10 +363,10 @@ namespace System.Windows
         }
         public OperEditor()
         {
-            this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Open,new ExecutedRoutedEventHandler(OnPen)));
+            this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Open, new ExecutedRoutedEventHandler(OnPen)));
             this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, new ExecutedRoutedEventHandler(OnClose)));
             this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Save, new ExecutedRoutedEventHandler(OnSave)));
-          
+
         }
         private void OnPen(object sender, ExecutedRoutedEventArgs e)
         {
@@ -329,13 +380,12 @@ namespace System.Windows
         {
             if (ViewModel != null)
             {
-                var sourceService = EditableViewModelAssist.GetSourceService(this);
-                if (ViewModel.SourceService == null && sourceService != null)
-                    ViewModel.SourceService = sourceService;
                 await ViewModel.RaiseSaveAsync();
             }
         }
     }
+    #endregion
+
     [ContentProperty(nameof(Selections))]
     public class EditableDataGridColumn : DataGridColumn
     {
@@ -368,29 +418,14 @@ namespace System.Windows
         }
         private FrameworkElement GetEditor(DataGridCell cell, object dataItem)
         {
-            var sousrce = EditableViewModelAssist.GetSourceService(cell);
-            EditableViewModel model = null;
-            if (dataItem is EditableViewModel)
-                model = (EditableViewModel)dataItem;
-            else
-            {
-                model = GetEditableViewModel(cell);
-                if (model == null || model.Source != dataItem)
-                {
-                    model = new EditableViewModel() { Source = dataItem };
-                    var row = FindRow(cell);
-                    SetEditableViewModel(row, model);
-                    BindingOperations.SetBinding(row, DataGridRow.IsSelectedProperty, new Binding(nameof(model.IsSelected)) { Source = model, Mode = BindingMode.TwoWay });
-                }
-            }
             EditableViewModelEditor editor = null;
             switch (Kind)
             {
                 case EditorKind.Text:
-                    editor = new TextEditor() { ViewModel = model, EditedSourcePropertyName = EditedPropertyName };
+                    editor = new TextEditor() { EditedSourcePropertyName = EditedPropertyName };
                     break;
                 case EditorKind.List:
-                    var selectableValueEditor = new ListEditor() { ViewModel = model, EditedSourcePropertyName = EditedPropertyName };
+                    var selectableValueEditor = new ListEditor() { EditedSourcePropertyName = EditedPropertyName };
                     foreach (var item in Selections)
                     {
                         selectableValueEditor.Selections.Add(item);
@@ -398,16 +433,39 @@ namespace System.Windows
                     editor = selectableValueEditor;
                     break;
                 case EditorKind.Oper:
-                    editor = new OperEditor() { ViewModel = model };
+                    editor = new OperEditor();
                     break;
                 default:
                     break;
             }
+
             if (editor != null)
             {
-                editor.SetBinding(EditableViewModelAssist.SourceServiceProperty, new Binding($"({nameof(EditableViewModelAssist)}.SourceService)") { Source = cell, Mode = BindingMode.OneWay });
                 editor.SetBinding(TextEditor.IsReadOnlyProperty, new Binding(nameof(IsReadOnly)) { Source = this });
+
+                EditableViewModel model = null;
+                if (dataItem is EditableViewModel)
+                    model = (EditableViewModel)dataItem;
+                else
+                {
+                    model = GetEditableViewModel(cell);
+                    if (model == null || model.Source != dataItem)
+                    {
+                        model = new EditableViewModel() { Source = dataItem };
+                        var row = FindRow(cell);
+                        SetEditableViewModel(row, model);
+
+                        //row.SetBinding(EditableViewModelAssist.SourceServiceProperty, new Binding(nameof(EditableViewModel.SourceService)) { Source = model, Mode = BindingMode.TwoWay });
+                        //row.SetBinding(EditableViewModelAssist.IsEditableProperty, new Binding(nameof(EditableViewModel.IsEditable)) { Source = model, Mode = BindingMode.TwoWay });
+                    }
+                }
+
+                editor.ViewModel = model;
+                //editor.SetBinding(EditableViewModelEditor.IsEditableProperty, new Binding($"({nameof(EditableViewModelAssist)}.IsEditable)") { Source = editor, Mode = BindingMode.OneWay });
+                //cell.SetBinding(EditableViewModelAssist.SourceServiceProperty, new Binding(nameof(editor.SourceService)) { Source = editor, Mode = BindingMode.OneWayToSource });
+                //cell.SetBinding(EditableViewModelAssist.IsEditableProperty, new Binding(nameof(editor.IsEditable)) { Source = editor, Mode = BindingMode.OneWayToSource });
             }
+
             return editor;
         }
         private DataGridRow FindRow(DataGridCell cell)
@@ -442,8 +500,20 @@ namespace System.Windows
     }
     public static class EditableViewModelAssist
     {
+        public static readonly DependencyProperty IsEditableProperty =
+            DependencyProperty.RegisterAttached("IsEditable", typeof(bool), typeof(EditableViewModelAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
         public static readonly DependencyProperty SourceServiceProperty =
             DependencyProperty.RegisterAttached("SourceService", typeof(ISourceService), typeof(EditableViewModelAssist), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
+       
+
+        public static bool GetIsEditable(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(IsEditableProperty);
+        }
+        public static void SetIsEditable(DependencyObject obj, bool value)
+        {
+            obj.SetValue(IsEditableProperty, value);
+        }
         public static ISourceService GetSourceService(DependencyObject obj)
         {
             return (ISourceService)obj.GetValue(SourceServiceProperty);

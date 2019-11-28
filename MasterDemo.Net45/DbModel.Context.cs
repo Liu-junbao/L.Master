@@ -27,5 +27,6 @@ namespace MasterDemo
     
         public virtual DbSet<INF_Takt> INF_Takt { get; set; }
         public virtual DbSet<STA_Alarm> STA_Alarm { get; set; }
+        public virtual DbSet<INF_Scanned> INF_Scanned { get; set; }
     }
 }

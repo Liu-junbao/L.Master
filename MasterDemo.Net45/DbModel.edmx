@@ -5,6 +5,15 @@
     <!-- SSDL content -->
     <edmx:StorageModels>
     <Schema Namespace="SCADAModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="INF_Scanned">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ScannerSN" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="ScannedTime" Type="datetime" Nullable="false" />
+          <Property Name="ScannedText" Type="varchar" MaxLength="50" Nullable="false" />
+        </EntityType>
         <EntityType Name="INF_Takt">
           <Key>
             <PropertyRef Name="ID" />
@@ -28,6 +37,7 @@
           <Property Name="AlarmId" Type="int" />
         </EntityType>
         <EntityContainer Name="SCADAModelStoreContainer">
+          <EntitySet Name="INF_Scanned" EntityType="Self.INF_Scanned" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="INF_Takt" EntityType="Self.INF_Takt" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="STA_Alarm" EntityType="Self.STA_Alarm" Schema="dbo" store:Type="Tables" />
         </EntityContainer>
@@ -50,6 +60,7 @@
         <EntityContainer Name="SCADAEntities" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="INF_Takt" EntityType="Self.INF_Takt" />
           <EntitySet Name="STA_Alarm" EntityType="SCADAModel.STA_Alarm" />
+          <EntitySet Name="INF_Scanned" EntityType="SCADAModel.INF_Scanned" />
         </EntityContainer>
         <EntityType Name="STA_Alarm">
           <Key>
@@ -60,6 +71,15 @@
           <Property Name="AlarmName" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
           <Property Name="IsTurnOn" Type="Boolean" />
           <Property Name="AlarmId" Type="Int32" />
+        </EntityType>
+        <EntityType Name="INF_Scanned">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ScannerSN" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ScannedTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="ScannedText" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
         </EntityType>
       </Schema>
     </edmx:ConceptualModels>
@@ -88,6 +108,16 @@
                 <ScalarProperty Name="AlarmName" ColumnName="AlarmName" />
                 <ScalarProperty Name="DeviceName" ColumnName="DeviceName" />
                 <ScalarProperty Name="SN" ColumnName="SN" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="INF_Scanned">
+            <EntityTypeMapping TypeName="SCADAModel.INF_Scanned">
+              <MappingFragment StoreEntitySet="INF_Scanned">
+                <ScalarProperty Name="ScannedText" ColumnName="ScannedText" />
+                <ScalarProperty Name="ScannedTime" ColumnName="ScannedTime" />
+                <ScalarProperty Name="ScannerSN" ColumnName="ScannerSN" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
