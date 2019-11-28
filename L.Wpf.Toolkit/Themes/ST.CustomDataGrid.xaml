@@ -1,7 +1,6 @@
 ﻿<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:local="clr-namespace:System.Windows">
 
     <Style
@@ -329,21 +328,18 @@
                                 Grid.Column="7"
                                 Margin="3"
                                 Style="{StaticResource st.Button.CustomDataGridBar.MoveToLast}" />
-                            <local:NumericBox
+                            <local:IntegerTextBox
                                 Grid.Column="8"
                                 Height="{Binding RelativeSource={RelativeSource Self}, Path=FontSize, Converter={local:Rate}, ConverterParameter=1.8}"
                                 MinWidth="30"
                                 Margin="3"
-                                MaxFractionDigits="0"
                                 VerticalAlignment="Center"
                                 HorizontalContentAlignment="Right"
                                 VerticalContentAlignment="Center"
                                 Foreground="Red"
-                                Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=PageIndex, Mode=TwoWay, Converter={local:ToString}}">
-                                <i:Interaction.Behaviors>
-                                    <local:TextBoxFilterBehavior TextBoxFilterOptions="Numeric" />
-                                </i:Interaction.Behaviors>
-                            </local:NumericBox>
+                                MaxValue="{TemplateBinding PageCount}"
+                                MinValue="0"
+                                Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=PageIndex, Mode=TwoWay}" />
                             <local:CustomButton
                                 Grid.Column="9"
                                 VerticalAlignment="Center"
