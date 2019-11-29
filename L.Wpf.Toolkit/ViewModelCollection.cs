@@ -46,52 +46,48 @@ namespace System
             {
                 _key_viewModels.Remove(item.Key);
             }
-            //news
-            Dictionary<int, TViewModel> newItems = new Dictionary<int, TViewModel>();
-            Dictionary<int, TViewModel> existsItems = new Dictionary<int, TViewModel>();
-            int index = -1;
-            foreach (var item in keySources)
-            {
-                index++;
-                if (_key_viewModels.ContainsKey(item.Key) == false)
-                {
-                    var viewModel = onCreateViewModel(item.Value);
-                    _key_viewModels.Add(item.Key, viewModel);
-                    newItems.Add(index,viewModel);
-                }
-                else
-                {
-                    var viewModel = _key_viewModels[item.Key];
-                    onUpdateExsitsVeiwModel?.Invoke(viewModel, item.Value);
-                    existsItems.Add(index,viewModel);
-                }
-            }
-
             UIInvoke(() =>
             {
-                //olds
                 foreach (var item in oldItems)
                 {
                     _viewModels.Remove(item.Value);
                 }
-                //news
-                foreach (var item in newItems)
-                {
-                    if (_viewModels.Count > item.Key)
-                        _viewModels.Insert(item.Key, item.Value);
-                    else
-                        _viewModels.Add(item.Value);
-                }
-                //exists
-                foreach (var item in existsItems)
-                {
-                    var oldIndex = _viewModels.IndexOf(item.Value);
-                    if (item.Key != oldIndex)
-                    {
-                        _viewModels.Move(oldIndex,index);
-                    }
-                }
             });
+
+            //news
+            int sourceIndex = -1;
+            foreach (var item in keySources)
+            {
+                sourceIndex++;
+                var index = sourceIndex;
+                if (_key_viewModels.ContainsKey(item.Key) == false)
+                {
+                    var model = item.Value;
+                    var viewModel = onCreateViewModel(item.Value);
+                    _key_viewModels.Add(item.Key, viewModel);
+                    UIInvoke(() =>
+                    {
+                        if (_viewModels.Count > index)
+                            _viewModels.Insert(index, viewModel);
+                        else
+                            _viewModels.Add(viewModel);
+                    });
+                }
+                else
+                {
+                    var model = item.Value;
+                    var viewModel = _key_viewModels[item.Key];
+                    UIInvoke(() =>
+                    {
+                        onUpdateExsitsVeiwModel?.Invoke(viewModel, model);//必须UI线程
+                        var oldIndex = _viewModels.IndexOf(viewModel);
+                        if (index != oldIndex)
+                        {
+                            _viewModels.Move(oldIndex, index);
+                        }
+                    });
+                }
+            }
         }
         public void Clear()
         {

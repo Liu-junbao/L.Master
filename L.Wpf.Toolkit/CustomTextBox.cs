@@ -58,7 +58,10 @@ namespace System.Windows
            DependencyProperty.Register(nameof(Value), typeof(TComparable), typeof(LimitTextBox<TComparable>), new PropertyMetadata(default(TComparable)));
         public static readonly DependencyProperty CultureInfoProperty =
            DependencyProperty.Register(nameof(CultureInfo), typeof(CultureInfo), typeof(LimitTextBox<TComparable>), new PropertyMetadata(new CultureInfo("zh-CN")));
-
+        public LimitTextBox()
+        {
+            Text = ConvertToString(Value);
+        }
         public TComparable? MaxValue
         {
             get { return (TComparable?)GetValue(MaxValueProperty); }

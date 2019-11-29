@@ -18,7 +18,7 @@ namespace MasterDemo.ViewModels
         }
         private async void LoadData()
         {
-            await LoadDataAsync();
+           LoadDataAsync();
         }
         protected override IQueryable<INF_Scanned> OnQuery(IQueryable<INF_Scanned> query)
         {

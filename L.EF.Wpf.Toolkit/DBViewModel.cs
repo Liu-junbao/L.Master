@@ -67,23 +67,23 @@ namespace System
             get { return _pageIndex; }
             set { SetProperty(ref _pageIndex, value, OnPageIndexChanged); }
         }
-        protected async virtual void OnIsActiveChanged(bool oldIsActive, bool newIsActive)
+        protected virtual void OnIsActiveChanged(bool oldIsActive, bool newIsActive)
         {
             if (newIsActive)
             {
-                await LoadPageAsync();
+                LoadPageAsync();
             }
             IsActiveChanged?.Invoke(this, null);
         }
-        protected async virtual void OnPageIndexChanged(int oldPageIndex, int newPageIndex)
+        protected virtual void OnPageIndexChanged(int oldPageIndex, int newPageIndex)
         {
             //
-            await LoadPageAsync();
+            LoadPageAsync();
         }
         /// <summary>
         /// 重新加载数据,会统计记录数量
         /// </summary>
-        protected async Task LoadDataAsync()
+        protected void LoadDataAsync()
         {
             if (_loadTask == null || _loadTask.IsCompleted)
             {
@@ -91,7 +91,7 @@ namespace System
                 try
                 {
                     _loadTask = LoadAsync();
-                    await _loadTask;
+                    
                 }
                 catch (Exception e)
                 {
@@ -107,7 +107,7 @@ namespace System
         /// 加载当前页数据
         /// </summary>
         /// <returns></returns>
-        protected async Task LoadPageAsync()
+        protected void LoadPageAsync()
         {
             var pageIndex = PageIndex;
             if (_loadTask == null || _loadTask.IsCompleted)
@@ -116,7 +116,6 @@ namespace System
                 try
                 {
                     _loadTask = LoadPageAsync(pageIndex);
-                    await _loadTask;
                 }
                 catch (Exception e)
                 {
@@ -230,7 +229,7 @@ namespace System
                 }
                 return false;
             });
-            await LoadPageAsync();         
+            LoadPageAsync();         
             return result;
         }
         public async Task Delete(EditableViewModel viewModel, object source)
@@ -257,7 +256,7 @@ namespace System
                 }
                 return false;
             });
-            await LoadDataAsync();
+            LoadDataAsync();
             return result;
         }
         public void OnCaptureErrorEditedValue(EditableViewModel viewModel, object source, string propertyName, object editedValue)

@@ -4,7 +4,8 @@
     <TargetFrameworks>netcoreapp3.0;net45</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <RootNamespace>System</RootNamespace>
-    <Version>6.7.9.1129</Version>
+    <Version>6.7.9.11291</Version>
+    <PackageProjectUrl>https://github.com/Liu-junbao/L.Master.git</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>

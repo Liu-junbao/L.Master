@@ -14,6 +14,7 @@ using System.Windows.Media;
 
 namespace System.Windows
 {
+    [ContentProperty(nameof(Columns))]
     public class CustomDataGrid:DataGrid
     {
         static CustomDataGrid()

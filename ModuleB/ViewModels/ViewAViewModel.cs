@@ -3,12 +3,13 @@ using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ModuleB.ViewModels
 {
-    public class ViewAViewModel : BindableBase
+    public class ViewAViewModel :DBViewModel<Model,DB>
     {
         private string _message;
         public string Message
@@ -19,6 +20,17 @@ namespace ModuleB.ViewModels
         public ViewAViewModel()
         {
             Message = "View B from your Prism Module";
+            LoadDataAsync();
+        }
+
+        protected override object GetKey(Model model) => model.Name;
+        protected override IQueryable<Model> OnQuery(IQueryable<Model> query)
+        {
+            return base.OnQuery(query).OrderBy(i=>i.Name);
+        }
+        protected override void OnCapturedException(Exception e, [CallerMemberName] string methodName = null)
+        {
+            base.OnCapturedException(e, methodName);
         }
     }
 }
