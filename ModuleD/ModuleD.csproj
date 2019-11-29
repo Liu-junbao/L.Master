@@ -85,7 +85,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Prism.Wpf" Version="7.2.0.1367" />
+    <PackageReference Include="Prism.Wpf" Version="7.2.0.1422" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj">
