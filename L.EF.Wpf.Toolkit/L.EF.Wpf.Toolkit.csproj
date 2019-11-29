@@ -4,6 +4,7 @@
     <TargetFrameworks>netcoreapp3.0;net45</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <RootNamespace>System</RootNamespace>
+    <Version>6.7.9.1129</Version>
   </PropertyGroup>
 
   <ItemGroup>
