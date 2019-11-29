@@ -1,10 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Markup;
+using System.Windows.Media;
 
 namespace System.Windows
 {
@@ -295,4 +301,371 @@ namespace System.Windows
         End,
         Center
     }
+
+    [ContentProperty(nameof(Selections))]
+    public class EditableDataGridColumn : DataGridColumn
+    {
+        public static readonly DependencyProperty EditedPropertyNameProperty =
+            DependencyProperty.Register(nameof(EditedPropertyName), typeof(string), typeof(EditableDataGridColumn), new PropertyMetadata(null));
+        public static readonly DependencyProperty KindProperty =
+            DependencyProperty.Register(nameof(Kind), typeof(EditorKind), typeof(EditableDataGridColumn), new PropertyMetadata(EditorKind.Text));
+        public static readonly DependencyProperty IsDeleteableProperty =
+            DependencyProperty.Register(nameof(IsDeleteable), typeof(bool), typeof(EditableDataGridColumn), new PropertyMetadata(false));
+
+        public EditableDataGridColumn()
+        {
+            Selections = new List<object>();
+        }
+        public string EditedPropertyName
+        {
+            get { return (string)GetValue(EditedPropertyNameProperty); }
+            set { SetValue(EditedPropertyNameProperty, value); }
+        }
+        public EditorKind Kind
+        {
+            get { return (EditorKind)GetValue(KindProperty); }
+            set { SetValue(KindProperty, value); }
+        }
+        public List<object> Selections { get; }
+        public bool IsDeleteable
+        {
+            get { return (bool)GetValue(IsDeleteableProperty); }
+            set { SetValue(IsDeleteableProperty, value); }
+        }
+        public override object OnCopyingCellClipboardContent(object item)
+        {
+            return base.OnCopyingCellClipboardContent(item);
+        }
+        public override void OnPastingCellClipboardContent(object item, object cellContent)
+        {
+            base.OnPastingCellClipboardContent(item, cellContent);
+        }
+        protected override FrameworkElement GenerateEditingElement(DataGridCell cell, object dataItem)
+        {
+            return GetEditor(cell, dataItem);
+        }
+        protected override FrameworkElement GenerateElement(DataGridCell cell, object dataItem)
+        {
+            return GetEditor(cell, dataItem);
+        }
+        private FrameworkElement GetEditor(DataGridCell cell, object dataItem)
+        {
+            EditableViewModelEditor editor = null;
+            switch (Kind)
+            {
+                case EditorKind.Text:
+                    editor = new TextEditor() { EditedSourcePropertyName = EditedPropertyName };
+                    break;
+                case EditorKind.List:
+                    var selectableValueEditor = new ListEditor() { EditedSourcePropertyName = EditedPropertyName };
+                    foreach (var item in Selections)
+                    {
+                        selectableValueEditor.Selections.Add(item);
+                    }
+                    editor = selectableValueEditor;
+                    break;
+                case EditorKind.Oper:
+                    var operEditor = new OperEditor();
+                    operEditor.SetBinding(OperEditor.IsDeleteableProperty, new Binding(nameof(IsDeleteable)) { Source = this });
+                    editor = operEditor;
+                    break;
+                default:
+                    break;
+            }
+
+            if (editor != null)
+            {
+                editor.SetBinding(TextEditor.IsReadOnlyProperty, new Binding(nameof(IsReadOnly)) { Source = this });
+            }
+
+            return editor;
+        }
+        private DataGridRow FindRow(DataGridCell cell)
+        {
+            DependencyObject child = cell;
+            do
+            {
+                var parent = LogicalTreeHelper.GetParent(child);
+                if (parent == null)
+                    parent = VisualTreeHelper.GetParent(child);
+                if (parent is DataGridRow) return parent as DataGridRow;
+                child = parent;
+            } while (child != null);
+            return null;
+        }
+    }
+    public enum EditorKind
+    {
+        Text,
+        List,
+        Oper,
+    }
+
+    #region editor
+    public abstract class EditableViewModelEditor : Control
+    {
+        public static readonly DependencyProperty ViewModelProperty =
+            DependencyProperty.Register(nameof(ViewModel), typeof(EditableViewModel), typeof(EditableViewModelEditor), new PropertyMetadata(null, OnEditableViewModelChanged));
+        public static readonly DependencyProperty IsEditingProperty =
+            DependencyProperty.Register(nameof(IsEditing), typeof(bool), typeof(EditableViewModelEditor), new PropertyMetadata(false, OnIsEditingChanged));
+        public static readonly DependencyProperty IsEditableProperty =
+            DependencyProperty.Register(nameof(IsEditable), typeof(bool), typeof(EditableViewModelEditor), new PropertyMetadata(false, OnIsEditableChanged));
+        private static void OnEditableViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var editor = (EditableViewModelEditor)d;
+            editor.OnEditableViewModelChanged((EditableViewModel)e.OldValue, (EditableViewModel)e.NewValue);
+        }
+        private static void OnIsEditingChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var editor = (EditableViewModelEditor)d;
+            editor.OnIsEditingChanged((bool)e.NewValue);
+        }
+        private static void OnIsEditableChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var editor = (EditableViewModelEditor)d;
+            editor.OnIsEditableChanged((bool)e.NewValue);
+        }
+        public EditableViewModelEditor()
+        {
+            this.SetBinding(IsEditingProperty, new Binding($"{nameof(ViewModel)}.{nameof(EditableViewModel.IsEditing)}") { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(IsEditableProperty, new Binding($"{nameof(ViewModel)}.{nameof(EditableViewModel.IsEditable)}") { Source = this, Mode = BindingMode.OneWay });
+        }
+        public EditableViewModel ViewModel
+        {
+            get { return (EditableViewModel)GetValue(ViewModelProperty); }
+            set { SetValue(ViewModelProperty, value); }
+        }
+        public bool IsEditing
+        {
+            get { return (bool)GetValue(IsEditingProperty); }
+            set { SetValue(IsEditingProperty, value); }
+        }
+        public bool IsEditable
+        {
+            get { return (bool)GetValue(IsEditableProperty); }
+            set { SetValue(IsEditableProperty, value); }
+        }
+        protected virtual void OnIsEditingChanged(bool isEditing) { }
+        protected virtual void OnIsEditableChanged(bool isEditable) { }
+        protected virtual void OnEditableViewModelChanged(EditableViewModel oldViewModel, EditableViewModel newViewModel)
+        {
+            if (oldViewModel != null)
+            {
+                newViewModel.PropertyChanged -= ViewModel_PropertyChanged;
+                oldViewModel.SavingEvent -= SaveEvent;
+                oldViewModel.SavedEvent -= SavedEvent;
+            }
+            if (newViewModel != null)
+            {
+                newViewModel.PropertyChanged += ViewModel_PropertyChanged;
+                newViewModel.SavingEvent += SaveEvent;
+                newViewModel.SavedEvent += SavedEvent;
+
+                var sourceService = EditableViewModelAssist.GetSourceService(this);
+                if (sourceService != null)
+                    newViewModel.SourceService = sourceService;
+            }
+        }
+        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            switch (e.PropertyName)
+            {
+                case nameof(EditableViewModel.Source):
+                    OnSourceChanged();
+                    break;
+                default:
+                    break;
+            }
+        }
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+            if (e.Property == EditableViewModelAssist.SourceServiceProperty)
+            {
+                var sourceService = EditableViewModelAssist.GetSourceService(this);
+                var viewModel = ViewModel;
+                if (sourceService != null && viewModel != null)
+                {
+                    viewModel.SourceService = sourceService;
+                }
+            }
+            else if (e.Property == EditableViewModelAssist.IsEditableProperty)
+            {
+                var viewModel = ViewModel;
+                if (viewModel != null)
+                {
+                    viewModel.IsEditable = EditableViewModelAssist.GetIsEditable(this);
+                }
+            }
+        }
+        protected virtual void OnSourceChanged() { }
+        private void SaveEvent(object sender, EditableViewModelSavingEventArgs e)
+        {
+            OnSaving(e);
+        }
+        private void SavedEvent(object sender, EventArgs e)
+        {
+            OnSaved();
+        }
+        protected virtual void OnSaving(EditableViewModelSavingEventArgs e) { }
+        protected virtual void OnSaved() { }
+    }
+    public class TextEditor : EditableViewModelEditor
+    {
+        public static readonly DependencyProperty EditedSourcePropertyNameProperty =
+            DependencyProperty.Register(nameof(EditedSourcePropertyName), typeof(string), typeof(TextEditor), new PropertyMetadata(null));
+        public static readonly DependencyProperty ValueProperty =
+            DependencyProperty.Register(nameof(Value), typeof(object), typeof(TextEditor), new PropertyMetadata(null, OnValueChanged));
+        public static readonly DependencyProperty EditedValueProperty =
+            DependencyProperty.Register(nameof(EditedValue), typeof(object), typeof(TextEditor), new PropertyMetadata(null, OnEditedValueChanged));
+        public static readonly DependencyProperty IsReadOnlyProperty =
+            DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TextEditor), new PropertyMetadata(false));
+        public static readonly DependencyProperty IsChangedProperty =
+            DependencyProperty.Register(nameof(IsChanged), typeof(bool), typeof(TextEditor), new PropertyMetadata(null));
+        private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var editor = (TextEditor)d;
+            editor.EditedValue = e.NewValue;
+        }
+        private static void OnEditedValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var editor = (TextEditor)d;
+            editor.IsChanged = e.NewValue != editor.Value;
+        }
+        private BindingExpressionBase _valueBinding;
+        static TextEditor()
+        {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(TextEditor), new FrameworkPropertyMetadata(typeof(TextEditor)));
+        }
+        public string EditedSourcePropertyName
+        {
+            get { return (string)GetValue(EditedSourcePropertyNameProperty); }
+            set { SetValue(EditedSourcePropertyNameProperty, value); }
+        }
+        public object Value
+        {
+            get { return (object)GetValue(ValueProperty); }
+            set { SetValue(ValueProperty, value); }
+        }
+        public object EditedValue
+        {
+            get { return (object)GetValue(EditedValueProperty); }
+            set { SetValue(EditedValueProperty, value); }
+        }
+        public bool IsReadOnly
+        {
+            get { return (bool)GetValue(IsReadOnlyProperty); }
+            set { SetValue(IsReadOnlyProperty, value); }
+        }
+        public bool IsChanged
+        {
+            get { return (bool)GetValue(IsChangedProperty); }
+            set { SetValue(IsChangedProperty, value); }
+        }
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+            if (e.Property == EditedSourcePropertyNameProperty)
+            {
+                var editedPropertyName = EditedSourcePropertyName;
+                _valueBinding = BindingOperations.SetBinding(this, ValueProperty, new Binding($"{nameof(ViewModel)}.{nameof(ViewModel.Source)}.{EditedSourcePropertyName}") { Source = this });
+            }
+        }
+        protected override void OnSourceChanged()
+        {
+            _valueBinding?.UpdateTarget();
+        }
+        protected override void OnIsEditingChanged(bool isEditing)
+        {
+            base.OnIsEditingChanged(isEditing);
+            if (isEditing == false)
+            {
+                EditedValue = Value;
+            }
+        }
+        protected override void OnSaving(EditableViewModelSavingEventArgs e)
+        {
+            base.OnSaving(e);
+            var propertyName = EditedSourcePropertyName;
+            if (string.IsNullOrEmpty(propertyName) == false && IsChanged)
+            {
+                if (e.EditedValues.ContainsKey(propertyName))
+                    e.EditedValues.Add(propertyName, EditedValue);
+                else
+                    e.EditedValues[propertyName] = EditedValue;
+            }
+        }
+        protected override void OnSaved()
+        {
+            base.OnSaved();
+            _valueBinding?.UpdateTarget();
+        }
+    }
+    [ContentProperty(nameof(Selections))]
+    public class ListEditor : TextEditor
+    {
+        static ListEditor()
+        {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(ListEditor), new FrameworkPropertyMetadata(typeof(ListEditor)));
+        }
+        public ListEditor()
+        {
+            Selections = new ObservableCollection<object>();
+        }
+        public ObservableCollection<object> Selections { get; }
+    }
+    public class OperEditor : EditableViewModelEditor
+    {
+        public static readonly DependencyProperty IsDeleteableProperty =
+           DependencyProperty.Register(nameof(IsDeleteable), typeof(bool), typeof(OperEditor), new PropertyMetadata(false));
+
+        static OperEditor()
+        {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(OperEditor), new FrameworkPropertyMetadata(typeof(OperEditor)));
+        }
+        public OperEditor()
+        {
+            this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Open, new ExecutedRoutedEventHandler(OnPen)));
+            this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, new ExecutedRoutedEventHandler(OnClose)));
+            this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Save, new ExecutedRoutedEventHandler(OnSave)));
+            this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Delete, new ExecutedRoutedEventHandler(OnDelete)));
+        }
+        public bool IsDeleteable
+        {
+            get { return (bool)GetValue(IsDeleteableProperty); }
+            set { SetValue(IsDeleteableProperty, value); }
+        }
+        private void OnPen(object sender, ExecutedRoutedEventArgs e)
+        {
+            var viewModel = ViewModel;
+            if (viewModel != null)
+            {
+                viewModel.IsEditing = true;
+            }
+        }
+        private void OnClose(object sender, ExecutedRoutedEventArgs e)
+        {
+            var viewModel = ViewModel;
+            if (viewModel != null)
+            {
+                viewModel.IsEditing = false;
+            }
+        }
+        private async void OnSave(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (ViewModel != null)
+            {
+                await ViewModel.RaiseSaveAsync();
+            }
+        }
+        private async void OnDelete(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (ViewModel != null)
+            {
+                await ViewModel.RaiseDelecteAsync();
+            }
+        }
+    }
+    #endregion
+
 }

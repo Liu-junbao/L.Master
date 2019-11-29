@@ -1,6 +1,7 @@
 ﻿using Prism;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
@@ -19,14 +20,15 @@ namespace System
         private bool _isActive;
         private bool _isLoading;
         private Task _loadTask;
-        private List<TModel> _items;
         private int _displayCount;
         private int _Count;
         private int _pageCount;
         private int _pageIndex;
+        private EditableViewModel _selectedItem;
         public DBViewModel()
         {
             _displayCount = 50;
+            Items = new ViewModelCollection<EditableViewModel>();
         }
         public bool IsActive
         {
@@ -38,11 +40,13 @@ namespace System
             get { return _isLoading; }
             set { SetProperty(ref _isLoading, value); }
         }
-        public List<TModel> Items
+        public ViewModelCollection<EditableViewModel> Items { get; }
+        public EditableViewModel SelectedItem
         {
-            get { return _items; }
-            set { SetProperty(ref _items, value); }
+            get { return _selectedItem; }
+            set { SetProperty(ref _selectedItem, value); }
         }
+        public EditableViewModel LastlyCreatedViewModel { get; private set; }
         public int DisplayCount
         {
             get { return _displayCount; }
@@ -63,23 +67,23 @@ namespace System
             get { return _pageIndex; }
             set { SetProperty(ref _pageIndex, value, OnPageIndexChanged); }
         }
-        protected virtual void OnIsActiveChanged(bool oldIsActive, bool newIsActive)
+        protected async virtual void OnIsActiveChanged(bool oldIsActive, bool newIsActive)
         {
             if (newIsActive)
             {
-                Loading();
+                await LoadPageAsync();
             }
             IsActiveChanged?.Invoke(this, null);
         }
-        protected virtual void OnPageIndexChanged(int oldPageIndex, int newPageIndex)
+        protected async virtual void OnPageIndexChanged(int oldPageIndex, int newPageIndex)
         {
             //
-            LoadPage(newPageIndex);
+            await LoadPageAsync();
         }
         /// <summary>
-        /// 加载数据
+        /// 重新加载数据,会统计记录数量
         /// </summary>
-        protected void Loading()
+        protected async Task LoadDataAsync()
         {
             if (_loadTask == null || _loadTask.IsCompleted)
             {
@@ -87,6 +91,7 @@ namespace System
                 try
                 {
                     _loadTask = LoadAsync();
+                    await _loadTask;
                 }
                 catch (Exception e)
                 {
@@ -98,14 +103,20 @@ namespace System
                 }
             }
         }
-        private void LoadPage(int pageIndex)
+        /// <summary>
+        /// 加载当前页数据
+        /// </summary>
+        /// <returns></returns>
+        protected async Task LoadPageAsync()
         {
+            var pageIndex = PageIndex;
             if (_loadTask == null || _loadTask.IsCompleted)
             {
                 IsLoading = true;
                 try
                 {
                     _loadTask = LoadPageAsync(pageIndex);
+                    await _loadTask;
                 }
                 catch (Exception e)
                 {
@@ -119,7 +130,7 @@ namespace System
         }
         private async Task LoadAsync()
         {
-            Items = await Task.Run(() =>
+            await Task.Run(() =>
             {
                 try
                 {
@@ -141,7 +152,7 @@ namespace System
                             var pageIndex = PageIndex;
                             if (pageIndex < 1) pageIndex = 1;
                             PageIndex = pageIndex;
-                            return OnQuery(db.Set<TModel>()).Take(pageSize).ToList();
+                            ChangeItems(OnQuery(db.Set<TModel>()).Take(pageSize));
                         }
                     }
                 }
@@ -156,14 +167,14 @@ namespace System
         private async Task LoadPageAsync(int pageIndex)
         {
             var pageSize = DisplayCount;
-            if (pageIndex <= 0 || pageIndex > PageCount|| pageSize <= 0) return;
-            Items = await Task.Run(() =>
+            if (pageIndex <= 0 || pageIndex > PageCount || pageSize <= 0) return;
+            await Task.Run(() =>
             {
                 try
                 {
                     using (var db = new TDbContext())
                     {
-                        return OnQuery(db.Set<TModel>()).Skip((pageIndex - 1) * pageSize).Take(pageSize).ToList();
+                        ChangeItems(OnQuery(db.Set<TModel>()).Skip((pageIndex - 1) * pageSize).Take(pageSize));
                     }
                 }
                 catch (Exception e)
@@ -173,21 +184,36 @@ namespace System
                 return null;
             });
         }
+        private void ChangeItems(IEnumerable<TModel> models)
+        {
+            Items.Change(models.ToDictionary(i => GetKey(i)), CreateViewModelFrom, UpdateViewModelFrom);
+        }
+        protected virtual EditableViewModel CreateViewModelFrom(TModel model)
+        {
+            var viewModel =new EditableViewModel(model);
+            LastlyCreatedViewModel = viewModel;
+            return viewModel;
+        }
+        protected virtual void UpdateViewModelFrom(EditableViewModel viewModel,TModel model)
+        {
+            viewModel.Source = model;
+        }
+        protected abstract object GetKey(TModel model);
         protected virtual IQueryable<TModel> OnQuery(IQueryable<TModel> query) => query;
         protected virtual void OnCapturedException(Exception e, [CallerMemberName] string methodName = null) { }
         protected virtual void OnLoaded(int count) { }
-        public async virtual Task SaveChangedPropertys(object source, Dictionary<PropertyInfo, object> changedPropertys)
+        public async virtual Task SaveChangedPropertys(EditableViewModel viewModel, object source, Dictionary<PropertyInfo, object> changedPropertys)
         {
             TModel model = (TModel)source;
-            await OnSaveChangedPropertys(model, changedPropertys);
+            await OnSaveChangedPropertys(viewModel, model, changedPropertys);
         }
-        protected async virtual Task<bool> OnSaveChangedPropertys(TModel model, Dictionary<PropertyInfo, object> changedPropertys)
+        protected async virtual Task<bool> OnSaveChangedPropertys(EditableViewModel viewModel,TModel model, Dictionary<PropertyInfo, object> changedPropertys)
         {
             foreach (var item in changedPropertys)
             {
                 item.Key.SetValue(model, item.Value);
             }
-            return await Task.Run(() =>
+            var result = await Task.Run(() =>
             {
                 try
                 {
@@ -204,8 +230,41 @@ namespace System
                 }
                 return false;
             });
+            await LoadPageAsync();         
+            return result;
         }
-        public abstract void OnCaptureErrorEditedValue(string propertyName, object editedValue);
+        public async Task Delete(EditableViewModel viewModel, object source)
+        {
+            TModel model = (TModel)source;
+            await OnDelete(viewModel,model);
+        }
+        protected async virtual Task<bool> OnDelete(EditableViewModel viewModel, TModel model)
+        {
+            var result = await Task.Run(() =>
+            {
+                try
+                {
+                    using (var db = new TDbContext())
+                    {
+                        db.Entry(model).State = EntityState.Deleted;
+                        db.SaveChanges();
+                    }
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    OnCapturedException(e);
+                }
+                return false;
+            });
+            await LoadDataAsync();
+            return result;
+        }
+        public void OnCaptureErrorEditedValue(EditableViewModel viewModel, object source, string propertyName, object editedValue)
+        {
+            OnEditedValueWithError(viewModel, (TModel)source, propertyName, editedValue);
+        }
+        protected virtual void OnEditedValueWithError(EditableViewModel viewModel, TModel model, string propertyName, object editedValue) { }
         public event EventHandler IsActiveChanged;
     }
 }

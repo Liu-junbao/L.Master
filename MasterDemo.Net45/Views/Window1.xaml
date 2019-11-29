@@ -18,7 +18,7 @@
                     EditedPropertyName="ID"
                     Header="Id"
                     IsReadOnly="True" />
-                <EditableDataGridColumn EditedPropertyName="ScannerSN" Header="扫码枪编码" />
+                <EditableDataGridColumn IsReadOnly="False" EditedPropertyName="ScannerSN" Header="扫码枪编码" />
                 <EditableDataGridColumn EditedPropertyName="ScannedTime" Header="扫码时间" />
                 <EditableDataGridColumn EditedPropertyName="ScannedText" Header="扫码内容" />
                 <EditableDataGridColumn Width="*" Kind="Oper" />

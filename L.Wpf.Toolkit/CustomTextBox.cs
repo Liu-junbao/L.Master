@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 
 namespace System.Windows
@@ -17,13 +18,13 @@ namespace System.Windows
             var newText = Text;
             var caretIndex = CaretIndex;
             var inputText = e.Text;
+            var comp = e.TextComposition as FrameworkTextComposition;
+            if (comp != null)
+                caretIndex = comp.ResultOffset;
+            else
+                newText = newText.Insert(caretIndex,inputText);
             e.Handled = CheckInputText(caretIndex, inputText, newText) == false;
             base.OnPreviewTextInput(e);
-        }
-        protected override void OnLostKeyboardFocus(KeyboardFocusChangedEventArgs e)
-        {
-            CheckInputText(CaretIndex,null,Text);
-            base.OnLostKeyboardFocus(e);
         }
         protected abstract bool CheckInputText(int caretIndex, string inputText, string newText);
     }
@@ -44,28 +45,28 @@ namespace System.Windows
             return Regex.IsMatch(newText, pattern);
         }
     }
-    public abstract class NumericalTextBox<TNumeric> : CustomTextBox
-        where TNumeric : struct, IFormattable, IComparable<TNumeric>
+    public abstract class LimitTextBox<TComparable> : CustomTextBox
+        where TComparable : struct, IFormattable, IComparable<TComparable>
     {
         public static readonly DependencyProperty MaxValueProperty =
-          DependencyProperty.Register(nameof(MaxValue), typeof(TNumeric?), typeof(NumericalTextBox<TNumeric>), new PropertyMetadata(null));
+          DependencyProperty.Register(nameof(MaxValue), typeof(TComparable?), typeof(LimitTextBox<TComparable>), new PropertyMetadata(null));
         public static readonly DependencyProperty MinValueProperty =
-          DependencyProperty.Register(nameof(MinValue), typeof(TNumeric?), typeof(NumericalTextBox<TNumeric>), new PropertyMetadata(null));
+          DependencyProperty.Register(nameof(MinValue), typeof(TComparable?), typeof(LimitTextBox<TComparable>), new PropertyMetadata(null));
         public static readonly DependencyProperty StringFormatProperty =
-           DependencyProperty.Register(nameof(StringFormat), typeof(string), typeof(NumericalTextBox<TNumeric>), new PropertyMetadata(null));
+           DependencyProperty.Register(nameof(StringFormat), typeof(string), typeof(LimitTextBox<TComparable>), new PropertyMetadata(null));
         public static readonly DependencyProperty ValueProperty =
-           DependencyProperty.Register(nameof(Value), typeof(TNumeric), typeof(NumericalTextBox<TNumeric>), new PropertyMetadata(default(TNumeric)));
+           DependencyProperty.Register(nameof(Value), typeof(TComparable), typeof(LimitTextBox<TComparable>), new PropertyMetadata(default(TComparable)));
         public static readonly DependencyProperty CultureInfoProperty =
-           DependencyProperty.Register(nameof(CultureInfo), typeof(CultureInfo), typeof(NumericalTextBox<TNumeric>), new PropertyMetadata(new CultureInfo("zh-CN")));
+           DependencyProperty.Register(nameof(CultureInfo), typeof(CultureInfo), typeof(LimitTextBox<TComparable>), new PropertyMetadata(new CultureInfo("zh-CN")));
 
-        public TNumeric? MaxValue
+        public TComparable? MaxValue
         {
-            get { return (TNumeric?)GetValue(MaxValueProperty); }
+            get { return (TComparable?)GetValue(MaxValueProperty); }
             set { SetValue(MaxValueProperty, value); }
         }
-        public TNumeric? MinValue
+        public TComparable? MinValue
         {
-            get { return (TNumeric?)GetValue(MinValueProperty); }
+            get { return (TComparable?)GetValue(MinValueProperty); }
             set { SetValue(MinValueProperty, value); }
         }
         public string StringFormat
@@ -73,9 +74,9 @@ namespace System.Windows
             get { return (string)GetValue(StringFormatProperty); }
             set { SetValue(StringFormatProperty, value); }
         }
-        public TNumeric Value
+        public TComparable Value
         {
-            get { return (TNumeric)GetValue(ValueProperty); }
+            get { return (TComparable)GetValue(ValueProperty); }
             set { SetValue(ValueProperty, value); }
         }
         public CultureInfo CultureInfo
@@ -93,15 +94,21 @@ namespace System.Windows
         }
         protected override bool CheckInputText(int caretIndex, string inputText, string newText)
         {
-            TNumeric value = ParseFrom(newText);
+            TComparable value = ParseFrom(newText);
             //上限控制
             var max = MaxValue;
             if (max != null && value.CompareTo(max.Value) > 0)
+            {
                 value = max.Value;
+                SelectionLength = 0;
+            }
             //下限控制
             var min = MinValue;
             if (min != null && value.CompareTo(min.Value) < 0)
+            {
                 value = min.Value;
+                SelectionLength = 0;
+            }
             //值
             Value = value;
             //字符串
@@ -109,13 +116,14 @@ namespace System.Windows
             if (valueText != newText)
             {
                 Text = valueText;
-                CaretIndex = Text?.Length ?? 0;
+                //this.Dispatcher.BeginInvoke(new Action(()=>));
                 return false;
             }
             return true;
         }
-        protected abstract TNumeric ParseFrom(string newText);
-        protected virtual string ConvertToString(TNumeric value)
+
+        protected abstract TComparable ParseFrom(string newText);
+        protected virtual string ConvertToString(TComparable value)
         {
             var format = StringFormat;
             if (string.IsNullOrEmpty(format) == false)
@@ -123,10 +131,25 @@ namespace System.Windows
             return value.ToString();
         }
     }
+    public abstract class NumericalTextBox<TNumerical> : LimitTextBox<TNumerical>
+         where TNumerical : struct, IFormattable, IComparable<TNumerical>
+    {
+        public const string Minus = "-";
+        public const string Dot = ".";
+    }
     public class IntegerTextBox : NumericalTextBox<int>
     {
+      
         protected override int ParseFrom(string newText)
         {
+            if (newText == Minus)
+            {
+                var min = MinValue;
+                if (min != null)
+                    return min.Value;
+                else
+                    return -1;
+             }
             int value;
             if (int.TryParse(newText, out value))
                 return value;
@@ -143,7 +166,7 @@ namespace System.Windows
             return 0;
         }
     }
-    public class DateTimeTextBox : NumericalTextBox<DateTime>
+    public class DateTimeTextBox : LimitTextBox<DateTime>
     {
         protected override DateTime ParseFrom(string newText)
         {

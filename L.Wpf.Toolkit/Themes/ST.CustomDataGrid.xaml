@@ -3,15 +3,165 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:System.Windows">
 
+    <Style x:Key="st.ValueEditor" TargetType="local:TextEditor">
+        <Setter Property="ViewModel" Value="{Binding ., Converter={local:EditableViewModelConverter}}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Padding" Value="3" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:TextEditor">
+                    <Border
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                        <TextBlock
+                            Margin="{TemplateBinding Padding}"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                            Text="{TemplateBinding EditedValue,
+                                                   Converter={local:ToString}}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsEditing" Value="True" />
+                    <Condition Property="IsReadOnly" Value="False" />
+                </MultiTrigger.Conditions>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="local:TextEditor">
+                            <Border
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                                <TextBox VerticalContentAlignment="Center" Text="{Binding EditedValue, RelativeSource={RelativeSource TemplatedParent}, Converter={local:ToString}}" />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </MultiTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="st.SelectableValueEditor"
+        BasedOn="{StaticResource st.ValueEditor}"
+        TargetType="local:ListEditor">
+        <Style.Triggers>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsEditing" Value="True" />
+                    <Condition Property="IsReadOnly" Value="False" />
+                </MultiTrigger.Conditions>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="local:ListEditor">
+                            <Border
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                                <local:PupBox ItemsSource="{Binding Selections, RelativeSource={RelativeSource TemplatedParent}}" SelectedItem="{Binding EditedValue, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                    <TextBlock
+                                        Margin="{TemplateBinding Padding}"
+                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                        Text="{TemplateBinding EditedValue,
+                                                               Converter={local:ToString}}" />
+                                </local:PupBox>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </MultiTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="st.OperationEditor" TargetType="local:OperEditor">
+        <Setter Property="ViewModel" Value="{Binding ., Converter={local:EditableViewModelConverter}}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="Padding" Value="1" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:OperEditor">
+                    <Border
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                        <local:CustomButton
+                            Margin="{TemplateBinding Padding}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                            Command="Open"
+                            Content="编辑"
+                            ToolTip="编辑" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsEditing" Value="True">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="local:OperEditor">
+                            <Border
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                                <StackPanel
+                                    Margin="{TemplateBinding Padding}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Orientation="Horizontal">
+                                    <local:CustomButton
+                                        VerticalAlignment="Center"
+                                        Command="Save"
+                                        Content="保存"
+                                        ToolTip="保存" />
+                                    <local:CustomButton
+                                        x:Name="cbDelete"
+                                        VerticalAlignment="Center"
+                                        Command="Delete"
+                                        Content="删除"
+                                        ToolTip="删除" />
+                                    <local:CustomButton
+                                        VerticalAlignment="Center"
+                                        Command="Close"
+                                        Content="取消"
+                                        ToolTip="取消" />
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsDeleteable" Value="False">
+                                    <Setter TargetName="cbDelete" Property="Visibility" Value="Collapsed" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+            <Trigger Property="IsEditable" Value="False">
+                <Setter Property="Visibility" Value="Hidden" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <Style
         x:Key="st.CustomDataGrid"
         BasedOn="{StaticResource {x:Type DataGrid}}"
         TargetType="local:CustomDataGrid">
         <Setter Property="IsEnabled" Value="{Binding IsLoading, Converter={local:IsLoadingToEnabled}}" />
         <Setter Property="ItemsSource" Value="{Binding Items}" />
+        <Setter Property="SelectedItem" Value="{Binding SelectedItem, Mode=TwoWay}" />
         <Setter Property="local:EditableViewModelAssist.SourceService" Value="{Binding}" />
         <Setter Property="AutoGenerateColumns" Value="False" />
         <Setter Property="SelectionMode" Value="Single" />
+        <Setter Property="CanUserSortColumns" Value="False" />
+        <Setter Property="CanUserResizeRows" Value="False" />
+        <Setter Property="CanUserAddRows" Value="False" />
         <Setter Property="VerticalGridLinesBrush" Value="Transparent" />
         <Setter Property="HorizontalGridLinesBrush" Value="LightGray" />
         <Setter Property="RowStyle">

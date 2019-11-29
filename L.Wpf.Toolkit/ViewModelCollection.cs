@@ -32,61 +32,67 @@ namespace System
         /// <summary>
         /// 改变数据
         /// </summary>
-        /// <typeparam name="TKey">主键</typeparam>
-        /// <typeparam name="TSource">数据Model</typeparam>
-        /// <param name="source">数据源</param>
-        /// <param name="onCreateViewModel">通过数据ViewModel方法</param>
-        /// <param name="onUpdateExists">便利所有已存在ViewModel,进行更新操作</param>
-        public void Change<TKey, TSource>(Dictionary<TKey, TSource> source, Func<TSource, TViewModel> onCreateViewModel, Action<TSource, TViewModel> onUpdateExists = null)
+        /// <typeparam name="TSource">数据模型</typeparam>
+        /// <param name="keySources">数据源（键值对）</param>
+        /// <param name="onCreateViewModel">创建视图方法</param>
+        /// <param name="onUpdateExsitsVeiwModel">更新已经存在的数据</param>
+        public void Change<TSource>(Dictionary<object, TSource> keySources, Func<TSource, TViewModel> onCreateViewModel, Action<TViewModel, TSource> onUpdateExsitsVeiwModel = null)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (keySources == null) throw new ArgumentNullException(nameof(keySources));
             if (onCreateViewModel == null) throw new ArgumentNullException(nameof(onCreateViewModel));
             //olds
-            var oldPairs = _key_viewModels.Where(i => (i.Key is TKey) == false || source.ContainsKey((TKey)i.Key) == false).ToList();
-            foreach (var item in oldPairs)
+            var oldItems = _key_viewModels.Where(i => keySources.ContainsKey(i.Key) == false).ToList();
+            foreach (var item in oldItems)
             {
                 _key_viewModels.Remove(item.Key);
             }
             //news
-            var newPairs = source.Where(i => _key_viewModels.ContainsKey(i.Key) == false).ToList();
-            var newItems = new List<TViewModel>();
-            foreach (var item in newPairs)
+            Dictionary<int, TViewModel> newItems = new Dictionary<int, TViewModel>();
+            Dictionary<int, TViewModel> existsItems = new Dictionary<int, TViewModel>();
+            int index = -1;
+            foreach (var item in keySources)
             {
-                var viewModel = onCreateViewModel(item.Value);
-                _key_viewModels.Add(item.Key, viewModel);
-                newItems.Add(viewModel);
-            }
-            //exist
-            if (onUpdateExists != null)
-            {
-                foreach (var item in _key_viewModels)
+                index++;
+                if (_key_viewModels.ContainsKey(item.Key) == false)
                 {
-                    onUpdateExists(source[(TKey)item.Key], item.Value);
+                    var viewModel = onCreateViewModel(item.Value);
+                    _key_viewModels.Add(item.Key, viewModel);
+                    newItems.Add(index,viewModel);
+                }
+                else
+                {
+                    var viewModel = _key_viewModels[item.Key];
+                    onUpdateExsitsVeiwModel?.Invoke(viewModel, item.Value);
+                    existsItems.Add(index,viewModel);
                 }
             }
 
-            //update viewModels
             UIInvoke(() =>
             {
-                foreach (var item in oldPairs)
+                //olds
+                foreach (var item in oldItems)
                 {
                     _viewModels.Remove(item.Value);
                 }
+                //news
                 foreach (var item in newItems)
                 {
-                    _viewModels.Add(item);
+                    if (_viewModels.Count > item.Key)
+                        _viewModels.Insert(item.Key, item.Value);
+                    else
+                        _viewModels.Add(item.Value);
+                }
+                //exists
+                foreach (var item in existsItems)
+                {
+                    var oldIndex = _viewModels.IndexOf(item.Value);
+                    if (item.Key != oldIndex)
+                    {
+                        _viewModels.Move(oldIndex,index);
+                    }
                 }
             });
         }
-        /// <summary>
-        /// 改变数据
-        /// 数据对象为主键
-        /// </summary>
-        /// <typeparam name="TSource">数据Model</typeparam>
-        /// <param name="source">数据源</param>
-        /// <param name="onCreateViewModel">通过数据ViewModel方法</param>
-        /// <param name="onUpdateExists">便利所有已存在ViewModel,进行更新操作</param>
-        public void Change<TSource>(IEnumerable<TSource> source, Func<TSource, TViewModel> onCreateViewModel, Action<TSource, TViewModel> onUpdateExists = null) => Change(source.ToDictionary(i => i), onCreateViewModel, onUpdateExists);
         public void Clear()
         {
             _key_viewModels.Clear();
