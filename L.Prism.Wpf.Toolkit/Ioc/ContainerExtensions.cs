@@ -71,6 +71,7 @@ namespace Prism.Ioc
         {
             regionManager.RequestNavigate(regionName, viewName, OnNavigated);
         }
+
         /// <summary>
         /// 在区域内注册页面
         /// </summary>
@@ -80,6 +81,49 @@ namespace Prism.Ioc
         {
             provider.Resolve<IRegionManager>().RegisterViewWithRegion(regionName, typeof(TView));
         }
+
+        /// <summary>
+        /// 在区域内注册Navigation导航菜单标签
+        /// </summary>
+        /// <typeparam name="TView"></typeparam>
+        /// <param name="provider"></param>
+        /// <param name="menuRegionName"></param>
+        /// <param name="contentRegionName"></param>
+        /// <param name="title"></param>
+        /// <param name="toolTip"></param>
+        /// <param name="moreSettings"></param>
+        public static void RegisterViewNavigationWithRegion<TView>(this IContainerProvider provider, string menuRegionName,string contentRegionName, string title, string toolTip = null, Action<RegionNavigationItem<TView>> moreSettings = null)
+        {
+            provider.Resolve<IRegionManager>().RegisterViewWithRegion(menuRegionName, () =>
+            {
+                var item = new RegionNavigationItem<TView>() { TargetRegionName = contentRegionName, Title = title, ToolTip = string.IsNullOrEmpty(toolTip) ? title : toolTip };
+                moreSettings?.Invoke(item);
+                return item;
+            });
+        }
+
+
+        /// <summary>
+        /// 在区域内注册Navigation导航菜单标签
+        /// </summary>
+        /// <typeparam name="TView"></typeparam>
+        /// <param name="module"></param>
+        /// <param name="menuRegionName"></param>
+        /// <param name="contentRegionName"></param>
+        /// <param name="title"></param>
+        /// <param name="toolTip"></param>
+        /// <param name="moreSettings"></param>
+        public static void RegisterViewNavigationWithRegion<TView>(this IModule module, string menuRegionName,string contentRegionName, string title, string toolTip = null, Action<RegionNavigationItem<TView>> moreSettings = null)
+        {
+            module.GetInstance<IRegionManager>().RegisterViewWithRegion(menuRegionName, () =>
+            {
+                var item = new RegionNavigationItem<TView>() { TargetRegionName = contentRegionName, Title = title, ToolTip = string.IsNullOrEmpty(toolTip) ? title : toolTip };
+                moreSettings?.Invoke(item);
+                return item;
+            });
+        }
+
+
         /// <summary>
         ///  在区域内注册页面
         /// </summary>
@@ -90,6 +134,7 @@ namespace Prism.Ioc
         {
             module.GetInstance<IRegionManager>().RegisterViewWithRegion(regionName, typeof(TView));
         }
+
         /// <summary>
         /// 在区域内注册页面
         /// </summary>

@@ -7,8 +7,10 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="local:CustomPresenterAssit.MouseOverBackground" Value="Gray" />
         <Setter Property="local:CustomPresenterAssit.MouseOverBackOpacity" Value="0.23" />
+        <Setter Property="local:PupBoxAssist.PupBackground" Value="LightGray" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="Placement" Value="Bottom" />
         <Setter Property="Padding" Value="3" />
         <Setter Property="Template">
             <Setter.Value>
@@ -35,7 +37,6 @@
                                 </Grid>
                             </Border>
                             <Popup
-                                x:Name="PART_Popup"
                                 AllowsTransparency="true"
                                 IsOpen="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
                                 Placement="{TemplateBinding Placement}"
@@ -52,24 +53,6 @@
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-        <Setter Property="ItemContainerStyle">
-            <Setter.Value>
-                <Style TargetType="ListBoxItem">
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="ListBoxItem">
-                                <local:BrowserBarItem
-                                    IsSelected="{TemplateBinding IsSelected}"
-                                    SnapsToDevicePixels="True"
-                                    Style="{Binding ItemContainerStyle, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:BrowserBar}}}">
-                                    <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                </local:BrowserBarItem>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
             </Setter.Value>
         </Setter>
     </Style>

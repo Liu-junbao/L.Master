@@ -10,11 +10,8 @@ using System.Windows.Media;
 namespace System.Windows
 {
     [ContentProperty(nameof(Header))]
-    [TemplatePart(Name = PART_Popup)]
-    public class PupBox : ListBox
+    public class PupBox : ItemsControl
     {
-        public const string PART_Popup = nameof(PART_Popup);
-
         public static readonly DependencyProperty HeaderProperty =
             DependencyProperty.Register(nameof(Header), typeof(object), typeof(PupBox), new PropertyMetadata(null));
         public static readonly DependencyProperty PlacementProperty =
@@ -25,6 +22,13 @@ namespace System.Windows
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(PupBox), new FrameworkPropertyMetadata(typeof(PupBox)));
         }
+        public PupBox()
+        {
+            EventManager.RegisterClassHandler(typeof(PupBox),Mouse.MouseUpEvent,new RoutedEventHandler(OnMouseUpHandler));
+            EventManager.RegisterClassHandler(typeof(PupBox),ButtonBase.ClickEvent, new RoutedEventHandler(OnClickHandler));
+        }
+
+     
         public object Header
         {
             get { return (object)GetValue(HeaderProperty); }
@@ -40,13 +44,6 @@ namespace System.Windows
             get { return (bool)GetValue(IsDropDownOpenProperty); }
             set { SetValue(IsDropDownOpenProperty, value); }
         }
-        public override void OnApplyTemplate()
-        {
-            base.OnApplyTemplate();
-            var pupContainter = this.Template.FindName(PART_Popup, this) as FrameworkElement;
-            if (pupContainter != null)
-                pupContainter.MouseUp += PupContainter_MouseUp;
-        }
         protected override void OnMouseLeave(MouseEventArgs e)
         {
             base.OnMouseLeave(e);
@@ -57,10 +54,15 @@ namespace System.Windows
             base.OnMouseMove(e);
             IsDropDownOpen = true;
         }
-        private void PupContainter_MouseUp(object sender, MouseButtonEventArgs e)
+        private void OnMouseUpHandler(object sender, RoutedEventArgs e)
         {
             IsDropDownOpen = false;
         }
+        private void OnClickHandler(object sender, RoutedEventArgs e)
+        {
+            IsDropDownOpen = false;
+        }
+
     }
 
     public static class PupBoxAssist

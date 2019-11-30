@@ -95,6 +95,5 @@ namespace Prism
         {
             obj.SetValue(StrokeThicknessProperty, value);
         }
-
     }
 }
