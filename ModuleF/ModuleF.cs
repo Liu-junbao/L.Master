@@ -10,6 +10,7 @@ namespace ModuleF
     {
         public void OnInitialized(IContainerProvider containerProvider)
         {
+            containerProvider.RegisterViewNavigationWithRegion<ViewA>("MenuRegion", "ContentRegion", "模块F");
             this.SubscribeApplicationInitialized(OnApplicationInitialized);
         }
 

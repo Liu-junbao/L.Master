@@ -78,6 +78,7 @@
         <Setter Property="BackgroundOpacity" Value="{Binding RelativeSource={RelativeSource Self}, Path=(local:CustomPresenterAssit.BackgroundOpacity)}" />
         <Setter Property="MouseOverBackground" Value="{Binding RelativeSource={RelativeSource Self}, Path=(local:CustomPresenterAssit.MouseOverBackground)}" />
         <Setter Property="MouseOverBackOpacity" Value="{Binding RelativeSource={RelativeSource Self}, Path=(local:CustomPresenterAssit.MouseOverBackOpacity)}" />
+        <Setter Property="IsSelected" Value="{Binding RelativeSource={RelativeSource Self}, Path=(local:SelectorAssist.IsSelected)}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:BrowserBarItem">

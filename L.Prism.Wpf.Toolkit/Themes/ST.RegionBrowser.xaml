@@ -35,6 +35,50 @@
         </StackPanel>
     </DataTemplate>
 
+    <Style x:Key="st.RegionNavigationItem" TargetType="local:RegionNavigationItem">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:RegionNavigationItem">
+                    <CustomPresenter>
+                        <StackPanel
+                            Margin="5"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                            <Path
+                                x:Name="ph"
+                                Width="10"
+                                Height="10"
+                                VerticalAlignment="Center"
+                                Data="{TemplateBinding Data}"
+                                Fill="{TemplateBinding DataFill}"
+                                Stretch="Fill"
+                                Stroke="{TemplateBinding DataStroke}"
+                                StrokeThickness="{TemplateBinding DataStrokeThickness}"
+                                Visibility="{Binding ElementName=ph, Path=Data, Converter={cvt:NullToVisibility}}" />
+                            <Image
+                                x:Name="ig"
+                                Width="12"
+                                Height="12"
+                                VerticalAlignment="Center"
+                                Source="{TemplateBinding Icon}"
+                                Stretch="Fill"
+                                Visibility="{Binding ElementName=ig, Path=Source, Converter={cvt:NullToVisibility}}" />
+                            <TextBlock
+                                x:Name="tb"
+                                Margin="3"
+                                VerticalAlignment="Center"
+                                Text="{TemplateBinding Title}" />
+                        </StackPanel>
+                    </CustomPresenter>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style x:Key="st.RegionBrowserContentControl" TargetType="local:RegionBrowserContentControl">
         <Setter Property="Content" Value="{Binding Content, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:RegionBrowser}}}" />
         <Setter Property="Template">

@@ -10,7 +10,7 @@ namespace ModuleE
     {
         public void OnInitialized(IContainerProvider containerProvider)
         {
-          
+            containerProvider.RegisterViewNavigationWithRegion<ViewA>("MenuRegion", "ContentRegion", "模块E");
         }
 
         public void RegisterTypes(IContainerRegistry containerRegistry)

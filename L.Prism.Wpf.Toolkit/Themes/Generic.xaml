@@ -5,6 +5,7 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/L.Prism.Wpf.Toolkit;component/Themes/ST.RegionBrowser.xaml" />
     </ResourceDictionary.MergedDictionaries>
+    <Style BasedOn="{StaticResource st.RegionNavigationItem}" TargetType="local:RegionNavigationItem" />
     <Style BasedOn="{StaticResource st.RegionBrowserBar}" TargetType="local:RegionBrowserBar" />
     <Style BasedOn="{StaticResource st.RegionBrowserContentControl}" TargetType="local:RegionBrowserContentControl" />
     <Style BasedOn="{StaticResource st.RegionBrowser}" TargetType="local:RegionBrowser" />

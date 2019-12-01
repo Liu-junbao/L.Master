@@ -47,6 +47,45 @@
         </Style.Triggers>
     </Style>
 
+    <Style x:Key="st.SelectableValueEditorComboBox" TargetType="ComboBox">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                        <Popup
+                            AllowsTransparency="true"
+                            IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                            Placement="Bottom"
+                            PopupAnimation="{DynamicResource {x:Static SystemParameters.ComboBoxPopupAnimationKey}}">
+                            <Border Background="{TemplateBinding local:PupBoxAssist.PupBackground}" SnapsToDevicePixels="True">
+                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Border>
+                        </Popup>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ComboBoxItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ComboBoxItem">
+                                <local:BrowserBarItem
+                                    IsSelected="{TemplateBinding IsSelected}"
+                                    SnapsToDevicePixels="True"
+                                    Style="{Binding ItemContainerStyle, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:BrowserBar}}}">
+                                    <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                </local:BrowserBarItem>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style
         x:Key="st.SelectableValueEditor"
         BasedOn="{StaticResource st.ValueEditor}"
@@ -64,14 +103,19 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}">
-                                <local:PupBox ItemsSource="{Binding Selections, RelativeSource={RelativeSource TemplatedParent}}" SelectedItem="{Binding EditedValue, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                <Grid>
                                     <TextBlock
                                         Margin="{TemplateBinding Padding}"
                                         HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                         Text="{TemplateBinding EditedValue,
                                                                Converter={local:ToString}}" />
-                                </local:PupBox>
+                                    <ComboBox
+                                        ItemsSource="{Binding Selections, RelativeSource={RelativeSource TemplatedParent}}"
+                                        SelectedItem="{Binding EditedValue, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                        Style="{StaticResource st.SelectableValueEditorComboBox}" />
+                                </Grid>
+
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>
