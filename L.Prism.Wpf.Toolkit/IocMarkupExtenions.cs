@@ -4,7 +4,7 @@ using System.Windows.Markup;
 
 namespace Prism
 {
-    public class UnityMarkupExtenions<TValue> : MarkupExtension
+    public class IocMarkupExtenions<TValue> : MarkupExtension
     {
         public override object ProvideValue(IServiceProvider serviceProvider)
         {

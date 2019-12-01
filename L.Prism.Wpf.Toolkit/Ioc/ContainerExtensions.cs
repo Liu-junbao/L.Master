@@ -2,6 +2,7 @@
 using Prism.Modularity;
 using Prism.Regions;
 using System;
+using Unity;
 
 namespace Prism.Ioc
 {
