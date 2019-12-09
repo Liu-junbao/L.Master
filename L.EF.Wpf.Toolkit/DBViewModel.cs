@@ -385,15 +385,16 @@ namespace System
                 try
                 {
                     IWorkbook workbook;
-                    FileStream fileStream = null;
                     if (File.Exists(fileName) == false)
                         workbook = isXls ? new HSSFWorkbook() : (IWorkbook)new XSSFWorkbook();
                     else
                     {
                         try
                         {
-                            fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
-                            workbook = isXls ? new HSSFWorkbook(fileStream) : (IWorkbook)new XSSFWorkbook(fileStream);
+                            using (var ms = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+                            {
+                                workbook = isXls ? new HSSFWorkbook(ms) : (IWorkbook)new XSSFWorkbook(ms);
+                            }
                         }
                         catch (Exception e)
                         {
@@ -450,13 +451,9 @@ namespace System
                         OnExporting(rowIndex, model);
                     }
 
-                    if (fileStream == null)
-                        fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
-                    using (fileStream)
-                    {
-                        workbook.Write(fileStream);
-                        fileStream.Close();
-                    }
+                    var fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
+                    workbook.Write(fileStream);
+                    fileStream.Close();
                     return true;
                 }
                 catch (Exception e)
@@ -556,12 +553,10 @@ namespace System
                         OnCapturedMessage("文件中未匹配到列!");
                         return false;
                     }
-                    var rowIndex = -1;
                     var errors = new List<Tuple<int, string, object>>();
                     var updateItems = new List<TModel>();
                     foreach (IRow item in sheet)
                     {
-                        rowIndex++;
                         if (item != columnRow)
                         {
                             for (int i = 0; i < columns.Count; i++)
@@ -576,10 +571,10 @@ namespace System
                                 {
                                     _propertyInfos[propertyName].SetValue(model, value);
                                 }
-                                else if (OnImportedFirstErrorItem(rowIndex, columnName, readedValue))
+                                else if (OnImportedFirstErrorItem(item.RowNum, columnName, readedValue))
                                 {
                                     model = null;
-                                    errors.Add(new Tuple<int, string, object>(rowIndex, columnName, readedValue));
+                                    errors.Add(new Tuple<int, string, object>(item.RowNum, columnName, readedValue));
                                     break;
                                 }
                                 else
@@ -589,7 +584,7 @@ namespace System
                                 if (model != null)
                                 {
                                     updateItems.Add(model);
-                                    OnImporting(rowIndex, model);
+                                    OnImporting(item.RowNum, model);
                                 }
                             }
                         }
