@@ -38,6 +38,7 @@ namespace System
         private string _sheetName;
         private Dictionary<string, string> _propertyNameToHeaderDictionary;
         private Dictionary<string, string> _headerToPropertyNameDictionary;
+       
         public DBViewModel()
         {
             _displayCount = 50;
