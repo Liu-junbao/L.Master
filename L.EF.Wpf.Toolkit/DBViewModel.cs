@@ -125,6 +125,7 @@ namespace System
             //
             LoadPageAsync();
         }
+
         #region load data
         /// <summary>
         /// 重新加载数据,会统计记录数量
@@ -265,7 +266,7 @@ namespace System
             {
                 if (_propertyInfos.ContainsKey(propertyName))
                 {
-                    value = Convert.ChangeType(value, _propertyInfos[propertyName].PropertyType);
+                    value = Convert.ChangeType(editedValue, _propertyInfos[propertyName].PropertyType);
                     return true;
                 }
             }
@@ -344,7 +345,10 @@ namespace System
             if (result == false)
                 OnCapturedMessage("导入失败!");
             else if (result == true)
+            {
+                LoadDataAsync();
                 OnCapturedMessage("导入成功!");
+            }
         }
         protected virtual async Task OnExport()
         {
@@ -425,6 +429,7 @@ namespace System
                             throw new Exception($"属性{item}不存在!");
                         columns.Add(item);
                         var cell = columnRow.CreateCell(columnIndex);
+                        cell.SetCellValue(item);
                         columnIndex++;
                     }
 
@@ -508,7 +513,10 @@ namespace System
                 {
                     IWorkbook workbook;
                     if (File.Exists(fileName) == false)
-                        workbook = isXls ? new HSSFWorkbook() : (IWorkbook)new XSSFWorkbook();
+                    {
+                        OnCapturedMessage("文件不存在!");
+                        return false;
+                    }
                     else
                     {
                         try
@@ -520,7 +528,7 @@ namespace System
                         }
                         catch (Exception e)
                         {
-                            OnCapturedException(e, "打开文件异常，请检查文件是否破损或者被占用!");
+                            OnCapturedException(e, "打开文件失败，请检查文件是否破损或者被占用!");
                             return false;
                         }
                     }
@@ -537,14 +545,34 @@ namespace System
 
                     //读取列
                     var columnRow = sheet.GetRow(sheet.FirstRowNum);
-                    var columns = new List<string>();
+                    var hasKeyColumn = false;
+                    var keyColumnName = string.Empty;
+                    var keyIndex = -1;
+                    var columnIndex = 0;
+                    var columns = new List<Tuple<string, string>>();
                     foreach (var item in columnRow)
                     {
-                        var columnName = item.CellFormula;
+                        var columnName = item?.ToString();
                         if (_headerToPropertyNameDictionary.ContainsKey(columnName))
                         {
-                            columns.Add(columnName);
+                            var propertyName = _headerToPropertyNameDictionary[columnName];
+                            if (propertyName == KeyPropertyName)
+                            {
+                                if (hasKeyColumn == false)
+                                {
+                                    hasKeyColumn = true;
+                                    keyColumnName = columnName;
+                                    keyIndex = columnIndex;
+                                }
+                                else
+                                {
+                                    OnCapturedMessage($"存在多个主键列[{keyIndex}:{keyColumnName}][{columnIndex}:{columnName}]");
+                                    return false;
+                                }
+                            }
+                            columns.Add(new Tuple<string, string>(columnName, propertyName));
                         }
+                        columnIndex++;
                     }
 
                     //读取值
@@ -553,46 +581,68 @@ namespace System
                         OnCapturedMessage("文件中未匹配到列!");
                         return false;
                     }
-                    var errors = new List<Tuple<int, string, object>>();
                     var updateItems = new List<TModel>();
-                    foreach (IRow item in sheet)
+                    var errors = new List<Tuple<int, string, object>>();
+                    bool isSkipError = false;
+                    using (var db = new TDbContext())
                     {
-                        if (item != columnRow)
+                        var dataSet = db.Set<TModel>();
+                        foreach (IRow item in sheet)
                         {
-                            for (int i = 0; i < columns.Count; i++)
+                            if (item != columnRow)
                             {
-                                var model = new TModel();
-                                var cell = item.GetCell(i);
-                                var readedValue = cell.CellFormula;
-                                var columnName = columns[i];
-                                var propertyName = _headerToPropertyNameDictionary[columnName];
-                                object value;
-                                if (this.TryParse(propertyName, readedValue, out value))
+                                TModel model = null;
+                                bool isNewItem = false;
+                                if (hasKeyColumn)
                                 {
-                                    _propertyInfos[propertyName].SetValue(model, value);
+                                    var readedValue = item.GetCell(keyIndex)?.ToString();
+                                    model = dataSet.Find(readedValue);
                                 }
-                                else if (OnImportedFirstErrorItem(item.RowNum, columnName, readedValue))
+                                if (model == null)
                                 {
-                                    model = null;
-                                    errors.Add(new Tuple<int, string, object>(item.RowNum, columnName, readedValue));
-                                    break;
+                                    isNewItem = true;
+                                    model = new TModel();
                                 }
-                                else
+
+                                bool hasError = false;
+                                for (int i = 0; i < columns.Count; i++)
                                 {
-                                    return false;
+                                    if (isNewItem == false && hasKeyColumn && i == keyIndex)//已存在的列不允许修改主键列
+                                        continue;
+
+                                    var readedValue = item.GetCell(i)?.ToString();
+                                    var pair = columns[i];
+                                    var columnName = pair.Item1;
+                                    var propertyName = pair.Item2;
+                                    object value;
+                                    if (this.TryParse(propertyName, readedValue, out value))
+                                    {
+                                        OnImporting(item.RowNum, model);
+                                        _propertyInfos[propertyName].SetValue(model, value);
+                                    }
+                                    else if (isSkipError || OnImportedFirstErrorItem(item.RowNum, columnName, readedValue))
+                                    {
+                                        isSkipError = true;
+                                        hasError = true;
+                                        errors.Add(new Tuple<int, string, object>(item.RowNum, columnName, readedValue));
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        return false;
+                                    }
                                 }
-                                if (model != null)
+                                if (hasError==false)
                                 {
                                     updateItems.Add(model);
-                                    OnImporting(item.RowNum, model);
+                                    if (isNewItem)
+                                    {
+                                        dataSet.Add(model);
+                                    }
                                 }
                             }
                         }
-                    }
-                    //
-                    using (var db = new TDbContext())
-                    {
-                        db.Set<TModel>().AddOrUpdate(updateItems.ToArray());
+                        //
                         db.SaveChanges();
                     }
                     //
@@ -607,13 +657,37 @@ namespace System
                 return false;
             });
         }
+       
         protected virtual void OnImporting(int rowIndex, TModel model) { }
-        protected virtual bool OnImportedFirstErrorItem(int rowIndex, string columnName, object value) => true;
-        protected virtual void OnImportedCompleted(List<TModel> importeds, List<Tuple<int, string, object>> errors) { }
+        protected virtual bool OnImportedFirstErrorItem(int rowIndex, string columnName, object value)
+        {
+            if (MessageBox.Show($"数据格式不正确，是否跳过所有错误？ [行：{rowIndex}   列：{columnName}   值：{value}]", "警告", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
+            {
+                return true;
+            }
+            return false;
+        }
+        protected virtual void OnImportedCompleted(List<TModel> importeds, List<Tuple<int, string, object>> errors)
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.AppendLine($"更新成功数量：{importeds.Count}  失败数量：{errors.Count}");
+            if (errors.Count > 0)
+            {
+                builder.AppendLine("失败明细列表：");
+                foreach (var item in errors)
+                {
+                    builder.AppendLine($"[行：{item.Item1}   列：{item.Item2}   值：{item.Item3}]");
+                }
+            }
+            MessageBox.Show(builder.ToString(), "导入结果", MessageBoxButton.OK);
+        }
         #endregion
 
         protected virtual void OnCapturedException(Exception e, string message, [CallerMemberName] string methodName = null) { }
-        protected virtual void OnCapturedMessage(string message, [CallerMemberName] string methodName = null) { }
+        protected virtual void OnCapturedMessage(string message, [CallerMemberName] string methodName = null)
+        {
+           
+        }
         public event EventHandler IsActiveChanged;
     }
 }

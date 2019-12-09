@@ -176,7 +176,6 @@ namespace System.Windows
             get { return (int[])GetValue(DisplayIndexSourceProperty); }
             protected set { SetValue(DisplayIndexSourcePropertyKey, value); }
         }
-
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             base.OnPropertyChanged(e);
@@ -316,7 +315,7 @@ namespace System.Windows
         public EditableDataGridColumn()
         {
             Selections = new List<object>();
-            
+            IsReadOnly = false;
         }
         public string EditedPropertyName
         {
@@ -390,19 +389,6 @@ namespace System.Windows
             }
 
             return editor;
-        }
-        private DataGridRow FindRow(DataGridCell cell)
-        {
-            DependencyObject child = cell;
-            do
-            {
-                var parent = LogicalTreeHelper.GetParent(child);
-                if (parent == null)
-                    parent = VisualTreeHelper.GetParent(child);
-                if (parent is DataGridRow) return parent as DataGridRow;
-                child = parent;
-            } while (child != null);
-            return null;
         }
     }
     public enum EditorKind

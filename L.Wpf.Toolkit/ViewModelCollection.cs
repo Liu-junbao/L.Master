@@ -19,14 +19,11 @@ namespace System
     /// 数据视图集合
     /// </summary>
     /// <typeparam name="TViewModel"></typeparam>
-    public class ViewModelCollection<TViewModel> : IEnumerable, INotifyCollectionChanged
+    public class ViewModelCollection<TViewModel> : ObservableCollection<TViewModel>
     {
-        private ObservableCollection<TViewModel> _viewModels;
         private Dictionary<object, TViewModel> _key_viewModels;
         public ViewModelCollection()
         {
-            _viewModels = new ObservableCollection<TViewModel>();
-            _viewModels.CollectionChanged += ViewModels_CollectionChanged;
             _key_viewModels = new Dictionary<object, TViewModel>();
         }
         /// <summary>
@@ -50,7 +47,7 @@ namespace System
             {
                 foreach (var item in oldItems)
                 {
-                    _viewModels.Remove(item.Value);
+                    this.Remove(item.Value);
                 }
             });
 
@@ -67,10 +64,10 @@ namespace System
                     _key_viewModels.Add(item.Key, viewModel);
                     UIInvoke(() =>
                     {
-                        if (_viewModels.Count > index)
-                            _viewModels.Insert(index, viewModel);
+                        if (Count > index)
+                            this.Insert(index, viewModel);
                         else
-                            _viewModels.Add(viewModel);
+                            this.Add(viewModel);
                     });
                 }
                 else
@@ -80,19 +77,14 @@ namespace System
                     UIInvoke(() =>
                     {
                         onUpdateExsitsVeiwModel?.Invoke(viewModel, model);//必须UI线程
-                        var oldIndex = _viewModels.IndexOf(viewModel);
+                        var oldIndex = this.IndexOf(viewModel);
                         if (index != oldIndex)
                         {
-                            _viewModels.Move(oldIndex, index);
+                            this.Move(oldIndex, index);
                         }
                     });
                 }
             }
-        }
-        public void Clear()
-        {
-            _key_viewModels.Clear();
-            UIInvoke(() => _viewModels.Clear());
         }
         private void UIInvoke(Action action)
         {
@@ -101,14 +93,5 @@ namespace System
             else
                 action();
         }
-        public IEnumerator GetEnumerator()
-        {
-            return _key_viewModels.Values.GetEnumerator();
-        }
-        private void ViewModels_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            CollectionChanged?.Invoke(this, e);
-        }
-        public event NotifyCollectionChangedEventHandler CollectionChanged;
     }   
 }
