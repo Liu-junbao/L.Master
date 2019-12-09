@@ -190,6 +190,9 @@
             <Trigger Property="IsEditable" Value="False">
                 <Setter Property="Visibility" Value="Hidden" />
             </Trigger>
+            <Trigger Property="IsReadOnly" Value="True">
+                <Setter Property="Visibility" Value="Hidden" />
+            </Trigger>
         </Style.Triggers>
     </Style>
 

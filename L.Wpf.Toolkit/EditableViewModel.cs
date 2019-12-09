@@ -18,8 +18,10 @@ namespace System.Windows
 {
     public interface ISourceService
     {
+        string GetHeader(string propertyName);
+        bool TryParse(string propertyName,object editedValue,out object value);
         void OnCaptureErrorEditedValue(EditableViewModel viewModel, object source, string sourcePropertyName, object editedValue);
-        Task SaveChangedPropertys(EditableViewModel viewModel, object source, Dictionary<PropertyInfo, object> changedPropertys);
+        Task SaveChangedPropertys(EditableViewModel viewModel, object source, Dictionary<string, object> changedPropertys);
         Task Delete(EditableViewModel viewModel, object source);
     }
 
@@ -86,7 +88,7 @@ namespace System.Windows
                 try
                 {
                     var source = this.Source;
-                    Dictionary<PropertyInfo, object> changedPropertyValues;
+                    Dictionary<string, object> changedPropertyValues;
                     if (CheckValues(sourceService, source, arg.EditedValues, out changedPropertyValues))
                     {
                         await sourceService.SaveChangedPropertys(this, source, changedPropertyValues);
@@ -117,41 +119,25 @@ namespace System.Windows
                 }
             }
         }
-        private bool CheckValues(ISourceService sourceService, object source, Dictionary<string, object> changedValues, out Dictionary<PropertyInfo, object> changedPropertyValues)
+        private bool CheckValues(ISourceService sourceService, object source, Dictionary<string, object> changedValues, out Dictionary<string, object> changedPropertyValues)
         {
             changedPropertyValues = null;
             if (source == null) return false;
-            var type = source.GetType();
-            changedPropertyValues = new Dictionary<PropertyInfo, object>();
+            changedPropertyValues = new Dictionary<string, object>();
             foreach (var item in changedValues)
             {
-                var property = type.GetProperty(item.Key);
-                if (property != null)
+                object value;
+                if (sourceService.TryParse(item.Key, item.Value, out value))
                 {
-                    object value;
-                    if (TryConvert(item.Value, property.PropertyType, out value))
-                    {
-                        changedPropertyValues.Add(property, value);
-                    }
-                    else
-                    {
-                        sourceService.OnCaptureErrorEditedValue(this, source, item.Key, item.Value);
-                        return false;
-                    }
+                    changedPropertyValues.Add(item.Key, value);
+                }
+                else
+                {
+                    sourceService.OnCaptureErrorEditedValue(this, source, item.Key, item.Value);
+                    return false;
                 }
             }
             return changedPropertyValues.Count > 0;
-        }
-        private bool TryConvert(object value, Type type, out object result)
-        {
-            result = null;
-            try
-            {
-                result = Convert.ChangeType(value, type);
-                return true;
-            }
-            catch { }
-            return false;
         }
         public override string ToString()
         {
@@ -184,7 +170,6 @@ namespace System.Windows
         {
             obj.SetValue(IsEditableProperty, value);
         }
-
         public static ISourceService GetSourceService(DependencyObject obj)
         {
             return (ISourceService)obj.GetValue(SourceServiceProperty);

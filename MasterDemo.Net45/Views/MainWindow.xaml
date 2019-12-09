@@ -81,8 +81,7 @@
                 HorizontalAlignment="Center"
                 Header="菜单列表"
                 ItemTemplate="{Binding ElementName=rb, Path=HeaderTemplate}"
-                ItemsSource="{Binding ElementName=rb, Path=Views}"
-                SelectedItem="{Binding ElementName=rb, Path=ActiveView, Mode=TwoWay}" />
+                ItemsSource="{Binding ElementName=rb, Path=Views}" />
             <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />

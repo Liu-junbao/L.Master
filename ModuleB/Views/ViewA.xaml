@@ -9,22 +9,23 @@
     d:DesignHeight="300"
     d:DesignWidth="300"
     prism:ViewModelLocator.AutoWireViewModel="True"
+    IsEnabled="{Binding IsLoading, Converter={IsLoadingToEnabled}}"
     RegionBrowserAssist.Data="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
     RegionBrowserAssist.StrokeThickness="0.1"
     RegionBrowserAssist.Title="模块B"
     RegionBrowserAssist.ToolTip="模块B"
-    mc:Ignorable="d" IsEnabled="{Binding IsLoading,Converter={IsLoadingToEnabled}}">
+    mc:Ignorable="d">
     <DockPanel Margin="10">
         <CustomDataGridBar DockPanel.Dock="Bottom" />
         <CustomDataGrid>
             <DataGrid.Columns>
+                <EditableDataGridColumn EditedPropertyName="Name" IsReadOnly="True" />
+                <EditableDataGridColumn EditedPropertyName="Age" />
+                <EditableDataGridColumn EditedPropertyName="Descripton" />
+                <EditableDataGridColumn EditedPropertyName="Text" />
                 <EditableDataGridColumn
-                    EditedPropertyName="Name"
-                    Header="名称"
-                    IsReadOnly="True" />
-                <EditableDataGridColumn EditedPropertyName="Age" Header="年龄" />
-                <EditableDataGridColumn EditedPropertyName="Descripton" Header="描述" />
-                <EditableDataGridColumn Width="*" Kind="Oper" />
+                    Width="*"
+                    Kind="Oper" />
             </DataGrid.Columns>
         </CustomDataGrid>
     </DockPanel>

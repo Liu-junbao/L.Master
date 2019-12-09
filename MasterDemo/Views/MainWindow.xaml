@@ -4,14 +4,16 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:prism="http://prismlibrary.com/"
     Title="{Binding Title}"
-    Width="1200"
-    Height="800"
     prism:ViewModelLocator.AutoWireViewModel="True"
+    Width="800"
+    Height="600"
     WindowStyle="SingleBorderWindow">
     <CustomWindow.Background>
         <ImageBrush ImageSource="/MasterDemo;component/Images/background.png" />
     </CustomWindow.Background>
-    <RegionBrowser x:Name="rb" prism:RegionManager.RegionName="ContentRegion">
+    <RegionBrowser
+        x:Name="rb"
+        prism:RegionManager.RegionName="ContentRegion">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />

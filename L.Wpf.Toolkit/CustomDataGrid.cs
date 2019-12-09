@@ -316,6 +316,7 @@ namespace System.Windows
         public EditableDataGridColumn()
         {
             Selections = new List<object>();
+            
         }
         public string EditedPropertyName
         {
@@ -333,13 +334,22 @@ namespace System.Windows
             get { return (bool)GetValue(IsDeleteableProperty); }
             set { SetValue(IsDeleteableProperty, value); }
         }
-        public override object OnCopyingCellClipboardContent(object item)
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            return base.OnCopyingCellClipboardContent(item);
-        }
-        public override void OnPastingCellClipboardContent(object item, object cellContent)
-        {
-            base.OnPastingCellClipboardContent(item, cellContent);
+            base.OnPropertyChanged(e);
+            if (e.Property == IsFrozenProperty)
+            {
+                if (Header == null)
+                {
+                    var propertyName = EditedPropertyName;
+                    var owner = this.DataGridOwner;
+                    if (owner != null && string.IsNullOrEmpty(propertyName) == false)
+                    {
+                        var source = EditableViewModelAssist.GetSourceService(this.DataGridOwner);
+                        Header = source?.GetHeader(EditedPropertyName);
+                    }
+                }
+            }
         }
         protected override FrameworkElement GenerateEditingElement(DataGridCell cell, object dataItem)
         {
@@ -376,7 +386,7 @@ namespace System.Windows
 
             if (editor != null)
             {
-                editor.SetBinding(TextEditor.IsReadOnlyProperty, new Binding(nameof(IsReadOnly)) { Source = this });
+                editor.SetBinding(EditableViewModelEditor.IsReadOnlyProperty, new Binding(nameof(IsReadOnly)) { Source = this });
             }
 
             return editor;
@@ -411,6 +421,8 @@ namespace System.Windows
             DependencyProperty.Register(nameof(IsEditing), typeof(bool), typeof(EditableViewModelEditor), new PropertyMetadata(false, OnIsEditingChanged));
         public static readonly DependencyProperty IsEditableProperty =
             DependencyProperty.Register(nameof(IsEditable), typeof(bool), typeof(EditableViewModelEditor), new PropertyMetadata(false, OnIsEditableChanged));
+        public static readonly DependencyProperty IsReadOnlyProperty =
+          DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(EditableViewModelEditor), new PropertyMetadata(false));
         private static void OnEditableViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var editor = (EditableViewModelEditor)d;
@@ -445,6 +457,11 @@ namespace System.Windows
         {
             get { return (bool)GetValue(IsEditableProperty); }
             set { SetValue(IsEditableProperty, value); }
+        }
+        public bool IsReadOnly
+        {
+            get { return (bool)GetValue(IsReadOnlyProperty); }
+            set { SetValue(IsReadOnlyProperty, value); }
         }
         protected virtual void OnIsEditingChanged(bool isEditing) { }
         protected virtual void OnIsEditableChanged(bool isEditable) { }
@@ -519,8 +536,6 @@ namespace System.Windows
             DependencyProperty.Register(nameof(Value), typeof(object), typeof(TextEditor), new PropertyMetadata(null, OnValueChanged));
         public static readonly DependencyProperty EditedValueProperty =
             DependencyProperty.Register(nameof(EditedValue), typeof(object), typeof(TextEditor), new PropertyMetadata(null, OnEditedValueChanged));
-        public static readonly DependencyProperty IsReadOnlyProperty =
-            DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(TextEditor), new PropertyMetadata(false));
         public static readonly DependencyProperty IsChangedProperty =
             DependencyProperty.Register(nameof(IsChanged), typeof(bool), typeof(TextEditor), new PropertyMetadata(null));
         private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -553,11 +568,7 @@ namespace System.Windows
             get { return (object)GetValue(EditedValueProperty); }
             set { SetValue(EditedValueProperty, value); }
         }
-        public bool IsReadOnly
-        {
-            get { return (bool)GetValue(IsReadOnlyProperty); }
-            set { SetValue(IsReadOnlyProperty, value); }
-        }
+      
         public bool IsChanged
         {
             get { return (bool)GetValue(IsChangedProperty); }

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.0;net45</TargetFrameworks>
-    <Version>6.7.9.11293</Version>
+    <Version>19.12.06.01</Version>
     <PackageProjectUrl>https://github.com/Liu-junbao/L.Master.git</PackageProjectUrl>
   </PropertyGroup>
 

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Data.Entity;
+    using System.Data.Entity.ModelConfiguration.Conventions;
     using System.Linq;
 
     public class DB : DbContext
@@ -16,6 +17,14 @@
             : base("name=DB")
         {
             Database.SetInitializer(new DbInitialier());
+        }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            //移除复数约定
+            modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
+
+            base.OnModelCreating(modelBuilder);
         }
 
         public virtual DbSet<Model> Models { get; set; }

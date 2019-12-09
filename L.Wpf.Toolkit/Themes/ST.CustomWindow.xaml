@@ -56,8 +56,8 @@
                                     Height="12"
                                     Data="M0,6 L8,6"
                                     Stretch="Fill"
-                                    Stroke="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}"
-                                    StrokeThickness="0.7" />
+                                    Stroke="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}"
+                                    StrokeThickness="1" />
                             </local:CustomButton>
                             <Grid Margin="1,0,1,0">
                                 <local:CustomButton
@@ -71,7 +71,7 @@
                                         Height="12"
                                         Data="M2,0 L8,0 L8,6 M0,3 L6,3 M0,2 L6,2 L6,8 L0,8 Z"
                                         Stretch="Fill"
-                                        Stroke="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:CustomButton}}"
+                                        Stroke="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}"
                                         StrokeThickness="0.7" />
                                 </local:CustomButton>
                                 <local:CustomButton
@@ -84,7 +84,7 @@
                                         Height="12"
                                         Data="M0,1 L9,1 L9,8 L0,8 Z"
                                         Stretch="Fill"
-                                        Stroke="{Binding Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:CustomButton}}"
+                                        Stroke="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}"
                                         StrokeThickness="0.7" />
                                 </local:CustomButton>
                             </Grid>
@@ -128,16 +128,16 @@
 
     <Style x:Key="st.CustomWindow" TargetType="local:CustomWindow">
         <Setter Property="Background" Value="Gray" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:CustomWindow">
-                    <Border Background="{TemplateBinding Background}">
-                        <AdornerDecorator Margin="{TemplateBinding Padding}">
+                    <AdornerDecorator>
+                        <Border Background="{TemplateBinding Background}">
                             <Grid x:Name="LayoutRoot">
                                 <ContentPresenter />
                                 <Grid
                                     x:Name="ResizeGrip"
-                                    Grid.Row="2"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Bottom"
                                     Background="Transparent"
@@ -152,8 +152,8 @@
                                         StrokeThickness="1" />
                                 </Grid>
                             </Grid>
-                        </AdornerDecorator>
-                    </Border>
+                        </Border>
+                    </AdornerDecorator>
                     <ControlTemplate.Triggers>
                         <Trigger Property="WindowState" Value="Maximized">
                             <Setter TargetName="LayoutRoot" Property="Margin" Value="7" />
@@ -172,10 +172,9 @@
         <Setter Property="WindowChrome.WindowChrome">
             <Setter.Value>
                 <WindowChrome
-                    CornerRadius="0"
-                    GlassFrameThickness="1"
+                    CaptionHeight="0"
                     NonClientFrameEdges="None"
-                    UseAeroCaptionButtons="False" />
+                    ResizeBorderThickness="8" />
             </Setter.Value>
         </Setter>
     </Style>
