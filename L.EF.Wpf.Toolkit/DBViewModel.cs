@@ -15,11 +15,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Data.Entity.Migrations;
+using System.ComponentModel;
+using NPOI.SS.UserModel;
+using NPOI.HSSF.UserModel;
+using NPOI.XSSF.UserModel;
 
 namespace System
 {
     public abstract class DBViewModel<TModel, TDbContext> : NotifyPropertyChanged, IActiveAware, ISourceService
-        where TModel : class,new()
+        where TModel : class, new()
         where TDbContext : DbContext, new()
     {
         private bool _isActive;
@@ -31,34 +35,41 @@ namespace System
         private int _pageIndex;
         private EditableViewModel _selectedItem;
         private Dictionary<string, PropertyInfo> _propertyInfos;
+        private string _sheetName;
         private Dictionary<string, string> _propertyNameToHeaderDictionary;
         private Dictionary<string, string> _headerToPropertyNameDictionary;
-        private Dictionary<string, string> _headerToPropertyNameExtraDictionary;
         public DBViewModel()
         {
             _displayCount = 50;
             _propertyInfos = typeof(TModel).GetProperties().ToDictionary(i => i.Name);
-            _propertyNameToHeaderDictionary = CreatePropertyNameToHeaderDictionary();
+            _sheetName = typeof(TModel).GetCustomAttributes(typeof(DescriptionAttribute)).OfType<DescriptionAttribute>().FirstOrDefault()?.Description ?? typeof(TModel).Name;
+            _propertyNameToHeaderDictionary = new Dictionary<string, string>();
             _headerToPropertyNameDictionary = new Dictionary<string, string>();
+            foreach (var property in _propertyInfos.Values)
+            {
+                var propertyName = property.Name;
+                foreach (DescriptionAttribute item in property.GetCustomAttributes(typeof(DescriptionAttribute)))
+                {
+                    var description = item.Description;
+                    if (string.IsNullOrEmpty(description) == false && _propertyNameToHeaderDictionary.ContainsKey(propertyName) == false)
+                    {
+                        if (_propertyNameToHeaderDictionary.ContainsKey(propertyName) == false)
+                            _propertyNameToHeaderDictionary.Add(propertyName, description);
+                        if (_headerToPropertyNameDictionary.ContainsKey(description) == false)
+                            _headerToPropertyNameDictionary.Add(description, propertyName);
+                    }
+                }
+                if (_propertyNameToHeaderDictionary.ContainsKey(propertyName) == false)
+                    _propertyNameToHeaderDictionary.Add(propertyName, propertyName);
+                if (_headerToPropertyNameDictionary.ContainsKey(propertyName) == false)
+                    _headerToPropertyNameDictionary.Add(propertyName, propertyName);
+            }
             KeyPropertyName = (KeyExpression.Body as MemberExpression)?.Member.Name;
             if (string.IsNullOrEmpty(KeyPropertyName) || _propertyInfos.ContainsKey(KeyPropertyName) == false)
                 throw new Exception("主键表达式不正确!");
-            foreach (var item in _propertyInfos.Keys)
-            {
-                if (_propertyNameToHeaderDictionary.ContainsKey(item) == false)
-                    _propertyNameToHeaderDictionary.Add(item, item);
-            }
-            foreach (var item in _propertyNameToHeaderDictionary)
-            {
-                if (_propertyInfos.ContainsKey(item.Key) == false)
-                    throw new Exception($"指定属性{item.Key}不存在!");
-                if (string.IsNullOrEmpty(item.Value))
-                    throw new Exception("标题不可为空!");
-                if (_headerToPropertyNameDictionary.ContainsKey(item.Value))
-                    throw new Exception("存在重复标题!");
-                _headerToPropertyNameDictionary.Add(item.Value, item.Key);
-            }
             Items = new ViewModelCollection<EditableViewModel>();
+            ImportCommand = new AsyncCommand(OnImport);
+            ExportCommand = new AsyncCommand(OnExport);
         }
         public bool IsActive
         {
@@ -99,16 +110,8 @@ namespace System
         }
         protected abstract Expression<Func<TModel, object>> KeyExpression { get; }
         public string KeyPropertyName { get; }
-        public Dictionary<string, string> HeaderToPropertyNameDictionary
-        {
-            get
-            {
-                if (_headerToPropertyNameExtraDictionary != null)
-                    return _headerToPropertyNameExtraDictionary;
-                return _headerToPropertyNameDictionary;
-            }
-            set => _headerToPropertyNameExtraDictionary = value;
-        }
+        public AsyncCommand ImportCommand { get; }
+        public AsyncCommand ExportCommand { get; }
         protected virtual void OnIsActiveChanged(bool oldIsActive, bool newIsActive)
         {
             if (newIsActive)
@@ -122,8 +125,6 @@ namespace System
             //
             LoadPageAsync();
         }
-        protected virtual Dictionary<string, string> CreatePropertyNameToHeaderDictionary() => _propertyInfos.Keys.ToDictionary(i => i);
-     
         #region load data
         /// <summary>
         /// 重新加载数据,会统计记录数量
@@ -150,7 +151,6 @@ namespace System
                             var pageCount = Math.DivRem(Count, DisplayCount, out remain);
                             if (remain > 0) pageCount++;
                             PageCount = pageCount;
-                            PageIndex = 0;
                             if (count > 0)
                             {
                                 var pageIndex = PageIndex;
@@ -158,11 +158,16 @@ namespace System
                                 PageIndex = pageIndex;
                                 ChangeItems(OnQuery(db.Set<TModel>()).Take(pageSize));
                             }
+                            else
+                            {
+                                PageIndex = 0;
+                                OnCapturedMessage("当前未检索到数据!");
+                            }
                         }
                     }
                     catch (Exception e)
                     {
-                        OnCapturedException(e, "加载数据异常");
+                        OnCapturedException(e, "加载数据异常!");
                     }
                     finally
                     {
@@ -193,7 +198,7 @@ namespace System
                     }
                     catch (Exception e)
                     {
-                        OnCapturedException(e, "加载页数据异常");
+                        OnCapturedException(e, "加载页数据异常!");
                     }
                     finally
                     {
@@ -204,7 +209,6 @@ namespace System
                 _loadingTask = task;
             }
         }
-        protected virtual void OnLoaded(int count) { }
         protected virtual IQueryable<TModel> OnQuery(IQueryable<TModel> query)
         {
             return query.OrderBy(KeyExpression);
@@ -268,7 +272,6 @@ namespace System
             catch { }
             return false;
         }
-        protected virtual void OnCapturedException(Exception e,string message, [CallerMemberName] string methodName = null) { }
         public async virtual Task SaveChangedPropertys(EditableViewModel viewModel, object source, Dictionary<string, object> changedPropertys)
         {
             TModel model = (TModel)source;
@@ -293,7 +296,7 @@ namespace System
                 }
                 catch (Exception e)
                 {
-                    OnCapturedException(e,"保存数据异常");
+                    OnCapturedException(e, "保存数据异常");
                 }
                 return false;
             });
@@ -320,7 +323,7 @@ namespace System
                 }
                 catch (Exception e)
                 {
-                    OnCapturedException(e,"删除数据异常");
+                    OnCapturedException(e, "删除数据异常");
                 }
                 return false;
             });
@@ -335,126 +338,125 @@ namespace System
         #endregion
 
         #region Excel
+        protected virtual async Task OnImport()
+        {
+            var result = await ImportWithFileDialog();
+            if (result == false)
+                OnCapturedMessage("导入失败!");
+            else if (result == true)
+                OnCapturedMessage("导入成功!");
+        }
+        protected virtual async Task OnExport()
+        {
+            var result = await ExportWithFileDialog();
+            if (result == false)
+                OnCapturedMessage("导出失败!");
+            else if (result == true)
+                OnCapturedMessage("导出成功!");
+        }
+
         /// <summary>
         /// 导出，弹出文件路径选择窗体
         /// </summary>
         /// <param name="defaultFileName"></param>
         /// <param name="tableName"></param>
         /// <returns>null:取消 true:导表成功 false:导表失败</returns>
-        protected async Task<bool?> ExportWithFileDialog(string defaultFileName = null, string tableName = null)
+        protected async Task<bool?> ExportWithFileDialog(string defaultFileName = null)
         {
             SaveFileDialog dialog = new SaveFileDialog();
-            if (string.IsNullOrEmpty(defaultFileName) == false)
-                dialog.FileName = defaultFileName;
+            dialog.FileName = string.IsNullOrEmpty(defaultFileName) ? _sheetName : defaultFileName;
             dialog.Filter = "Excel2007文件|*.xlsx|Excel2003文件|*.xls";
             if (dialog.ShowDialog() == true)
-                return await Export(dialog.FileName, tableName, dialog.FilterIndex == 2);
+                return await Export(dialog.FileName, dialog.FilterIndex == 2);
             return null;
         }
+
         /// <summary>
         /// 导出
         /// </summary>
         /// <param name="fileName"></param>
         /// <param name="tableName"></param>
+        /// <param name="isXls">xls:Excel2003 xlsx:Excel2007</param>
         /// <returns></returns>
-        protected Task<bool> Export(string fileName, string tableName = null, bool isExcel2003 = false)
+        protected Task<bool> Export(string fileName, bool isXls = false)
         {
             return Task.Run(() =>
             {
                 try
                 {
+                    IWorkbook workbook;
+                    FileStream fileStream = null;
                     if (File.Exists(fileName) == false)
-                        File.Create(fileName).Close();
-                    if (string.IsNullOrEmpty(tableName))
-                        tableName = "Sheet";
-                    string connectionString;
-                    string hdr = "YES";//是否第一行是列名 YES/NO
-                    int imex = 1;//  /// IMEX 三种模式。IMEX是用来告诉驱动程序使用Excel文件的模式，其值有0、1、2三种，分别代表只读、只写、混合模式。
-                    if (isExcel2003)//Excel 版本 2003
-                        connectionString = $"Provider=Microsoft.Jet.OleDb.4.0; data source={fileName};Extended Properties='Excel 8.0; HDR={hdr}; IMEX={imex}'";
-                    else//Excel 版本 2007
-                        connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0; data source={fileName};Extended Properties='Excel 12.0 Xml; HDR={hdr}; IMEX={imex}'";
-                    using (var cnn = new OleDbConnection(connectionString))
+                        workbook = isXls ? new HSSFWorkbook() : (IWorkbook)new XSSFWorkbook();
+                    else
                     {
-                        var cmd = new OleDbCommand();
-                        cmd.Connection = cnn;
-                        OleDbTransaction transaction = null;
                         try
                         {
-                            cnn.Open();
-                            transaction = cnn.BeginTransaction(IsolationLevel.ReadCommitted);
-                            cmd.Connection = cnn;
-                            cmd.Transaction = transaction;
-
-                            string sql;
-                            StringBuilder sqlBuilder = new StringBuilder();
-
-                            //删除表
-                            sql = $"DROP TABLE IF EXISTS {tableName}";
-                            cmd.CommandText = sql;
-                            cmd.ExecuteNonQuery();
-
-                            //创建表
-                            List<string> columns = new List<string>();
-                            foreach (var item in GetExportPropertyNames())
-                            {
-                                if (_propertyInfos.ContainsKey(item) == false)
-                                    throw new Exception($"属性{item}不存在!");
-                                columns.Add(item);
-                                if (sqlBuilder.Length == 0)
-                                    sqlBuilder.AppendFormat("[{0}] TEXT(200)", item);
-                                else
-                                    sqlBuilder.AppendFormat(",[{0}] TEXT(200)", item);
-                            }
-                            sql = $"CREATE TABLE {tableName}({sqlBuilder}) ";
-                            cmd.CommandText = sql;
-                            cmd.ExecuteNonQuery();
-
-                            if (columns.Count == 0) 
-                                throw new Exception("导出表列为0!");
-
-                            //添加数据
-                            var index = 0;
-                            var models = GetExportModels();
-                            foreach (var model in models)
-                            {
-                                sqlBuilder.Clear();
-                                foreach (var item in columns)
-                                {
-                                    var property = _propertyInfos[item];
-                                    var propertyType = property.PropertyType;
-                                    var propertyValue = property.GetValue(model);
-                                    string valueText;
-                                    if (propertyType == typeof(DateTime) || propertyType == typeof(DateTime?))
-                                        valueText = $"'{propertyValue:yyyy-MM-dd HH:mm:ss.fff}'";
-                                    else if (propertyType == typeof(TimeSpan) || propertyType == typeof(TimeSpan?))
-                                        valueText = $"'{propertyValue:c}'";
-                                    else
-                                        valueText = $"'{propertyValue}'";
-                                    if (sqlBuilder.Length == 0)
-                                        sqlBuilder.Append(valueText);
-                                    else
-                                        sqlBuilder.Append($"{valueText},");
-                                }
-                                sql = $"INSERT INTO {tableName} VALUES({sqlBuilder})";
-                                cmd.CommandText = sql;
-                                cmd.ExecuteNonQuery();
-                                OnExporting(index,model);
-                                index++;
-                            }
-
+                            fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+                            workbook = isXls ? new HSSFWorkbook(fileStream) : (IWorkbook)new XSSFWorkbook(fileStream);
                         }
                         catch (Exception e)
                         {
-                            OnCapturedException(e,"导出数据异常");
-                            try
-                            {
-                                transaction?.Rollback();
-                            }
-                            catch { }
+                            OnCapturedException(e, "打开文件异常，请检查文件是否破损或者被占用!");
+                            return false;
                         }
                     }
 
+                    //删除表
+                    var oldSheet = workbook.GetSheet(_sheetName);
+                    if (oldSheet != null)
+                    {
+                        var sheetIndex = workbook.GetSheetIndex(oldSheet);
+                        workbook.RemoveSheetAt(sheetIndex);
+                    }
+
+                    //创建表
+                    var sheet = workbook.CreateSheet(_sheetName);
+                    var rowIndex = 0;
+
+                    //创建列
+                    var columnRow = sheet.CreateRow(rowIndex);
+                    var columns = new List<string>();
+                    var columnIndex = 0;
+                    foreach (var item in GetExportPropertyNames())
+                    {
+                        if (_propertyInfos.ContainsKey(item) == false)
+                            throw new Exception($"属性{item}不存在!");
+                        columns.Add(item);
+                        var cell = columnRow.CreateCell(columnIndex);
+                        columnIndex++;
+                    }
+
+                    //表数据                    
+                    foreach (var model in GetExportModels())
+                    {
+                        rowIndex++;
+                        var row = sheet.CreateRow(rowIndex);
+                        for (int i = 0; i < columns.Count; i++)
+                        {
+                            var property = _propertyInfos[columns[i]];
+                            var propertyType = property.PropertyType;
+                            var propertyValue = property.GetValue(model);
+                            string valueText;
+                            if (propertyType == typeof(DateTime) || propertyType == typeof(DateTime?))
+                                valueText = $"{propertyValue:yyyy-MM-dd HH:mm:ss.fff}";
+                            else if (propertyType == typeof(TimeSpan) || propertyType == typeof(TimeSpan?))
+                                valueText = $"{propertyValue:c}";
+                            else
+                                valueText = propertyValue?.ToString();
+                            var cell = row.CreateCell(i);
+                            cell.SetCellValue(valueText);
+                        }
+                        OnExporting(rowIndex, model);
+                    }
+
+                    if (fileStream == null)
+                        fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
+                    using (fileStream)
+                    {
+                        workbook.Write(fileStream);
+                        fileStream.Close();
+                    }
                     return true;
                 }
                 catch (Exception e)
@@ -464,16 +466,19 @@ namespace System
                 }
             });
         }
+
         /// <summary>
         /// 获取导出数据
         /// </summary>
         /// <returns></returns>
         protected virtual IEnumerable<TModel> GetExportModels() => LoadAll();
+
         /// <summary>
         /// 获取导出属性
         /// </summary>
         /// <returns></returns>
         protected virtual IEnumerable<string> GetExportPropertyNames() => _propertyInfos.Keys;
+
         /// <summary>
         /// 导出过程
         /// </summary>
@@ -489,106 +494,131 @@ namespace System
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Filter = "Excel2007文件|*.xlsx|Excel2003文件|*.xls";
             if (dialog.ShowDialog() == true)
-                return await Import(dialog.FileName, isExcel2003: dialog.FilterIndex == 2);
+                return await Import(dialog.FileName, dialog.FilterIndex == 2);
             return null;
         }
-        protected Task<bool> Import(string fileName, string tableName = null, bool isExcel2003 = false)
+        /// <summary>
+        /// 导入
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <param name="isXls"></param>
+        /// <returns></returns>
+        protected Task<bool> Import(string fileName, bool isXls = false)
         {
             return Task.Run(() =>
             {
-                string connectionString;
-                string hdr = "YES";//是否第一行是列名 YES/NO
-                int imex = 0;//  /// IMEX 三种模式。IMEX是用来告诉驱动程序使用Excel文件的模式，其值有0、1、2三种，分别代表只读、只写、混合模式。
-                if (isExcel2003)//Excel 版本 2003
-                    connectionString = $"Provider=Microsoft.Jet.OleDb.4.0; data source={fileName};Extended Properties='Excel 8.0; HDR={hdr}; IMEX={imex}'";
-                else//Excel 版本 2007
-                    connectionString = $"Provider=Microsoft.ACE.OLEDB.12.0; data source={fileName};Extended Properties='Excel 12.0 Xml; HDR={hdr}; IMEX={imex}'";
-                using (OleDbConnection cnn = new OleDbConnection(connectionString))
+                try
                 {
-                    var cmd = new OleDbCommand();
-                    cmd.Connection = cnn;
-                    try
+                    IWorkbook workbook;
+                    if (File.Exists(fileName) == false)
+                        workbook = isXls ? new HSSFWorkbook() : (IWorkbook)new XSSFWorkbook();
+                    else
                     {
-                        cnn.Open();
-
-                        //获取表名
-                        if (string.IsNullOrEmpty(tableName))
+                        try
                         {
-                            DataTable dt = cnn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, null);
-                            if (dt != null && dt.Rows.Count > 0)
+                            using (var ms = new FileStream(fileName, FileMode.Open, FileAccess.ReadWrite))
                             {
-                                tableName = dt.Rows[0][2].ToString();
+                                workbook = isXls ? new HSSFWorkbook(ms) : (IWorkbook)new XSSFWorkbook(ms);
                             }
                         }
-                        if (string.IsNullOrEmpty(tableName))
+                        catch (Exception e)
                         {
-                            OnCapturedException(null, "指定Excel中不存在数据!");
+                            OnCapturedException(e, "打开文件异常，请检查文件是否破损或者被占用!");
                             return false;
                         }
+                    }
 
-                        //导入数据
-                        var sql = $"SELECT * FROM [{tableName}]";
-                        cmd.CommandText = sql;
-                        var reader = cmd.ExecuteReader();
-                        var errors = new List<Tuple<int, string, object>>();
-                        var updateItems = new List<TModel>();
-                        using (var db = new TDbContext())
+                    //获取表
+                    ISheet sheet = workbook.GetSheet(_sheetName);
+                    if (sheet == null)
+                        sheet = workbook.GetSheetAt(0);
+                    if (sheet == null)
+                    {
+                        OnCapturedMessage("文件中无数据!");
+                        return false;
+                    }
+
+                    //读取列
+                    var columnRow = sheet.GetRow(sheet.FirstRowNum);
+                    var columns = new List<string>();
+                    foreach (var item in columnRow)
+                    {
+                        var columnName = item.CellFormula;
+                        if (_headerToPropertyNameDictionary.ContainsKey(columnName))
                         {
-                            int index = -1;
-                            while (reader.Read())
+                            columns.Add(columnName);
+                        }
+                    }
+
+                    //读取值
+                    if (columns.Count == 0)
+                    {
+                        OnCapturedMessage("文件中未匹配到列!");
+                        return false;
+                    }
+                    var rowIndex = -1;
+                    var errors = new List<Tuple<int, string, object>>();
+                    var updateItems = new List<TModel>();
+                    foreach (IRow item in sheet)
+                    {
+                        rowIndex++;
+                        if (item != columnRow)
+                        {
+                            for (int i = 0; i < columns.Count; i++)
                             {
-                                index++;
                                 var model = new TModel();
-                                for (int i = 0; i < reader.VisibleFieldCount; i++)
+                                var cell = item.GetCell(i);
+                                var readedValue = cell.CellFormula;
+                                var columnName = columns[i];
+                                var propertyName = _headerToPropertyNameDictionary[columnName];
+                                object value;
+                                if (this.TryParse(propertyName, readedValue, out value))
                                 {
-                                    var name = reader.GetName(i);
-                                    var readedValue = reader.GetValue(i);
-                                    var headerToPropertyNameDictionary = HeaderToPropertyNameDictionary;
-                                    if (headerToPropertyNameDictionary.ContainsKey(name))
-                                    {
-                                        var propertyName = headerToPropertyNameDictionary[name];
-                                        object value;
-                                        if (this.TryParse(propertyName, readedValue, out value))
-                                        {
-                                            _propertyInfos[propertyName].SetValue(model, value);
-                                        }
-                                        else if (OnImportedFirstErrorItem(index, name, readedValue))
-                                        {
-                                            model = null;
-                                            errors.Add(new Tuple<int, string, object>(index, name, readedValue));
-                                            break;
-                                        }
-                                        else
-                                        {
-                                            return false;
-                                        }
-                                    }
+                                    _propertyInfos[propertyName].SetValue(model, value);
+                                }
+                                else if (OnImportedFirstErrorItem(rowIndex, columnName, readedValue))
+                                {
+                                    model = null;
+                                    errors.Add(new Tuple<int, string, object>(rowIndex, columnName, readedValue));
+                                    break;
+                                }
+                                else
+                                {
+                                    return false;
                                 }
                                 if (model != null)
+                                {
                                     updateItems.Add(model);
-                            }
-                            if (updateItems.Count > 0)
-                            {
-                                db.Set<TModel>().AddOrUpdate(updateItems.ToArray());
-                                db.SaveChanges();
+                                    OnImporting(rowIndex, model);
+                                }
                             }
                         }
-                        OnImportedCompleted(updateItems, errors);
-                        return true;
                     }
-                    catch (Exception e)
+                    //
+                    using (var db = new TDbContext())
                     {
-                        OnCapturedException(e, "导入数据异常");
+                        db.Set<TModel>().AddOrUpdate(updateItems.ToArray());
+                        db.SaveChanges();
                     }
+                    //
+                    OnImportedCompleted(updateItems, errors);
+                    return true;
                 }
+                catch (Exception e)
+                {
+                    OnCapturedException(e, "导入数据异常");
+                }
+
                 return false;
             });
         }
-        protected virtual void OnImporting(int index,TModel model) { }
-        protected virtual bool OnImportedFirstErrorItem(int index, string columnName, object value) => true;
-        protected virtual void OnImportedCompleted(List<TModel> importeds,List<Tuple<int,string,object>> errors) { }
+        protected virtual void OnImporting(int rowIndex, TModel model) { }
+        protected virtual bool OnImportedFirstErrorItem(int rowIndex, string columnName, object value) => true;
+        protected virtual void OnImportedCompleted(List<TModel> importeds, List<Tuple<int, string, object>> errors) { }
         #endregion
 
+        protected virtual void OnCapturedException(Exception e, string message, [CallerMemberName] string methodName = null) { }
+        protected virtual void OnCapturedMessage(string message, [CallerMemberName] string methodName = null) { }
         public event EventHandler IsActiveChanged;
     }
 }

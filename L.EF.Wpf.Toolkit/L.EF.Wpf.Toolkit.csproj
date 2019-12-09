@@ -10,17 +10,12 @@
 
   <ItemGroup>
     <PackageReference Include="EntityFramework" Version="6.4.0" />
+    <PackageReference Include="NPOI" Version="2.4.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj" />
     <ProjectReference Include="..\L.Wpf.Toolkit\L.Wpf.Toolkit.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
-    <PackageReference Include="System.Data.OleDb">
-      <Version>4.7.0</Version>
-    </PackageReference>
   </ItemGroup>
 
 </Project>

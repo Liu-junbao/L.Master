@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ModuleB.ViewModels
 {
-    public class ViewAViewModel :DBViewModel<Model,DB>
+    public class ViewAViewModel : DBViewModel<Model, DB>
     {
         private string _message;
         public string Message
@@ -18,7 +18,6 @@ namespace ModuleB.ViewModels
             get { return _message; }
             set { SetProperty(ref _message, value); }
         }
-
         protected override Expression<Func<Model, object>> KeyExpression => i => i.Name;
 
         public ViewAViewModel()
@@ -26,19 +25,14 @@ namespace ModuleB.ViewModels
             Message = "View B from your Prism Module";
             LoadDataAsync();
         }
-
-        protected override Dictionary<string, string> CreatePropertyNameToHeaderDictionary() => new Dictionary<string, string>
-        {
-            {nameof(Model.Name),"名称" },
-             {nameof(Model.Age),"年龄" },
-        };
         protected override IQueryable<Model> OnQuery(IQueryable<Model> query)
         {
-            return base.OnQuery(query).OrderBy(i=>i.Name);
+            return base.OnQuery(query).OrderBy(i => i.Name);
         }
         protected override void OnCapturedException(Exception e, string message, [CallerMemberName] string methodName = null)
         {
             base.OnCapturedException(e, message, methodName);
         }
+
     }
 }
