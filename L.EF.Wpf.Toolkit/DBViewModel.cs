@@ -26,6 +26,8 @@ namespace System
         where TModel : class, new()
         where TDbContext : DbContext, new()
     {
+        private readonly System.Threading.SynchronizationContext _context;
+
         private bool _isActive;
         private bool _isLoading;
         private Task _loadingTask;
@@ -41,6 +43,7 @@ namespace System
        
         public DBViewModel()
         {
+            _context = System.Threading.SynchronizationContext.Current ?? throw new Exception("模型只能在UI单线程中初始化!");
             _displayCount = 50;
             _propertyInfos = typeof(TModel).GetProperties().ToDictionary(i => i.Name);
             _sheetName = typeof(TModel).GetCustomAttributes(typeof(DescriptionAttribute)).OfType<DescriptionAttribute>().FirstOrDefault()?.Description ?? typeof(TModel).Name;
@@ -684,10 +687,17 @@ namespace System
         }
         #endregion
 
-        protected virtual void OnCapturedException(Exception e, string message, [CallerMemberName] string methodName = null) { }
+        protected virtual void OnCapturedException(Exception e, string message, [CallerMemberName] string methodName = null)
+        {
+            this.BeginInvoke(() => MessageBox.Show($"{message}:\r\n{e}","异常", MessageBoxButton.OK));
+        }
         protected virtual void OnCapturedMessage(string message, [CallerMemberName] string methodName = null)
         {
-           
+            this.BeginInvoke(()=>MessageBox.Show(message, "提示", MessageBoxButton.OK));
+        }
+        protected void BeginInvoke(Action action)
+        {
+            _context.Post(i => action?.Invoke(), null);
         }
         public event EventHandler IsActiveChanged;
     }
