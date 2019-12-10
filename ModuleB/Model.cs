@@ -11,7 +11,7 @@ namespace ModuleB
     [Description("人员信息")]
     public class Model
     {
-        [Key]
+        public int Id { get; set; }
         [Description("名称")]
         public string Name { get; set; }
         [Description("年龄")]

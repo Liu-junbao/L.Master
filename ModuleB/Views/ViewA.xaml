@@ -29,6 +29,7 @@
             DockPanel.Dock="Top" />
         <CustomDataGrid>
             <DataGrid.Columns>
+                <EditableDataGridColumn EditedPropertyName="Id" IsReadOnly="True" />
                 <EditableDataGridColumn EditedPropertyName="Name" IsReadOnly="True" />
                 <EditableDataGridColumn EditedPropertyName="Age" />
                 <EditableDataGridColumn EditedPropertyName="Descripton" />

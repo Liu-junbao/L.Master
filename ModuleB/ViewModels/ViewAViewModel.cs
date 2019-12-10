@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ModuleB.ViewModels
 {
-    public class ViewAViewModel : DBViewModel<Model, DB>
+    public class ViewAViewModel : DBViewModel<Model,int,DB>
     {
         private string _message;
         public string Message
@@ -18,9 +18,7 @@ namespace ModuleB.ViewModels
             get { return _message; }
             set { SetProperty(ref _message, value); }
         }
-        protected override Expression<Func<Model, object>> KeyExpression => i => i.Name;
-
-        public ViewAViewModel()
+        public ViewAViewModel():base(i=>i.Id)
         {
             Message = "View B from your Prism Module";
             LoadDataAsync();

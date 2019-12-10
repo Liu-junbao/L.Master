@@ -22,11 +22,11 @@ using NPOI.XSSF.UserModel;
 
 namespace System
 {
-    public abstract class DBViewModel<TModel, TDbContext> : NotifyPropertyChanged, IActiveAware, ISourceService
+    public abstract class DBViewModel<TModel,TKey,TDbContext> : NotifyPropertyChanged, IActiveAware, ISourceService
         where TModel : class, new()
         where TDbContext : DbContext, new()
     {
-        private readonly System.Threading.SynchronizationContext _context;
+        private readonly Threading.SynchronizationContext _context;
 
         private bool _isActive;
         private bool _isLoading;
@@ -35,15 +35,16 @@ namespace System
         private int _Count;
         private int _pageCount;
         private int _pageIndex;
+        private Expression<Func<TModel, TKey>> _keyExpression;
         private EditableViewModel _selectedItem;
         private Dictionary<string, PropertyInfo> _propertyInfos;
         private string _sheetName;
         private Dictionary<string, string> _propertyNameToHeaderDictionary;
         private Dictionary<string, string> _headerToPropertyNameDictionary;
-       
-        public DBViewModel()
+        public DBViewModel(Expression<Func<TModel,TKey>> keyExpression)
         {
-            _context = System.Threading.SynchronizationContext.Current ?? throw new Exception("模型只能在UI单线程中初始化!");
+            _keyExpression = keyExpression ?? throw new Exception("主键表述不可为空!");
+            _context = Threading.SynchronizationContext.Current ?? throw new Exception("模型只能在UI单线程中初始化!");
             _displayCount = 50;
             _propertyInfos = typeof(TModel).GetProperties().ToDictionary(i => i.Name);
             _sheetName = typeof(TModel).GetCustomAttributes(typeof(DescriptionAttribute)).OfType<DescriptionAttribute>().FirstOrDefault()?.Description ?? typeof(TModel).Name;
@@ -68,7 +69,9 @@ namespace System
                 if (_headerToPropertyNameDictionary.ContainsKey(propertyName) == false)
                     _headerToPropertyNameDictionary.Add(propertyName, propertyName);
             }
-            KeyPropertyName = (KeyExpression.Body as MemberExpression)?.Member.Name;
+            KeyPropertyName = (keyExpression.Body as MemberExpression)?.Member.Name
+                ?? ((keyExpression.Body as UnaryExpression)?.Operand as MemberExpression)?.Member.Name
+                ?? throw new Exception("获取主键名失败!");
             if (string.IsNullOrEmpty(KeyPropertyName) || _propertyInfos.ContainsKey(KeyPropertyName) == false)
                 throw new Exception("主键表达式不正确!");
             Items = new ViewModelCollection<EditableViewModel>();
@@ -112,10 +115,10 @@ namespace System
             get { return _pageIndex; }
             set { SetProperty(ref _pageIndex, value, OnPageIndexChanged); }
         }
-        protected abstract Expression<Func<TModel, object>> KeyExpression { get; }
         public string KeyPropertyName { get; }
         public AsyncCommand ImportCommand { get; }
         public AsyncCommand ExportCommand { get; }
+        protected PropertyInfo Property(string propertyName) => _propertyInfos[propertyName];
         protected virtual void OnIsActiveChanged(bool oldIsActive, bool newIsActive)
         {
             if (newIsActive)
@@ -216,7 +219,7 @@ namespace System
         }
         protected virtual IQueryable<TModel> OnQuery(IQueryable<TModel> query)
         {
-            return query.OrderBy(KeyExpression);
+            return query.OrderBy(_keyExpression);
         }
         protected IEnumerable<TModel> LoadPage(int pageIndex)
         {
@@ -246,8 +249,8 @@ namespace System
         #region collection
         private void ChangeItems(IEnumerable<TModel> models)
         {
-            var getKey = KeyExpression.Compile();
-            Items.Change(models.ToDictionary(i => getKey(i)), CreateViewModelFrom, UpdateViewModelFrom);
+            var getKey = _keyExpression.Compile();
+            Items.Change(models.ToDictionary(i => (object)getKey(i)), CreateViewModelFrom, UpdateViewModelFrom);
         }
         protected virtual EditableViewModel CreateViewModelFrom(TModel model)
         {
@@ -425,15 +428,16 @@ namespace System
 
                     //创建列
                     var columnRow = sheet.CreateRow(rowIndex);
-                    var columns = new List<string>();
+                    var columnPropertys = new List<PropertyInfo>();
                     var columnIndex = 0;
                     foreach (var item in GetExportPropertyNames())
                     {
                         if (_propertyInfos.ContainsKey(item) == false)
                             throw new Exception($"属性{item}不存在!");
-                        columns.Add(item);
+                        columnPropertys.Add(_propertyInfos[item]);
+                        var headerText = GetHeader(item);
                         var cell = columnRow.CreateCell(columnIndex);
-                        cell.SetCellValue(item);
+                        cell.SetCellValue(headerText);
                         columnIndex++;
                     }
 
@@ -442,9 +446,9 @@ namespace System
                     {
                         rowIndex++;
                         var row = sheet.CreateRow(rowIndex);
-                        for (int i = 0; i < columns.Count; i++)
+                        for (int i = 0; i < columnPropertys.Count; i++)
                         {
-                            var property = _propertyInfos[columns[i]];
+                            var property = columnPropertys[i];
                             var propertyType = property.PropertyType;
                             var propertyValue = property.GetValue(model);
                             string valueText;
@@ -597,18 +601,31 @@ namespace System
                             {
                                 TModel model = null;
                                 bool isNewItem = false;
+                                bool hasError = false;
                                 if (hasKeyColumn)
                                 {
                                     var readedValue = item.GetCell(keyIndex)?.ToString();
-                                    model = dataSet.Find(readedValue);
+                                    object value;
+                                    if (this.TryParse(KeyPropertyName, readedValue, out value))
+                                    {
+                                        model = dataSet.Find(value);
+                                    }
+                                    else if (string.IsNullOrEmpty(readedValue) == false)
+                                    {
+                                        if (isSkipError || OnImportedFirstErrorItem(item.RowNum,KeyPropertyName, readedValue))
+                                        {
+                                            isSkipError = true;
+                                            hasError = true;
+                                            errors.Add(new Tuple<int, string, object>(item.RowNum, KeyPropertyName, readedValue));
+                                            continue;
+                                        }
+                                    }
                                 }
                                 if (model == null)
                                 {
                                     isNewItem = true;
                                     model = new TModel();
                                 }
-
-                                bool hasError = false;
                                 for (int i = 0; i < columns.Count; i++)
                                 {
                                     if (isNewItem == false && hasKeyColumn && i == keyIndex)//已存在的列不允许修改主键列
@@ -636,13 +653,16 @@ namespace System
                                         return false;
                                     }
                                 }
-                                if (hasError==false)
+
+                                if (hasError)
                                 {
-                                    updateItems.Add(model);
-                                    if (isNewItem)
-                                    {
-                                        dataSet.Add(model);
-                                    }
+                                    continue;
+                                }
+
+                                updateItems.Add(model);
+                                if (isNewItem)
+                                {
+                                    dataSet.Add(model);
                                 }
                             }
                         }
@@ -665,7 +685,7 @@ namespace System
         protected virtual void OnImporting(int rowIndex, TModel model) { }
         protected virtual bool OnImportedFirstErrorItem(int rowIndex, string columnName, object value)
         {
-            if (MessageBox.Show($"数据格式不正确，是否跳过所有错误？ [行：{rowIndex}   列：{columnName}   值：{value}]", "警告", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
+            if (MessageBox.Show($"数据格式不正确，是否忽略所有错误行？ [行：{rowIndex}   列：{columnName}   值：{value}]", "警告", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
             {
                 return true;
             }
