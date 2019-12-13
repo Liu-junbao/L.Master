@@ -3,14 +3,21 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:System.Windows">
 
-    <Style x:Key="st.ValueEditor" TargetType="local:TextEditor">
-        <Setter Property="ViewModel" Value="{Binding ., Converter={local:EditableViewModelConverter}}" />
+
+    <Style x:Key="st.EFEditorBase" TargetType="{x:Type local:EFEditorBase}">
+        <Setter Property="Margin" Value="3" />
+    </Style>
+
+    <Style
+        x:Key="st.EFValueEditor"
+        BasedOn="{StaticResource st.EFEditorBase}"
+        TargetType="{x:Type local:EFValueEditor}">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Padding" Value="3" />
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="local:TextEditor">
+                <ControlTemplate TargetType="{x:Type local:EFValueEditor}">
                     <Border
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
@@ -19,8 +26,8 @@
                             Margin="{TemplateBinding Padding}"
                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                            Text="{TemplateBinding EditedValue,
-                                                   Converter={local:ToString}}" />
+                            Text="{TemplateBinding Value,
+                                                   Converter={ToString}}" />
                     </Border>
                 </ControlTemplate>
             </Setter.Value>
@@ -29,16 +36,15 @@
             <MultiTrigger>
                 <MultiTrigger.Conditions>
                     <Condition Property="IsEditing" Value="True" />
-                    <Condition Property="IsReadOnly" Value="False" />
                 </MultiTrigger.Conditions>
                 <Setter Property="Template">
                     <Setter.Value>
-                        <ControlTemplate TargetType="local:TextEditor">
+                        <ControlTemplate TargetType="{x:Type local:EFValueEditor}">
                             <Border
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}">
-                                <TextBox VerticalContentAlignment="Center" Text="{Binding EditedValue, RelativeSource={RelativeSource TemplatedParent}, Converter={local:ToString}}" />
+                                <TextBox VerticalContentAlignment="Center" Text="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Converter={ToString}}" />
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>
@@ -47,97 +53,20 @@
         </Style.Triggers>
     </Style>
 
-    <Style x:Key="st.SelectableValueEditorComboBox" TargetType="ComboBox">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ComboBox">
-                    <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                        <Popup
-                            AllowsTransparency="true"
-                            IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
-                            Placement="Bottom"
-                            PopupAnimation="{DynamicResource {x:Static SystemParameters.ComboBoxPopupAnimationKey}}">
-                            <Border Background="{TemplateBinding local:PupBoxAssist.PupBackground}" SnapsToDevicePixels="True">
-                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                            </Border>
-                        </Popup>
-                    </Border>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-        <Setter Property="ItemContainerStyle">
-            <Setter.Value>
-                <Style TargetType="ComboBoxItem">
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="ComboBoxItem">
-                                <local:BrowserBarItem
-                                    IsSelected="{TemplateBinding IsSelected}"
-                                    SnapsToDevicePixels="True"
-                                    Style="{Binding ItemContainerStyle, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:BrowserBar}}}">
-                                    <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                </local:BrowserBarItem>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <Style
-        x:Key="st.SelectableValueEditor"
-        BasedOn="{StaticResource st.ValueEditor}"
-        TargetType="local:ListEditor">
-        <Style.Triggers>
-            <MultiTrigger>
-                <MultiTrigger.Conditions>
-                    <Condition Property="IsEditing" Value="True" />
-                    <Condition Property="IsReadOnly" Value="False" />
-                </MultiTrigger.Conditions>
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="local:ListEditor">
-                            <Border
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}">
-                                <Grid>
-                                    <TextBlock
-                                        Margin="{TemplateBinding Padding}"
-                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                        Text="{TemplateBinding EditedValue,
-                                                               Converter={local:ToString}}" />
-                                    <ComboBox
-                                        ItemsSource="{Binding Selections, RelativeSource={RelativeSource TemplatedParent}}"
-                                        SelectedItem="{Binding EditedValue, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
-                                        Style="{StaticResource st.SelectableValueEditorComboBox}" />
-                                </Grid>
-
-                            </Border>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </MultiTrigger>
-        </Style.Triggers>
-    </Style>
-
-    <Style x:Key="st.OperationEditor" TargetType="local:OperEditor">
-        <Setter Property="ViewModel" Value="{Binding ., Converter={local:EditableViewModelConverter}}" />
+    <Style x:Key="st.EFOperator" TargetType="{x:Type local:EFOperator}">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="Padding" Value="1" />
+        <Setter Property="Visibility" Value="Collapsed" />
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="local:OperEditor">
+                <ControlTemplate TargetType="{x:Type local:EFOperator}">
                     <Border
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}">
-                        <local:CustomButton
+                        <CustomButton
                             Margin="{TemplateBinding Padding}"
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             Command="Open"
@@ -151,7 +80,7 @@
             <Trigger Property="IsEditing" Value="True">
                 <Setter Property="Template">
                     <Setter.Value>
-                        <ControlTemplate TargetType="local:OperEditor">
+                        <ControlTemplate TargetType="{x:Type local:EFOperator}">
                             <Border
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
@@ -160,18 +89,18 @@
                                     Margin="{TemplateBinding Padding}"
                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                     Orientation="Horizontal">
-                                    <local:CustomButton
+                                    <CustomButton
                                         VerticalAlignment="Center"
                                         Command="Save"
                                         Content="保存"
                                         ToolTip="保存" />
-                                    <local:CustomButton
+                                    <CustomButton
                                         x:Name="cbDelete"
                                         VerticalAlignment="Center"
                                         Command="Delete"
                                         Content="删除"
                                         ToolTip="删除" />
-                                    <local:CustomButton
+                                    <CustomButton
                                         VerticalAlignment="Center"
                                         Command="Close"
                                         Content="取消"
@@ -179,7 +108,7 @@
                                 </StackPanel>
                             </Border>
                             <ControlTemplate.Triggers>
-                                <Trigger Property="IsDeleteable" Value="False">
+                                <Trigger Property="CanDelete" Value="False">
                                     <Setter TargetName="cbDelete" Property="Visibility" Value="Collapsed" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
@@ -187,24 +116,22 @@
                     </Setter.Value>
                 </Setter>
             </Trigger>
-            <Trigger Property="IsEditable" Value="False">
-                <Setter Property="Visibility" Value="Hidden" />
+            <Trigger Property="IsRowMouseOver" Value="True">
+                <Setter Property="Visibility" Value="Visible" />
             </Trigger>
-            <Trigger Property="IsReadOnly" Value="True">
-                <Setter Property="Visibility" Value="Hidden" />
+            <Trigger Property="IsRowSelected" Value="True">
+                <Setter Property="Visibility" Value="Visible" />
             </Trigger>
         </Style.Triggers>
     </Style>
 
     <Style
-        x:Key="st.CustomDataGrid"
+        x:Key="st.EFDataGrid"
         BasedOn="{StaticResource {x:Type DataGrid}}"
-        TargetType="local:CustomDataGrid">
-        <Setter Property="IsReadOnly" Value="True"/>
-        <Setter Property="IsEnabled" Value="{Binding IsLoading, Converter={local:IsLoadingToEnabled}}" />
+        TargetType="local:EFDataGrid">
+        <Setter Property="IsReadOnly" Value="True" />
         <Setter Property="ItemsSource" Value="{Binding Items}" />
         <Setter Property="SelectedItem" Value="{Binding SelectedItem, Mode=TwoWay}" />
-        <Setter Property="local:EditableViewModelAssist.SourceService" Value="{Binding}" />
         <Setter Property="AutoGenerateColumns" Value="False" />
         <Setter Property="SelectionMode" Value="Single" />
         <Setter Property="CanUserSortColumns" Value="False" />
@@ -254,11 +181,9 @@
                     <Style.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Background" Value="LightGoldenrodYellow" />
-                            <Setter Property="local:EditableViewModelAssist.IsEditable" Value="True" />
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter Property="Background" Value="YellowGreen" />
-                            <Setter Property="local:EditableViewModelAssist.IsEditable" Value="True" />
                         </Trigger>
                     </Style.Triggers>
                 </Style>
@@ -302,7 +227,7 @@
                 <Style TargetType="DataGridRowHeader">
                     <Setter Property="Content">
                         <Setter.Value>
-                            <MultiBinding Converter="{local:DataGridRowIndexConverter}">
+                            <MultiBinding Converter="{DataGridRowIndex}">
                                 <Binding Path="." RelativeSource="{RelativeSource FindAncestor, AncestorType=DataGrid}" />
                                 <Binding Path="." />
                             </MultiBinding>
@@ -313,46 +238,10 @@
         </Setter>
     </Style>
 
-    <Style x:Key="st.ListBoxItem.CustomDataGridBar" TargetType="ListBoxItem">
-        <Setter Property="Margin" Value="3" />
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="Opacity" Value="0.7" />
-        <Setter Property="Padding" Value="5,1" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ListBoxItem">
-                    <Border
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}">
-                        <TextBlock
-                            Margin="{TemplateBinding Padding}"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Text="{TemplateBinding Content,
-                                                   Converter={local:ToString}}" />
-                    </Border>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Opacity" Value="1" />
-                <Setter Property="BorderBrush" Value="LightGray" />
-            </Trigger>
-            <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="YellowGreen" />
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-
-    <Style x:Key="st.Button.CustomDataGridBar.MoveToFirst" TargetType="Button">
-        <Setter Property="Width" Value="{Binding RelativeSource={RelativeSource Self}, Path=FontSize, Converter={local:Rate}, ConverterParameter=0.8}" />
-        <Setter Property="Height" Value="{Binding RelativeSource={RelativeSource Self}, Path=FontSize, Converter={local:Rate}, ConverterParameter=1.2}" />
-        <Setter Property="Command" Value="{x:Static local:CustomDataGridBar.MoveToFirstCommand}" />
+    <Style x:Key="st.Button.MoveToFirst" TargetType="Button">
+        <Setter Property="Width" Value="{Binding RelativeSource={RelativeSource Self}, Path=FontSize, Converter={Rate}, ConverterParameter=0.8}" />
+        <Setter Property="Height" Value="{Binding RelativeSource={RelativeSource Self}, Path=FontSize, Converter={Rate}, ConverterParameter=1.2}" />
+        <Setter Property="Command" Value="{x:Static local:EFDataGridBar.MoveToFirstCommand}" />
         <Setter Property="Opacity" Value="0.7" />
         <Setter Property="Margin" Value="3" />
         <Setter Property="Cursor" Value="Hand" />
@@ -380,10 +269,10 @@
     </Style>
 
     <Style
-        x:Key="st.Button.CustomDataGridBar.MoveToLast"
-        BasedOn="{StaticResource st.Button.CustomDataGridBar.MoveToFirst}"
+        x:Key="st.Button.MoveToLast"
+        BasedOn="{StaticResource st.Button.MoveToFirst}"
         TargetType="Button">
-        <Setter Property="Command" Value="{x:Static local:CustomDataGridBar.MoveToLastCommand}" />
+        <Setter Property="Command" Value="{x:Static local:EFDataGridBar.MoveToLastCommand}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -399,10 +288,10 @@
     </Style>
 
     <Style
-        x:Key="st.Button.CustomDataGridBar.MoveToNext"
-        BasedOn="{StaticResource st.Button.CustomDataGridBar.MoveToLast}"
+        x:Key="st.Button.MoveToNext"
+        BasedOn="{StaticResource st.Button.MoveToLast}"
         TargetType="Button">
-        <Setter Property="Command" Value="{x:Static local:CustomDataGridBar.MoveToNextCommand}" />
+        <Setter Property="Command" Value="{x:Static local:EFDataGridBar.MoveToNextCommand}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -418,10 +307,10 @@
     </Style>
 
     <Style
-        x:Key="st.Button.CustomDataGridBar.MoveToPrevious"
-        BasedOn="{StaticResource st.Button.CustomDataGridBar.MoveToFirst}"
+        x:Key="st.Button.MoveToPrevious"
+        BasedOn="{StaticResource st.Button.MoveToFirst}"
         TargetType="Button">
-        <Setter Property="Command" Value="{x:Static local:CustomDataGridBar.MoveToPreviousCommand}" />
+        <Setter Property="Command" Value="{x:Static local:EFDataGridBar.MoveToPreviousCommand}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -436,10 +325,49 @@
         </Setter>
     </Style>
 
-    <Style x:Key="st.ListBox.CustomDataGridBar" TargetType="ListBox">
+    <Style x:Key="st.ListBox.EFDataGridBar" TargetType="ListBox">
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
-        <Setter Property="ItemContainerStyle" Value="{StaticResource st.ListBoxItem.CustomDataGridBar}" />
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Margin" Value="3" />
+                    <Setter Property="Cursor" Value="Hand" />
+                    <Setter Property="Opacity" Value="0.7" />
+                    <Setter Property="Padding" Value="5,1" />
+                    <Setter Property="BorderThickness" Value="1" />
+                    <Setter Property="BorderBrush" Value="Transparent" />
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <Border
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                    <TextBlock
+                                        Margin="{TemplateBinding Padding}"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Text="{TemplateBinding Content,
+                                                               Converter={ToString}}" />
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Opacity" Value="1" />
+                            <Setter Property="BorderBrush" Value="LightGray" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="YellowGreen" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+
+            </Setter.Value>
+        </Setter>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListBox">
@@ -458,15 +386,14 @@
         </Setter>
     </Style>
 
-    <Style x:Key="st.CustomDataGridBar" TargetType="local:CustomDataGridBar">
-        <Setter Property="IsEnabled" Value="{Binding IsLoading, Converter={local:IsLoadingToEnabled}}" />
+    <Style x:Key="st.EFDataGridBar" TargetType="local:EFDataGridBar">
         <Setter Property="PageCount" Value="{Binding PageCount}" />
         <Setter Property="PageIndex" Value="{Binding PageIndex, Mode=TwoWay}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="Count" Value="{Binding Count}" />
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="local:CustomDataGridBar">
+                <ControlTemplate TargetType="local:EFDataGridBar">
                     <Border Background="Transparent">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -484,7 +411,7 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Margin="3" VerticalAlignment="Center">
                                 <Run Text="记录总数量:" />
-                                <Run Foreground="Red" Text="{TemplateBinding Count, Converter={local:ToString}}" />
+                                <Run Foreground="Red" Text="{TemplateBinding Count, Converter={ToString}}" />
                                 <Run Text="条" />
                             </TextBlock>
                             <Button
@@ -501,10 +428,10 @@
                                 Grid.Column="5"
                                 Margin="3"
                                 ItemsSource="{TemplateBinding DisplayIndexSource}"
-                                Style="{StaticResource st.ListBox.CustomDataGridBar}"
+                                Style="{StaticResource st.ListBox.EFDataGridBar}"
                                 Validation.ErrorTemplate="{x:Null}">
                                 <ListBox.SelectedItem>
-                                    <MultiBinding Converter="{local:ValidSelectedItem}">
+                                    <MultiBinding Converter="{ValidSelectedItem}">
                                         <Binding
                                             Mode="OneWay"
                                             Path="DisplayIndexSource"
@@ -526,9 +453,9 @@
                                 Grid.Column="7"
                                 Margin="3"
                                 Style="{StaticResource st.Button.CustomDataGridBar.MoveToLast}" />
-                            <local:IntegerTextBox
+                            <IntegerTextBox
                                 Grid.Column="8"
-                                Height="{Binding RelativeSource={RelativeSource Self}, Path=FontSize, Converter={local:Rate}, ConverterParameter=1.8}"
+                                Height="{Binding RelativeSource={RelativeSource Self}, Path=FontSize, Converter={Rate}, ConverterParameter=1.8}"
                                 MinWidth="30"
                                 Margin="3"
                                 VerticalAlignment="Center"
@@ -538,10 +465,10 @@
                                 MaxValue="{TemplateBinding PageCount}"
                                 MinValue="0"
                                 Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=PageIndex, Mode=TwoWay}" />
-                            <local:CustomButton
+                            <CustomButton
                                 Grid.Column="9"
                                 VerticalAlignment="Center"
-                                Command="{x:Static local:CustomDataGridBar.MoveToCurrentCommand}"
+                                Command="{x:Static local:EFDataGridBar.MoveToCurrentCommand}"
                                 Content="页"
                                 Cursor="Hand" />
                             <TextBlock
@@ -550,7 +477,7 @@
                                 VerticalAlignment="Center"
                                 Focusable="True">
                                 <Run Text="/总共" />
-                                <Run Foreground="Red" Text="{TemplateBinding PageCount, Converter={local:ToString}}" />
+                                <Run Foreground="Red" Text="{TemplateBinding PageCount, Converter={ToString}}" />
                                 <Run Text="页" />
                             </TextBlock>
                         </Grid>

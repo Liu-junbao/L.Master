@@ -10,3 +10,4 @@ using System.Windows.Markup;
                                               // app, or any theme specific resource dictionaries)
 )]
 [assembly: XmlnsDefinition("http://schemas.microsoft.com/winfx/2006/xaml/presentation", "System")]
+[assembly: XmlnsDefinition("http://schemas.microsoft.com/winfx/2006/xaml/presentation", "System.Windows")]

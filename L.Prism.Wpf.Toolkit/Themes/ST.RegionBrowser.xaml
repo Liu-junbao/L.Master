@@ -7,7 +7,10 @@
     xmlns:prism="http://prismlibrary.com/">
 
     <DataTemplate x:Key="dt.RegionBrowser.Header">
-        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+        <StackPanel
+            VerticalAlignment="Center"
+            Orientation="Horizontal"
+            Visibility="{Binding (RegionBrowserAssist.Visibility)}">
             <Path
                 x:Name="ph"
                 Width="10"

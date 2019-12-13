@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.0;net45</TargetFrameworks>
     <UseWPF>true</UseWPF>
-    <RootNamespace>System</RootNamespace>
-    <Version>19.12.10.04</Version>
+    <RootNamespace>System.Windows</RootNamespace>
+    <Version>19.12.10.06</Version>
     <PackageProjectUrl>https://github.com/Liu-junbao/L.Master.git</PackageProjectUrl>
   </PropertyGroup>
 
@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj" />
+    <ProjectReference Include="..\L.EF.Toolkit\L.EF.Toolkit.csproj" />
     <ProjectReference Include="..\L.Wpf.Toolkit\L.Wpf.Toolkit.csproj" />
   </ItemGroup>
 

@@ -28,6 +28,11 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "L.Toolkits", "L.Toolkits\L.Toolkits.csproj", "{F09277B3-2ECE-42C5-9674-85306D7AEE81}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Toolkits", "Toolkits", "{F053F997-7A91-41CC-908B-5337A6BF2699}"
+	ProjectSection(SolutionItems) = preProject
+		L.Wpf.Toolkit\Themes\ST.CustomDataGrid.xaml = L.Wpf.Toolkit\Themes\ST.CustomDataGrid.xaml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.EF.Toolkit", "L.EF.Toolkit\L.EF.Toolkit.csproj", "{8546E7EC-6AD0-4F69-B86E-36822C09CD78}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -79,6 +84,10 @@ Global
 		{F09277B3-2ECE-42C5-9674-85306D7AEE81}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F09277B3-2ECE-42C5-9674-85306D7AEE81}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F09277B3-2ECE-42C5-9674-85306D7AEE81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8546E7EC-6AD0-4F69-B86E-36822C09CD78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8546E7EC-6AD0-4F69-B86E-36822C09CD78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8546E7EC-6AD0-4F69-B86E-36822C09CD78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8546E7EC-6AD0-4F69-B86E-36822C09CD78}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -93,6 +102,7 @@ Global
 		{DBC0C9AD-2FA0-4EA2-813F-999558CCF3B8} = {F053F997-7A91-41CC-908B-5337A6BF2699}
 		{49E8D090-1CB1-45AC-B5E4-CE1A08DD9C66} = {F053F997-7A91-41CC-908B-5337A6BF2699}
 		{A96717B0-6F51-49A1-99CB-1D315CF2B400} = {F053F997-7A91-41CC-908B-5337A6BF2699}
+		{8546E7EC-6AD0-4F69-B86E-36822C09CD78} = {F053F997-7A91-41CC-908B-5337A6BF2699}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FFFC8C11-944A-45EC-93D5-29C40A886A34}

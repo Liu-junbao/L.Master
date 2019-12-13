@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.0;net45</TargetFrameworks>
-    <Version>19.12.10.04</Version>
+    <Version>19.12.10.07</Version>
     <PackageProjectUrl>https://github.com/Liu-junbao/L.Master.git</PackageProjectUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>

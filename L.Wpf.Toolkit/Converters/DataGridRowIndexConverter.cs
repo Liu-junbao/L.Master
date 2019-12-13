@@ -25,5 +25,5 @@ namespace System.Windows
             throw new NotImplementedException();
         }
     }
-    public class DataGridRowIndexConverterExtension : NewMarkupExtension<DataGridRowIndexConverter> { }
+    public class DataGridRowIndexExtension : NewMarkupExtension<DataGridRowIndexConverter> { }
 }

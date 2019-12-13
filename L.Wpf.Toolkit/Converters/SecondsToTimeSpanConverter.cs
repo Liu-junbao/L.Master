@@ -15,5 +15,5 @@ namespace System.Windows
             throw new NotImplementedException();
         }
     }
-    public class SecondsToTimeSpanConverterExtension : NewMarkupExtension<SecondsToTimeSpanConverter> { }
+    public class SecondsToTimeSpanExtension : NewMarkupExtension<SecondsToTimeSpanConverter> { }
 }

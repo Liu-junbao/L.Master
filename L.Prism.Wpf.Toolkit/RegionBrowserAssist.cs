@@ -23,6 +23,9 @@ namespace Prism
             DependencyProperty.RegisterAttached("Stroke", typeof(Brush), typeof(RegionBrowserAssist), new PropertyMetadata(SystemColors.WindowTextBrush));
         public static readonly DependencyProperty StrokeThicknessProperty =
             DependencyProperty.RegisterAttached("StrokeThickness", typeof(double), typeof(RegionBrowserAssist), new PropertyMetadata(0.3));
+        public static readonly DependencyProperty VisibilityProperty =
+            DependencyProperty.RegisterAttached("Visibility", typeof(Visibility), typeof(RegionBrowserAssist), new PropertyMetadata(Visibility.Visible));
+
         public static Brush GetSelectedBackground(DependencyObject obj)
         {
             return (Brush)obj.GetValue(SelectedBackgroundProperty);
@@ -94,6 +97,14 @@ namespace Prism
         public static void SetStrokeThickness(DependencyObject obj, double value)
         {
             obj.SetValue(StrokeThicknessProperty, value);
+        }
+        public static Visibility GetVisibility(DependencyObject obj)
+        {
+            return (Visibility)obj.GetValue(VisibilityProperty);
+        }
+        public static void SetVisibility(DependencyObject obj, Visibility value)
+        {
+            obj.SetValue(VisibilityProperty, value);
         }
     }
 }
