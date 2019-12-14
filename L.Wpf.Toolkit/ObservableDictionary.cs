@@ -32,7 +32,6 @@ namespace System
             _inner.CollectionChanged += Inner_CollectionChanged;
             ((INotifyPropertyChanged)_inner).PropertyChanged += Inner_PropertyChanged;
         }
-
         /// <summary>
         /// 改变数据(必须UI线程)
         /// </summary>
@@ -64,7 +63,7 @@ namespace System
                     if (sourceIndex >= Count)
                         this.Add(key, value);
                     else
-                        this.Insert(sourceIndex,key,value);
+                        this.Insert(sourceIndex, key, value);
                 }
                 else
                 {
@@ -75,6 +74,11 @@ namespace System
                 sourceIndex++;
             }
         }
+        /// <summary>
+        ///  改变数据(必须UI线程)
+        /// </summary>
+        /// <param name="sources"></param>
+        public void SetSource(Dictionary<TKey, TValue> sources) => SetSource(sources, (s, v) => v);
         /// <summary>
         /// 改变数据(UI线程安全的)
         /// </summary>
@@ -107,6 +111,12 @@ namespace System
                 sourceIndex++;
             }
         }
+        /// <summary>
+        /// 改变数据(UI线程安全的)
+        /// </summary>
+        /// <param name="sources"></param>
+        /// <param name="getKey"></param>
+        public void SetSourceAsync(IEnumerable<TValue> sources, Func<TValue, TKey> getKey) => this.SetSourceAsync(sources, getKey, (i, v) => v);
         private void BeginInvoke(Action action)
         {
             _context.Post(i => action(), null);

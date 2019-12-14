@@ -10,11 +10,11 @@ namespace System.Windows
         private static readonly DependencyPropertyKey PropertyNamePropertyKey =
            DependencyProperty.RegisterReadOnly(nameof(PropertyName), typeof(string), typeof(EFValueEditor), new PropertyMetadata(null));
         public static readonly DependencyProperty PropertyNameProperty = PropertyNamePropertyKey.DependencyProperty;
+        public static readonly DependencyProperty PropertyValueProperty =
+           DependencyProperty.Register(nameof(PropertyValue), typeof(object), typeof(EFDataGrid), new PropertyMetadata(null, OnValueChanged));
         private static readonly DependencyPropertyKey PropertyTypePropertyKey =
            DependencyProperty.RegisterReadOnly(nameof(PropertyType), typeof(Type), typeof(EFValueEditor), new PropertyMetadata(default));
         public static readonly DependencyProperty PropertyTypeProperty = PropertyTypePropertyKey.DependencyProperty;
-        public static readonly DependencyProperty PropertyValueProperty =
-           DependencyProperty.Register(nameof(PropertyValue), typeof(object), typeof(EFDataGrid), new PropertyMetadata(null, OnValueChanged));
         public static readonly DependencyProperty ValueProperty =
            DependencyProperty.Register(nameof(Value), typeof(object), typeof(EFDataGrid), new PropertyMetadata(null, OnEditedValueChanged));
         private static readonly DependencyPropertyKey IsValueChangedPropertyKey =
@@ -41,10 +41,9 @@ namespace System.Windows
             DefaultStyleKeyProperty.OverrideMetadata(typeof(EFValueEditor), new FrameworkPropertyMetadata(typeof(EFValueEditor)));
         }
         private BindingExpressionBase _propertyValueBinding;
-        public EFValueEditor(string propertyName, Type propertyType)
+        public EFValueEditor(string propertyName)
         {
             PropertyName = propertyName;
-            PropertyType = propertyType;
             _propertyValueBinding = this.SetBinding(PropertyValueProperty, new Binding($"{nameof(this.DataContext)}.{propertyName}") { Source = this, Mode = BindingMode.OneWay });
         }
         public string PropertyName
@@ -52,15 +51,15 @@ namespace System.Windows
             get { return (string)GetValue(PropertyNameProperty); }
             protected set { SetValue(PropertyNamePropertyKey, value); }
         }
-        public Type PropertyType
-        {
-            get { return (Type)GetValue(PropertyTypeProperty); }
-            protected set { SetValue(PropertyTypePropertyKey, value); }
-        }
         public object PropertyValue
         {
             get { return (object)GetValue(PropertyValueProperty); }
             set { SetValue(PropertyValueProperty, value); }
+        }
+        public Type PropertyType
+        {
+            get { return (Type)GetValue(PropertyTypeProperty); }
+            protected set { SetValue(PropertyTypePropertyKey, value); }
         }
         public object Value
         {
@@ -90,6 +89,8 @@ namespace System.Windows
         private void OnPropertyValueChanged(object oldValue, object newValue)
         {
             Value = newValue;
+            if (newValue != null)
+                PropertyType = newValue.GetType();
         }
         protected void OnValueChanged(object oldValue, object newValue)
         {

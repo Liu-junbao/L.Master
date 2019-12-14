@@ -418,12 +418,12 @@
                                 x:Name="btFirst"
                                 Grid.Column="3"
                                 Margin="3"
-                                Style="{StaticResource st.Button.CustomDataGridBar.MoveToFirst}" />
+                                Style="{StaticResource st.Button.MoveToFirst}" />
                             <Button
                                 x:Name="btPrev"
                                 Grid.Column="4"
                                 Margin="3"
-                                Style="{StaticResource st.Button.CustomDataGridBar.MoveToPrevious}" />
+                                Style="{StaticResource st.Button.MoveToPrevious}" />
                             <ListBox
                                 Grid.Column="5"
                                 Margin="3"
@@ -447,12 +447,12 @@
                                 x:Name="btNext"
                                 Grid.Column="6"
                                 Margin="3"
-                                Style="{StaticResource st.Button.CustomDataGridBar.MoveToNext}" />
+                                Style="{StaticResource st.Button.MoveToNext}" />
                             <Button
                                 x:Name="btLast"
                                 Grid.Column="7"
                                 Margin="3"
-                                Style="{StaticResource st.Button.CustomDataGridBar.MoveToLast}" />
+                                Style="{StaticResource st.Button.MoveToLast}" />
                             <IntegerTextBox
                                 Grid.Column="8"
                                 Height="{Binding RelativeSource={RelativeSource Self}, Path=FontSize, Converter={Rate}, ConverterParameter=1.8}"

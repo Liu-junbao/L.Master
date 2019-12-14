@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +17,34 @@ namespace System.Windows
     public class EFDataBox : ContentControl
     {
         #region commands
+        private static RoutedUICommand _loadCommand;
+        public static ICommand LoadCommand
+        {
+            get
+            {
+                if (_loadCommand == null)
+                {
+                    _loadCommand = new RoutedUICommand("load command", nameof(LoadCommand), typeof(EFDataBox));
+                    //注册热键
+                    //_loadCommand.InputGestures.Add(new KeyGesture(Key.B,ModifierKeys.Alt));
+                }
+                return _loadCommand;
+            }
+        }
+        private static RoutedUICommand _refreshCommand;
+        public static ICommand RefreshCommand
+        {
+            get
+            {
+                if (_refreshCommand == null)
+                {
+                    _refreshCommand = new RoutedUICommand("refresh command", nameof(RefreshCommand), typeof(EFDataBox));
+                    //注册热键
+                    //_refreshCommand.InputGestures.Add(new KeyGesture(Key.B,ModifierKeys.Alt));
+                }
+                return _refreshCommand;
+            }
+        }
         private static RoutedUICommand _exportCommand;
         public static ICommand ExportCommand
         {
@@ -30,7 +59,6 @@ namespace System.Windows
                 return _exportCommand;
             }
         }
-
         private static RoutedUICommand _importCommand;
         public static ICommand ImportCommand
         {
@@ -45,7 +73,6 @@ namespace System.Windows
                 return _importCommand;
             }
         }
-
         #endregion
 
         public static readonly DependencyProperty DbContextTypeProperty =
@@ -59,8 +86,14 @@ namespace System.Windows
         public static readonly DependencyProperty EntityDisplayPropertyNamesProperty = EntityDisplayPropertyNamesPropertyKey.DependencyProperty;
         private static readonly DependencyPropertyKey DisplayItemsSourcePropertyKey =
             DependencyProperty.RegisterReadOnly(nameof(DisplayItemsSource), typeof(IEnumerable), typeof(EFDataBox), new PropertyMetadata(null));
+        public static readonly DependencyProperty DisplayCountProperty =
+            DependencyProperty.Register(nameof(DisplayCount), typeof(int), typeof(EFDataBox), new PropertyMetadata(50, null, OnCoereDisplayCount));
+        public static readonly DependencyProperty QueryExpressionProperty =
+            DependencyProperty.Register(nameof(QueryExpression), typeof(Linq.Expressions.Expression), typeof(EFDataBox), new PropertyMetadata(null));
         public static readonly DependencyProperty DisplayItemsSourceProperty = DisplayItemsSourcePropertyKey.DependencyProperty;
-
+        private static readonly DependencyPropertyKey IsLoadingPropertyKey =
+            DependencyProperty.RegisterReadOnly(nameof(IsLoading), typeof(bool), typeof(EFDataBox), new PropertyMetadata(false));
+        public static readonly DependencyProperty IsLoadingProperty = IsLoadingPropertyKey.DependencyProperty;
         private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             EFDataBox box = (EFDataBox)d;
@@ -81,22 +114,37 @@ namespace System.Windows
                 box.RefresDisplayPropertyNames();
             }
         }
+        private static object OnCoereDisplayCount(DependencyObject d, object baseValue)
+        {
+            if ((int)baseValue <= 0)
+                return 50;
+            return baseValue;
+        }
 
+        private string _entityKeyPropertyName;
         private Dictionary<string, PropertyInfo> _entitiyPropertys;
         private ObservableDictionary<object, object> _itemsSource;
+        private object _loadingLocker;
+        private bool _isLoading;
         public EFDataBox()
         {
+            _loadingLocker = new object();
+            _isLoading = false;
             _entitiyPropertys = new Dictionary<string, PropertyInfo>();
             _itemsSource = new ObservableDictionary<object, object>();
-            EFDataGridAssist.SetItemsSource(this,_itemsSource);
+            EFDataGridAssist.SetItemsSource(this, _itemsSource);
             DisplayItemsSource = _itemsSource;
             this.SetBinding(EFDataGridAssist.DisplayPropertyNamesProperty, new Binding(nameof(EntityDisplayPropertyNames)) { Source = this, Mode = BindingMode.OneWay });
             this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Open, new ExecutedRoutedEventHandler(OnPen)));
             this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, new ExecutedRoutedEventHandler(OnClose)));
             this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Save, new ExecutedRoutedEventHandler(OnSave)));
             this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Delete, new ExecutedRoutedEventHandler(OnDelete)));
+            this.CommandBindings.Add(new CommandBinding(LoadCommand, new ExecutedRoutedEventHandler(OnLoad)));
+            this.CommandBindings.Add(new CommandBinding(RefreshCommand, new ExecutedRoutedEventHandler(OnRefresh)));
             this.CommandBindings.Add(new CommandBinding(ExportCommand, new ExecutedRoutedEventHandler(OnExport)));
             this.CommandBindings.Add(new CommandBinding(ImportCommand, new ExecutedRoutedEventHandler(OnImport)));
+            this.SetBinding(EFDataGridBarAssist.DisplayCountProperty, new Binding(nameof(DisplayCount)) { Source = this, Mode = BindingMode.OneWay });
+            this.Loaded += EFDataBox_Loaded;
         }
         public Type DbContextType
         {
@@ -113,9 +161,9 @@ namespace System.Windows
             get { return (string)GetValue(ValidKindProperty); }
             set { SetValue(ValidKindProperty, value); }
         }
-        public Dictionary<string,string> EntityDisplayPropertyNames
+        public Dictionary<string, string> EntityDisplayPropertyNames
         {
-            get { return (Dictionary<string,string>)GetValue(EntityDisplayPropertyNamesProperty); }
+            get { return (Dictionary<string, string>)GetValue(EntityDisplayPropertyNamesProperty); }
             protected set { SetValue(EntityDisplayPropertyNamesPropertyKey, value); }
         }
         public IEnumerable DisplayItemsSource
@@ -123,6 +171,32 @@ namespace System.Windows
             get { return (IEnumerable)GetValue(DisplayItemsSourceProperty); }
             protected set { SetValue(DisplayItemsSourcePropertyKey, value); }
         }
+        public int DisplayCount
+        {
+            get { return (int)GetValue(DisplayCountProperty); }
+            set { SetValue(DisplayCountProperty, value); }
+        }
+        public Linq.Expressions.Expression QueryExpression
+        {
+            get { return (Linq.Expressions.Expression)GetValue(QueryExpressionProperty); }
+            set { SetValue(QueryExpressionProperty, value); }
+        }
+        public bool IsLoading
+        {
+            get { return (bool)GetValue(IsLoadingProperty); }
+            protected set { SetValue(IsLoadingPropertyKey, value); }
+        }
+        private void EFDataBox_Loaded(object sender, RoutedEventArgs e)
+        {
+            LoadData();
+        }
+
+        protected override void OnInitialized(EventArgs e)
+        {
+            base.OnInitialized(e);
+            RefreshEntityType();
+        }
+
         private void RefreshEntityType()
         {
             var type = EntityType;
@@ -131,6 +205,8 @@ namespace System.Windows
             {
                 _entitiyPropertys.Add(item.Name, item);
             }
+            //默认第一个属性为主键
+            _entityKeyPropertyName = _entitiyPropertys.Keys.FirstOrDefault();
             RefresDisplayPropertyNames();
         }
         private void RefresDisplayPropertyNames()
@@ -183,9 +259,17 @@ namespace System.Windows
             //
             EFDataGridAssist.SetIsRowEditing(row, false);
         }
+        private void OnLoad(object sender, ExecutedRoutedEventArgs e)
+        {
+            LoadData();
+        }
+        private void OnRefresh(object sender, ExecutedRoutedEventArgs e)
+        {
+            LoadData();
+        }
         private void OnExport(object sender, ExecutedRoutedEventArgs e)
         {
-            
+
         }
         private void OnImport(object sender, ExecutedRoutedEventArgs e)
         {
@@ -198,10 +282,162 @@ namespace System.Windows
             //    OnCapturedMessage("导入成功!");
             //}
         }
+        private async void LoadData()
+        {
+            if (_isLoading) return;
+            var dbContextType = DbContextType;
+            if (dbContextType == null || typeof(DbContext).IsAssignableFrom(dbContextType) == false)
+                return;
+            var entityType = EntityType;
+            if (entityType == null || entityType.IsClass == false)
+                return;
+            lock (_loadingLocker)
+            {
+                if (_isLoading) return;
+                _isLoading = true;
+            }
+            IsLoading = true;
 
-        //#region Excel
-  
+            var queryExpression = QueryExpression;
+            var count = await QueryCountAsync(dbContextType, entityType, queryExpression);
+            var pageSize = DisplayCount;
+            if (pageSize <= 0)
+            {
+                pageSize = 50;
+                DisplayCount = 50;
+            }
+            int remain;
+            var pageCount = Math.DivRem(count, pageSize, out remain);
+            if (remain > 0) pageCount++;
+            var pageIndex = 0;
+            if (pageCount > 0)
+                pageIndex = 1;
+            EFDataGridBarAssist.SetCount(this, count);
+            EFDataGridBarAssist.SetPageCount(this, pageCount);
+            EFDataGridBarAssist.SetPageIndex(this, pageIndex);
+            await QueryPageAsync(dbContextType, entityType, queryExpression, pageSize, pageIndex);
 
+            IsLoading = false;
+        }
+        private Task<int> QueryCountAsync(Type contextType, Type entityType, Linq.Expressions.Expression qury)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    using (var db = (DbContext)Activator.CreateInstance(contextType))
+                    {
+                        //完整表达式 return db.Set<T>().Where(i => i).Count();   
+                        var exp = GetDbSetExpression(db, entityType);//db.Set<T>()
+                        var keyLam = GetKeyExpression(entityType, _entityKeyPropertyName);//i=>i.Key
+                        bool isOrdered = false;
+                        if (qury != null && qury is LambdaExpression)
+                        {
+                            exp = Linq.Expressions.Expression.Invoke(qury, exp);
+                            isOrdered = IsContainsMethodName(qury, nameof(Queryable.OrderBy));
+                        }
+                        if (isOrdered == false)
+                            exp = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.OrderBy), new Type[] { entityType, _entitiyPropertys[_entityKeyPropertyName].PropertyType }, exp, keyLam);//db.Set<T>().OrderBy(i=>i.Key)
+                        exp = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.Count), new Type[] { entityType }, exp);//db.Set<T>().OrderBy(i=>i.Key)...Count();
+                        var lambda = Linq.Expressions.Expression.Lambda<Func<int>>(exp);
+                        return lambda.Compile().Invoke();
+
+                    }
+                }
+                catch (Exception e)
+                {
+                    //
+                }
+                return 0;
+            });
+        }
+
+        private bool IsContainsMethodName(Linq.Expressions.Expression expression, string methodName)
+        {
+            if (expression is MethodCallExpression)
+            {
+                var methodExpression = (MethodCallExpression)expression;
+                if (methodExpression.Method.Name == methodName)
+                    return true;
+                foreach (var item in methodExpression.Arguments)
+                {
+                    if (IsContainsMethodName(item, methodName))
+                    {
+                        return true;
+                    }
+                }
+            }
+            else if (expression is LambdaExpression)
+            {
+                if (IsContainsMethodName(((LambdaExpression)expression).Body, methodName))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+
+        /// <summary>
+        /// 获取DbSet<Entity>表达式
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        private Linq.Expressions.Expression GetDbSetExpression(DbContext db,Type entityType)
+        {
+            var instance = Linq.Expressions.Expression.Constant(db);//db
+            return Linq.Expressions.Expression.Call(instance, nameof(DbContext.Set), new Type[] { entityType });//db.Set<T>
+        }
+
+      
+
+        /// <summary>
+        /// 获取主键的lambda表达式 i=>i.Key
+        /// </summary>
+        /// <returns></returns>
+        private Linq.Expressions.Expression GetKeyExpression(Type entityType, string keyName)
+        {
+            //构建获取主键的表达式 i=>i.Key;
+            var param = Linq.Expressions.Expression.Parameter(entityType);//参数i
+            var propertyCall = Linq.Expressions.Expression.Property(param, entityType.GetProperty(keyName));//i.Key;
+            return Linq.Expressions.Expression.Lambda(propertyCall, new ParameterExpression[] { param });// i=>i.Key;
+        }
+
+        private Task QueryPageAsync(Type contextType, Type entityType, Linq.Expressions.Expression qury, int pageSize, int pageIndex)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    using (var db = (DbContext)Activator.CreateInstance(contextType))
+                    {
+                        //完整表达式 return db.Set<T>().Where(i => i).Orderby(i=>i.Key).Skip(pageSize*page).Take(pageSize);
+
+
+
+
+                        //IQueryable queryable;
+
+                        ////构建获取主键的表达式 i=>i.Key;
+                        //var param = Linq.Expressions.Expression.Parameter(entityType);//参数i
+                        //var propertyCall = Linq.Expressions.Expression.Call(param, entityType.GetMethod(_entityKeyPropertyName));//i.Key;
+                        //var getKeyLambda = Linq.Expressions.Expression.Lambda<Func<object, object>>(propertyCall,new ParameterExpression[] { param });// i=>i.Key;
+                        //_itemsSource.SetSourceAsync(queryable, getKeyLambda.Compile());
+                    }
+                }
+                catch (Exception e)
+                {
+
+                }
+                return 0;
+            });
+        }
+
+      
+
+
+        #region Excel 
         ///// <summary>
         ///// 导出，弹出文件路径选择窗体
         ///// </summary>
@@ -541,6 +777,6 @@ namespace System.Windows
         //    }
         //    MessageBox.Show(builder.ToString(), "导入结果", MessageBoxButton.OK);
         //}
-        //#endregion
+        #endregion
     }
 }

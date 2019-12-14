@@ -100,6 +100,10 @@
     <PackageReference Include="Prism.Wpf" Version="7.2.0.1422" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\L.EF.Toolkit\L.EF.Toolkit.csproj">
+      <Project>{8546e7ec-6ad0-4f69-b86e-36822c09cd78}</Project>
+      <Name>L.EF.Toolkit</Name>
+    </ProjectReference>
     <ProjectReference Include="..\L.EF.Wpf.Toolkit\L.EF.Wpf.Toolkit.csproj">
       <Project>{a96717b0-6f51-49a1-99cb-1d315cf2b400}</Project>
       <Name>L.EF.Wpf.Toolkit</Name>

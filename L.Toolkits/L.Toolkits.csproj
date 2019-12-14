@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\L.EF.Toolkit\L.EF.Toolkit.csproj" />
     <ProjectReference Include="..\L.EF.Wpf.Toolkit\L.EF.Wpf.Toolkit.csproj" />
     <ProjectReference Include="..\L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj" />
     <ProjectReference Include="..\L.Wpf.Toolkit\L.Wpf.Toolkit.csproj" />

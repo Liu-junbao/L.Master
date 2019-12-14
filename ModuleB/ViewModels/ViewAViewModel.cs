@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ModuleB.ViewModels
 {
-    public class ViewAViewModel : DBViewModel<Model,int,DB>
+    public class ViewAViewModel :BindableBase
     {
         private string _message;
         public string Message
@@ -18,19 +18,7 @@ namespace ModuleB.ViewModels
             get { return _message; }
             set { SetProperty(ref _message, value); }
         }
-        public ViewAViewModel():base(i=>i.Id)
-        {
-            Message = "View B from your Prism Module";
-            LoadDataAsync();
-        }
-        protected override IQueryable<Model> OnQuery(IQueryable<Model> query)
-        {
-            return base.OnQuery(query).OrderBy(i => i.Name);
-        }
-        protected override void OnCapturedException(Exception e, string message, [CallerMemberName] string methodName = null)
-        {
-            base.OnCapturedException(e, message, methodName);
-        }
 
+        public Expression<Func<IQueryable<Model>, IQueryable<Model>>> Query => q => q.Where(i => i.Name != null);
     }
 }

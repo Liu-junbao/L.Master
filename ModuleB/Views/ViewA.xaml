@@ -2,10 +2,12 @@
     x:Class="ModuleB.Views.ViewA"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:b="clr-namespace:ModuleB"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:ModuleB.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prism="http://prismlibrary.com/"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
     d:DesignHeight="300"
     d:DesignWidth="300"
     prism:ViewModelLocator.AutoWireViewModel="True"
@@ -15,30 +17,20 @@
     RegionBrowserAssist.Title="模块B"
     RegionBrowserAssist.ToolTip="模块B"
     mc:Ignorable="d">
-    <DockPanel Margin="10">
-        <CustomDataGridBar DockPanel.Dock="Bottom" />
-        <CustomButton
-            HorizontalAlignment="Left"
-            Command="{Binding ExportCommand}"
-            Content="导出"
-            DockPanel.Dock="Top" />
-        <CustomButton
-            HorizontalAlignment="Left"
-            Command="{Binding ImportCommand}"
-            Content="导入"
-            DockPanel.Dock="Top" />
-        <CustomDataGrid>
-            <DataGrid.Columns>
-                <EditableDataGridColumn EditedPropertyName="Id" IsReadOnly="True" />
-                <EditableDataGridColumn EditedPropertyName="Name" IsReadOnly="True" />
-                <EditableDataGridColumn EditedPropertyName="Age" />
-                <EditableDataGridColumn EditedPropertyName="Descripton" />
-                <EditableDataGridColumn EditedPropertyName="Text" />
-                <EditableDataGridColumn
-                    Width="*"
-                    IsDeleteable="True"
-                    Kind="Oper" />
-            </DataGrid.Columns>
-        </CustomDataGrid>
-    </DockPanel>
+    <EFDataBox DbContextType="{x:Type b:DB}" EntityType="{x:Type b:Model}" QueryExpression="{Binding Query}">
+        <DockPanel Margin="10">
+            <EFDataGridBar DockPanel.Dock="Bottom" />
+            <CustomButton
+                HorizontalAlignment="Left"
+                Command="{x:Static EFDataBox.ExportCommand}"
+                Content="导出"
+                DockPanel.Dock="Top" />
+            <CustomButton
+                HorizontalAlignment="Left"
+                Command="{x:Static EFDataBox.ImportCommand}"
+                Content="导入"
+                DockPanel.Dock="Top" />
+            <EFDataGrid />
+        </DockPanel>
+    </EFDataBox>
 </UserControl>
