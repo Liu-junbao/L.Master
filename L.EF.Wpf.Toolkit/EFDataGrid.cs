@@ -27,7 +27,7 @@ namespace System.Windows
         public static readonly DependencyProperty IsOperableProperty =
            DependencyProperty.Register(nameof(IsOperable), typeof(bool), typeof(EFDataGrid), new PropertyMetadata(true, OnPropertyChanged));
         public static readonly DependencyProperty DisplayPropertyNamesProperty =
-           DependencyProperty.Register(nameof(DisplayPropertyNames), typeof(Dictionary<string, string>), typeof(EFDataGrid), new PropertyMetadata(null,OnPropertyChanged));
+           DependencyProperty.Register(nameof(DisplayPropertyNames), typeof(IEnumerable<DisplayPropertyInfo>), typeof(EFDataGrid), new PropertyMetadata(null,OnPropertyChanged));
         private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             EFDataGrid dataGrid = (EFDataGrid)d;
@@ -39,8 +39,6 @@ namespace System.Windows
         }
         public EFDataGrid()
         {
-            this.IsReadOnly = true;
-            this.AutoGenerateColumns = false;
             this.SetBinding(DisplayPropertyNamesProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.DisplayPropertyNamesProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
             this.SetBinding(ItemsSourceProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.ItemsSourceProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
         }
@@ -59,21 +57,23 @@ namespace System.Windows
             get { return (bool)GetValue(IsOperableProperty); }
             set { SetValue(IsOperableProperty, value); }
         }
-        public Dictionary<string,string> DisplayPropertyNames
+        public IEnumerable<DisplayPropertyInfo> DisplayPropertyNames
         {
-            get { return (Dictionary<string,string>)GetValue(DisplayPropertyNamesProperty); }
+            get { return (IEnumerable<DisplayPropertyInfo>)GetValue(DisplayPropertyNamesProperty); }
             set { SetValue(DisplayPropertyNamesProperty, value); }
         }
         private void Invalidate()
         {
             this.Columns.Clear();
-            if (DisplayPropertyNames != null && DisplayPropertyNames.Count > 0)
+            if (DisplayPropertyNames != null)
             {
                 foreach (var item in DisplayPropertyNames)
                 {
-                    string propertyName = item.Key;
-                    string name = item.Value;
-                    var column = new GenerateValueDataGridColumn(propertyName) { Header = name };
+                    var propertyName = item.PropertyName;
+                    var propertyType = item.PropertyType;
+                    var genericName = item.GenericName;
+                    var isReadOnly = item.IsReadOnly;
+                    var column = new GenerateValueDataGridColumn(propertyName, propertyType) { Header = genericName, IsReadOnly = isReadOnly };
                     BindingOperations.SetBinding(column, GenerateValueDataGridColumn.EditorStyleProperty, new Binding(nameof(ValueEditorStyle)) { Source = this });
                     this.Columns.Add(column);
                 }
@@ -86,19 +86,29 @@ namespace System.Windows
             }
            
             this.InvalidateVisual();
-        }
+        }     
         protected override void PrepareContainerForItemOverride(DependencyObject element, object item)
         {
             DataGridRow row = (DataGridRow)element;
             row.SetBinding(EFDataGridAssist.IsRowMouseOverProperty, new Binding(nameof(row.IsMouseOver)) { Source = row, Mode = BindingMode.OneWay });
             row.SetBinding(EFDataGridAssist.IsRowSelectedProperty, new Binding(nameof(row.IsSelected)) { Source = row, Mode = BindingMode.OneWay });
+           
             base.PrepareContainerForItemOverride(element, item);
+        }
+        protected override void OnLoadingRow(DataGridRowEventArgs e)
+        {
+            e.Row.Unselected += Row_Unselected;
+            base.OnLoadingRow(e);
+        }
+        private void Row_Unselected(object sender, RoutedEventArgs e)
+        {
+            EFDataGridAssist.SetIsRowEditing((DataGridRow)sender, false);
         }
     }
     public static class EFDataGridAssist
     {
         public static readonly DependencyProperty DisplayPropertyNamesProperty =
-                DependencyProperty.RegisterAttached("DisplayPropertyNames", typeof(Dictionary<string, string>), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
+                DependencyProperty.RegisterAttached("DisplayPropertyNames", typeof(IEnumerable<DisplayPropertyInfo>), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
         public static readonly DependencyProperty IsRowMouseOverProperty =
                 DependencyProperty.RegisterAttached("IsRowMouseOver", typeof(bool), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
         public static readonly DependencyProperty IsRowSelectedProperty =
@@ -107,11 +117,11 @@ namespace System.Windows
                 DependencyProperty.RegisterAttached("IsRowEditing", typeof(bool), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
         public static readonly DependencyProperty ItemsSourceProperty =
                 DependencyProperty.RegisterAttached("ItemsSource", typeof(IEnumerable), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
-        public static Dictionary<string, string> GetDisplayPropertyNames(DependencyObject obj)
+        public static IEnumerable<DisplayPropertyInfo> GetDisplayPropertyNames(DependencyObject obj)
         {
-            return (Dictionary<string, string>)obj.GetValue(DisplayPropertyNamesProperty);
+            return (IEnumerable<DisplayPropertyInfo>)obj.GetValue(DisplayPropertyNamesProperty);
         }
-        public static void SetDisplayPropertyNames(DependencyObject obj, Dictionary<string, string> value)
+        public static void SetDisplayPropertyNames(DependencyObject obj, IEnumerable<DisplayPropertyInfo> value)
         {
             obj.SetValue(DisplayPropertyNamesProperty, value);
         }
@@ -152,10 +162,10 @@ namespace System.Windows
     {
         public static readonly DependencyProperty EditorStyleProperty =
             DependencyProperty.Register(nameof(EditorStyle), typeof(Style), typeof(GenerateValueDataGridColumn), new PropertyMetadata(null));
-        public GenerateValueDataGridColumn(string propertyName)
+        public GenerateValueDataGridColumn(string propertyName,Type propertyType)
         {
-            IsReadOnly = false;
             PropertyName = propertyName;
+            PropertyType = propertyType;
         }
         public Style EditorStyle
         {
@@ -163,28 +173,29 @@ namespace System.Windows
             set { SetValue(EditorStyleProperty, value); }
         }
         public string PropertyName { get; }
-        public string Property { get; set; }
+        public Type PropertyType { get; }
         protected override FrameworkElement GenerateEditingElement(DataGridCell cell, object dataItem)
         {
-            var editor = new EFValueEditor(PropertyName);
+            var editor = new EFValueEditor(PropertyName, PropertyType);
             editor.SetBinding(FrameworkElement.StyleProperty, new Binding(nameof(EditorStyle)) { Source = this });
+            editor.SetBinding(EFEditorBase.IsReadOnlyProperty, new Binding(nameof(IsReadOnly)) { Source = this });
             return editor;
         }
         protected override FrameworkElement GenerateElement(DataGridCell cell, object dataItem)
         {
-            var editor = new EFValueEditor(PropertyName);
+            var editor = new EFValueEditor(PropertyName,PropertyType);
             editor.SetBinding(FrameworkElement.StyleProperty, new Binding(nameof(EditorStyle)) { Source = this });
+            editor.SetBinding(EFEditorBase.IsReadOnlyProperty, new Binding(nameof(IsReadOnly)) { Source = this });
             return editor;
         }
     }
     class GenerateOperatorGridColumn : DataGridColumn
     {
         public static readonly DependencyProperty EditorStyleProperty =
-          DependencyProperty.Register(nameof(EditorStyle), typeof(Style), typeof(GenerateValueDataGridColumn), new PropertyMetadata(null));
+          DependencyProperty.Register(nameof(EditorStyle), typeof(Style), typeof(GenerateOperatorGridColumn), new PropertyMetadata(null));
         public GenerateOperatorGridColumn()
         {
-            IsReadOnly = false;
-            Width = new DataGridLength(0, DataGridLengthUnitType.Star);
+            Width = new DataGridLength(1, DataGridLengthUnitType.Star);
         }
         public Style EditorStyle
         {

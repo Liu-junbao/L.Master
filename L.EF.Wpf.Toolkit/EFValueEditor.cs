@@ -11,12 +11,12 @@ namespace System.Windows
            DependencyProperty.RegisterReadOnly(nameof(PropertyName), typeof(string), typeof(EFValueEditor), new PropertyMetadata(null));
         public static readonly DependencyProperty PropertyNameProperty = PropertyNamePropertyKey.DependencyProperty;
         public static readonly DependencyProperty PropertyValueProperty =
-           DependencyProperty.Register(nameof(PropertyValue), typeof(object), typeof(EFDataGrid), new PropertyMetadata(null, OnValueChanged));
+           DependencyProperty.Register(nameof(PropertyValue), typeof(object), typeof(EFValueEditor), new PropertyMetadata(null, OnPropertyValueChanged));
         private static readonly DependencyPropertyKey PropertyTypePropertyKey =
            DependencyProperty.RegisterReadOnly(nameof(PropertyType), typeof(Type), typeof(EFValueEditor), new PropertyMetadata(default));
         public static readonly DependencyProperty PropertyTypeProperty = PropertyTypePropertyKey.DependencyProperty;
         public static readonly DependencyProperty ValueProperty =
-           DependencyProperty.Register(nameof(Value), typeof(object), typeof(EFDataGrid), new PropertyMetadata(null, OnEditedValueChanged));
+           DependencyProperty.Register(nameof(Value), typeof(object), typeof(EFValueEditor), new PropertyMetadata(null, OnValueChanged));
         private static readonly DependencyPropertyKey IsValueChangedPropertyKey =
            DependencyProperty.RegisterReadOnly(nameof(IsValueChanged), typeof(bool), typeof(EFValueEditor), new PropertyMetadata(false));
         public static readonly DependencyProperty IsValueChangedProperty = IsValueChangedPropertyKey.DependencyProperty;
@@ -24,14 +24,14 @@ namespace System.Windows
          DependencyProperty.RegisterReadOnly(nameof(IsValidValue), typeof(bool), typeof(EFValueEditor), new PropertyMetadata(false));
         public static readonly DependencyProperty IsValidValueProperty = IsValidValuePropertyKey.DependencyProperty;
         private static readonly DependencyPropertyKey ValidValuePropertyKey =
-          DependencyProperty.RegisterReadOnly(nameof(ValidValue), typeof(object), typeof(EFDataGrid), new PropertyMetadata(null));
+          DependencyProperty.RegisterReadOnly(nameof(ValidValue), typeof(object), typeof(EFValueEditor), new PropertyMetadata(null));
         public static readonly DependencyProperty ValidValueProperty = ValidValuePropertyKey.DependencyProperty;
-        private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnPropertyValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var editor = (EFValueEditor)d;
             editor.OnPropertyValueChanged(e.OldValue, e.NewValue);
         }
-        private static void OnEditedValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var editor = (EFValueEditor)d;
             editor.OnValueChanged(e.OldValue, e.NewValue);
@@ -41,9 +41,10 @@ namespace System.Windows
             DefaultStyleKeyProperty.OverrideMetadata(typeof(EFValueEditor), new FrameworkPropertyMetadata(typeof(EFValueEditor)));
         }
         private BindingExpressionBase _propertyValueBinding;
-        public EFValueEditor(string propertyName)
+        public EFValueEditor(string propertyName,Type propertyType)
         {
             PropertyName = propertyName;
+            PropertyType = propertyType;
             _propertyValueBinding = this.SetBinding(PropertyValueProperty, new Binding($"{nameof(this.DataContext)}.{propertyName}") { Source = this, Mode = BindingMode.OneWay });
         }
         public string PropertyName
@@ -84,7 +85,6 @@ namespace System.Windows
         protected override void OnIsEditingChanged(bool isEditing)
         {
             _propertyValueBinding.UpdateTarget();
-            Value = PropertyValue;
         }
         private void OnPropertyValueChanged(object oldValue, object newValue)
         {

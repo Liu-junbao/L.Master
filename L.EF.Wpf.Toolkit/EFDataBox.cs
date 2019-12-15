@@ -73,6 +73,62 @@ namespace System.Windows
                 return _importCommand;
             }
         }
+        private static RoutedUICommand _editCommand;
+        public static ICommand EditCommand
+        {
+            get
+            {
+                if (_editCommand == null)
+                {
+                    _editCommand = new RoutedUICommand("edit command", nameof(EditCommand), typeof(EFDataBox));
+                    //注册热键
+                    //_editCommand.InputGestures.Add(new KeyGesture(Key.B,ModifierKeys.Alt));
+                }
+                return _editCommand;
+            }
+        }
+        private static RoutedUICommand _saveCommand;
+        public static ICommand SaveCommand
+        {
+            get
+            {
+                if (_saveCommand == null)
+                {
+                    _saveCommand = new RoutedUICommand("save command", nameof(SaveCommand), typeof(EFDataBox));
+                    //注册热键
+                    //_saveCommand.InputGestures.Add(new KeyGesture(Key.B,ModifierKeys.Alt));
+                }
+                return _saveCommand;
+            }
+        }
+        private static RoutedUICommand _cancelCommand;
+        public static ICommand CancelCommand
+        {
+            get
+            {
+                if (_cancelCommand == null)
+                {
+                    _cancelCommand = new RoutedUICommand("cancel command", nameof(CancelCommand), typeof(EFDataBox));
+                    //注册热键
+                    //_cancelCommand.InputGestures.Add(new KeyGesture(Key.B,ModifierKeys.Alt));
+                }
+                return _cancelCommand;
+            }
+        }
+        private static RoutedUICommand _deleteCommand;
+        public static ICommand DeleteCommand
+        {
+            get
+            {
+                if (_deleteCommand == null)
+                {
+                    _deleteCommand = new RoutedUICommand("delete command", nameof(DeleteCommand), typeof(EFDataBox));
+                    //注册热键
+                    //_deleteCommand.InputGestures.Add(new KeyGesture(Key.B,ModifierKeys.Alt));
+                }
+                return _deleteCommand;
+            }
+        }
         #endregion
 
         public static readonly DependencyProperty DbContextTypeProperty =
@@ -82,12 +138,20 @@ namespace System.Windows
         public static readonly DependencyProperty ValidKindProperty =
             DependencyProperty.Register(nameof(ValidKind), typeof(string), typeof(EFDataGrid), new PropertyMetadata(null, OnPropertyChanged));
         private static readonly DependencyPropertyKey EntityDisplayPropertyNamesPropertyKey =
-            DependencyProperty.RegisterReadOnly(nameof(EntityDisplayPropertyNames), typeof(Dictionary<string, string>), typeof(EFDataBox), new PropertyMetadata(null));
+            DependencyProperty.RegisterReadOnly(nameof(EntityDisplayPropertyNames), typeof(IEnumerable<DisplayPropertyInfo>), typeof(EFDataBox), new PropertyMetadata(null));
         public static readonly DependencyProperty EntityDisplayPropertyNamesProperty = EntityDisplayPropertyNamesPropertyKey.DependencyProperty;
         private static readonly DependencyPropertyKey DisplayItemsSourcePropertyKey =
             DependencyProperty.RegisterReadOnly(nameof(DisplayItemsSource), typeof(IEnumerable), typeof(EFDataBox), new PropertyMetadata(null));
-        public static readonly DependencyProperty DisplayCountProperty =
-            DependencyProperty.Register(nameof(DisplayCount), typeof(int), typeof(EFDataBox), new PropertyMetadata(50, null, OnCoereDisplayCount));
+        public static readonly DependencyProperty PageSizeProperty =
+            DependencyProperty.Register(nameof(PageSize), typeof(int), typeof(EFDataBox), new PropertyMetadata(50, null, OnCoereDisplayCount));
+        private static readonly DependencyPropertyKey CountPropertyKey =
+            DependencyProperty.RegisterReadOnly(nameof(Count), typeof(int), typeof(EFDataBox), new PropertyMetadata(0));
+        public static readonly DependencyProperty CountProperty = CountPropertyKey.DependencyProperty;
+        private static readonly DependencyPropertyKey PageCountPropertyKey =
+            DependencyProperty.RegisterReadOnly(nameof(PageCount), typeof(int), typeof(EFDataBox), new PropertyMetadata(0));
+        public static readonly DependencyProperty PageCountProperty = PageCountPropertyKey.DependencyProperty;
+        public static readonly DependencyProperty PageIndexProperty =
+            DependencyProperty.Register(nameof(PageIndex), typeof(int), typeof(EFDataBox), new PropertyMetadata(0,OnPropertyChanged));
         public static readonly DependencyProperty QueryExpressionProperty =
             DependencyProperty.Register(nameof(QueryExpression), typeof(Linq.Expressions.Expression), typeof(EFDataBox), new PropertyMetadata(null));
         public static readonly DependencyProperty DisplayItemsSourceProperty = DisplayItemsSourcePropertyKey.DependencyProperty;
@@ -107,11 +171,19 @@ namespace System.Windows
             }
             else if (e.Property == EntityTypeProperty)
             {
-                box.RefreshEntityType();
+                box.InitializeEntityType();
+            }
+            else if (e.Property == QueryExpressionProperty)
+            {
+                box.InitializeQueryExpresion();
             }
             else if (e.Property == ValidKindProperty)
             {
-                box.RefresDisplayPropertyNames();
+                box.InitializeDisplayPropertyNames();
+            }
+            else if (e.Property == PageIndexProperty)
+            {
+                box.Refresh();
             }
         }
         private static object OnCoereDisplayCount(DependencyObject d, object baseValue)
@@ -120,10 +192,14 @@ namespace System.Windows
                 return 50;
             return baseValue;
         }
-
-        private string _entityKeyPropertyName;
-        private Dictionary<string, PropertyInfo> _entitiyPropertys;
         private ObservableDictionary<object, object> _itemsSource;
+        private Dictionary<string, PropertyInfo> _entitiyPropertys;
+        private Dictionary<string, string> _headerToPropertyNames;
+        private PropertyInfo _keyPropertyInfo;
+        private string _keyName;
+        private Func<object, object> _getKey;
+        private Expression<Func<DbContext, int>> _queryCountExpression;
+        private Expression<Func<DbContext, int, int, IEnumerable<object>>> _queryPageExpression;
         private object _loadingLocker;
         private bool _isLoading;
         public EFDataBox()
@@ -131,19 +207,21 @@ namespace System.Windows
             _loadingLocker = new object();
             _isLoading = false;
             _entitiyPropertys = new Dictionary<string, PropertyInfo>();
+            _headerToPropertyNames = new Dictionary<string, string>();
             _itemsSource = new ObservableDictionary<object, object>();
             EFDataGridAssist.SetItemsSource(this, _itemsSource);
             DisplayItemsSource = _itemsSource;
             this.SetBinding(EFDataGridAssist.DisplayPropertyNamesProperty, new Binding(nameof(EntityDisplayPropertyNames)) { Source = this, Mode = BindingMode.OneWay });
-            this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Open, new ExecutedRoutedEventHandler(OnPen)));
-            this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Close, new ExecutedRoutedEventHandler(OnClose)));
-            this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Save, new ExecutedRoutedEventHandler(OnSave)));
-            this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Delete, new ExecutedRoutedEventHandler(OnDelete)));
+            this.SetBinding(EFDataGridBarAssist.CountProperty, new Binding(nameof(Count)) { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(EFDataGridBarAssist.PageCountProperty, new Binding(nameof(PageCount)) { Source = this, Mode = BindingMode.OneWay });
             this.CommandBindings.Add(new CommandBinding(LoadCommand, new ExecutedRoutedEventHandler(OnLoad)));
             this.CommandBindings.Add(new CommandBinding(RefreshCommand, new ExecutedRoutedEventHandler(OnRefresh)));
             this.CommandBindings.Add(new CommandBinding(ExportCommand, new ExecutedRoutedEventHandler(OnExport)));
             this.CommandBindings.Add(new CommandBinding(ImportCommand, new ExecutedRoutedEventHandler(OnImport)));
-            this.SetBinding(EFDataGridBarAssist.DisplayCountProperty, new Binding(nameof(DisplayCount)) { Source = this, Mode = BindingMode.OneWay });
+            this.CommandBindings.Add(new CommandBinding(EditCommand, new ExecutedRoutedEventHandler(OnEdit)));
+            this.CommandBindings.Add(new CommandBinding(CancelCommand, new ExecutedRoutedEventHandler(OnCancel)));
+            this.CommandBindings.Add(new CommandBinding(DeleteCommand, new ExecutedRoutedEventHandler(OnDelete)));
+            this.CommandBindings.Add(new CommandBinding(SaveCommand, new ExecutedRoutedEventHandler(OnSave)));
             this.Loaded += EFDataBox_Loaded;
         }
         public Type DbContextType
@@ -161,9 +239,9 @@ namespace System.Windows
             get { return (string)GetValue(ValidKindProperty); }
             set { SetValue(ValidKindProperty, value); }
         }
-        public Dictionary<string, string> EntityDisplayPropertyNames
+        public IEnumerable<DisplayPropertyInfo> EntityDisplayPropertyNames
         {
-            get { return (Dictionary<string, string>)GetValue(EntityDisplayPropertyNamesProperty); }
+            get { return (IEnumerable<DisplayPropertyInfo>)GetValue(EntityDisplayPropertyNamesProperty); }
             protected set { SetValue(EntityDisplayPropertyNamesPropertyKey, value); }
         }
         public IEnumerable DisplayItemsSource
@@ -171,10 +249,25 @@ namespace System.Windows
             get { return (IEnumerable)GetValue(DisplayItemsSourceProperty); }
             protected set { SetValue(DisplayItemsSourcePropertyKey, value); }
         }
-        public int DisplayCount
+        public int PageSize
         {
-            get { return (int)GetValue(DisplayCountProperty); }
-            set { SetValue(DisplayCountProperty, value); }
+            get { return (int)GetValue(PageSizeProperty); }
+            set { SetValue(PageSizeProperty, value); }
+        }
+        public int Count
+        {
+            get { return (int)GetValue(CountProperty); }
+            protected set { SetValue(CountPropertyKey, value); }
+        }
+        public int PageCount
+        {
+            get { return (int)GetValue(PageCountProperty); }
+            protected set { SetValue(PageCountPropertyKey, value); }
+        }
+        public int PageIndex
+        {
+            get { return (int)GetValue(PageIndexProperty); }
+            set { SetValue(PageIndexProperty, value); }
         }
         public Linq.Expressions.Expression QueryExpression
         {
@@ -190,14 +283,12 @@ namespace System.Windows
         {
             LoadData();
         }
-
         protected override void OnInitialized(EventArgs e)
         {
             base.OnInitialized(e);
-            RefreshEntityType();
+            InitializeEntityType();
         }
-
-        private void RefreshEntityType()
+        private void InitializeEntityType()
         {
             var type = EntityType;
             _entitiyPropertys.Clear();
@@ -206,58 +297,98 @@ namespace System.Windows
                 _entitiyPropertys.Add(item.Name, item);
             }
             //默认第一个属性为主键
-            _entityKeyPropertyName = _entitiyPropertys.Keys.FirstOrDefault();
-            RefresDisplayPropertyNames();
+            _keyPropertyInfo = _entitiyPropertys.Values.FirstOrDefault();
+            _keyName = _keyPropertyInfo?.Name;
+            _getKey = GetKeyFunction(type, _keyPropertyInfo)?.Compile();
+            InitializeQueryExpresion();
+            InitializeDisplayPropertyNames();
         }
-        private void RefresDisplayPropertyNames()
+        private void InitializeQueryExpresion()
         {
+            var type = EntityType;
+            var query = QueryExpression;
+            _queryCountExpression = GetQueryCountExpression(type, query);
+            _queryPageExpression = GetQueryPageExpression(type, _keyPropertyInfo, query);
+        }
+        private void InitializeDisplayPropertyNames()
+        {
+            _headerToPropertyNames.Clear();
             var validKind = ValidKind;
-            var genericeNames = new Dictionary<string, string>();
-            foreach (var item in _entitiyPropertys.Values)
+            var genericeNames = new List<DisplayPropertyInfo>();
+            foreach (var ppt in _entitiyPropertys.Values)
             {
-                var genericName = item.GetCustomAttributes(typeof(GenericNameAttribute)).OfType<GenericNameAttribute>().OrderBy(i => i.Kind).FirstOrDefault(i => i.Kind == validKind || string.IsNullOrEmpty(i.Kind))?.Name;
-                if (string.IsNullOrEmpty(genericName))
-                    genericName = item.Name;
-                genericeNames.Add(item.Name, genericName);
+                _headerToPropertyNames.Add(ppt.Name, ppt.Name);
+                GenericNameAttribute displayAttr = null;
+                foreach (var att in ppt.GetCustomAttributes(typeof(GenericNameAttribute)).OfType<GenericNameAttribute>().OrderByDescending(i => i.Kind))
+                {
+                    var name = att.Name;
+                    var kind = att.Kind;
+                    if (_headerToPropertyNames.ContainsKey(name))
+                        throw new ArgumentException($"存在同名的属性![{name}]");
+                    _headerToPropertyNames.Add(att.Name, ppt.Name);
+                    if (displayAttr == null)
+                    {
+                        if (kind == validKind)
+                            displayAttr = att;
+                        else if (string.IsNullOrEmpty(kind))
+                            displayAttr = att;
+                    }
+                }
+                if (displayAttr != null)
+                    genericeNames.Add(new DisplayPropertyInfo(ppt, displayAttr));
             }
             EntityDisplayPropertyNames = genericeNames;
         }
-        private void OnPen(object sender, ExecutedRoutedEventArgs e)
+        private void OnEdit(object sender, ExecutedRoutedEventArgs e)
         {
-            var editor = e.Source as EFEditorBase;
-            var item = editor.DataContext;
-            var row = editor.RowOwner;
-            EFDataGridAssist.SetIsRowEditing(row, true);
+            var grid = e.Source as EFDataGrid;
+            var item = e.Parameter;
+            if (grid != null && item != null)
+            {
+                var row = grid.ItemContainerGenerator.ContainerFromItem(item);
+                EFDataGridAssist.SetIsRowEditing(row, true);
+            }
         }
-        private void OnClose(object sender, ExecutedRoutedEventArgs e)
+        private void OnCancel(object sender, ExecutedRoutedEventArgs e)
         {
-            var editor = e.Source as EFEditorBase;
-            var item = editor.DataContext;
-            var row = editor.RowOwner;
-            EFDataGridAssist.SetIsRowEditing(row, false);
+            var grid = e.Source as EFDataGrid;
+            var item = e.Parameter;
+            if (grid != null && item != null)
+            {
+                var row = grid.ItemContainerGenerator.ContainerFromItem(item);
+                EFDataGridAssist.SetIsRowEditing(row, false);
+            }
         }
         private void OnSave(object sender, ExecutedRoutedEventArgs e)
         {
-            var editor = e.Source as EFEditorBase;
-            var item = editor.DataContext;
-            var row = editor.RowOwner;
-            foreach (var valueEditor in row.FindChildren<EFValueEditor>())
+            var grid = e.Source as EFDataGrid;
+            var item = e.Parameter;
+            if (grid != null && item != null)
             {
-                if (valueEditor.IsValueChanged)
+                var row = grid.ItemContainerGenerator.ContainerFromItem(item);
+                foreach (var valueEditor in row.FindChildren<EFValueEditor>())
                 {
-                    _entitiyPropertys[valueEditor.PropertyName].SetValue(item, valueEditor.ValidValue);
-                    //
+                    if (valueEditor.IsValueChanged)
+                    {
+                        _entitiyPropertys[valueEditor.PropertyName].SetValue(item, valueEditor.ValidValue);
+                        //
+
+
+                    }
                 }
+                EFDataGridAssist.SetIsRowEditing(row, false);
             }
-            EFDataGridAssist.SetIsRowEditing(row, false);
         }
         private void OnDelete(object sender, ExecutedRoutedEventArgs e)
         {
-            var editor = e.Source as EFEditorBase;
-            var item = editor.DataContext;
-            var row = editor.RowOwner;
+            var grid = e.Source as EFDataGrid;
+            var item = e.Parameter;
             //
-            EFDataGridAssist.SetIsRowEditing(row, false);
+            if (grid != null && item != null)
+            {
+                var row = grid.ItemContainerGenerator.ContainerFromItem(item);
+                EFDataGridAssist.SetIsRowEditing(row, false);
+            }
         }
         private void OnLoad(object sender, ExecutedRoutedEventArgs e)
         {
@@ -265,7 +396,7 @@ namespace System.Windows
         }
         private void OnRefresh(object sender, ExecutedRoutedEventArgs e)
         {
-            LoadData();
+            
         }
         private void OnExport(object sender, ExecutedRoutedEventArgs e)
         {
@@ -288,38 +419,82 @@ namespace System.Windows
             var dbContextType = DbContextType;
             if (dbContextType == null || typeof(DbContext).IsAssignableFrom(dbContextType) == false)
                 return;
-            var entityType = EntityType;
-            if (entityType == null || entityType.IsClass == false)
+            if (_queryCountExpression == null || _queryPageExpression == null)
                 return;
             lock (_loadingLocker)
             {
                 if (_isLoading) return;
                 _isLoading = true;
             }
-            IsLoading = true;
-
-            var queryExpression = QueryExpression;
-            var count = await QueryCountAsync(dbContextType, entityType, queryExpression);
-            var pageSize = DisplayCount;
-            if (pageSize <= 0)
+            try
             {
-                pageSize = 50;
-                DisplayCount = 50;
+                IsLoading = true;
+                var count = await QueryCountAsync(dbContextType);
+                var pageSize = PageSize;
+                if (pageSize <= 0)
+                {
+                    pageSize = 50;
+                    PageSize = 50;
+                }
+                int remain;
+                var pageCount = Math.DivRem(count, pageSize, out remain);
+                if (remain > 0) pageCount++;
+                var pageIndex = pageCount > 0 ? 1 : 0;
+                Count = count;
+                PageCount = pageCount;
+                PageIndex = pageIndex;
+                await QueryPageAsync(dbContextType, pageSize, pageIndex);
+                IsLoading = false;
             }
-            int remain;
-            var pageCount = Math.DivRem(count, pageSize, out remain);
-            if (remain > 0) pageCount++;
-            var pageIndex = 0;
-            if (pageCount > 0)
-                pageIndex = 1;
-            EFDataGridBarAssist.SetCount(this, count);
-            EFDataGridBarAssist.SetPageCount(this, pageCount);
-            EFDataGridBarAssist.SetPageIndex(this, pageIndex);
-            await QueryPageAsync(dbContextType, entityType, queryExpression, pageSize, pageIndex);
-
-            IsLoading = false;
+            catch (Exception e)
+            {
+                //
+            }
+            finally
+            {
+                _isLoading = false;
+            }
         }
-        private Task<int> QueryCountAsync(Type contextType, Type entityType, Linq.Expressions.Expression qury)
+        private async void LoadPage(int pageIndex)
+        {
+            if (_isLoading) return;
+            var dbContextType = DbContextType;
+            if (dbContextType == null || typeof(DbContext).IsAssignableFrom(dbContextType) == false)
+                return;
+            if (_queryCountExpression == null || _queryPageExpression == null)
+                return;
+            lock (_loadingLocker)
+            {
+                if (_isLoading) return;
+                _isLoading = true;
+            }
+            try
+            {
+                IsLoading = true;
+                var pageSize = PageSize;
+                if (pageSize <= 0)
+                {
+                    pageSize = 50;
+                    PageSize = 50;
+                }
+                await QueryPageAsync(dbContextType, pageSize, pageIndex);
+                IsLoading = false;
+            }
+            catch (Exception e)
+            {
+                //
+            }
+            finally
+            {
+                _isLoading = false;
+            }
+        }
+        private void Refresh()
+        {
+            var pageIndex = PageIndex;
+            LoadPage(pageIndex);
+        }
+        private Task<int> QueryCountAsync(Type contextType)
         {
             return Task.Run(() =>
             {
@@ -327,21 +502,8 @@ namespace System.Windows
                 {
                     using (var db = (DbContext)Activator.CreateInstance(contextType))
                     {
-                        //完整表达式 return db.Set<T>().Where(i => i).Count();   
-                        var exp = GetDbSetExpression(db, entityType);//db.Set<T>()
-                        var keyLam = GetKeyExpression(entityType, _entityKeyPropertyName);//i=>i.Key
-                        bool isOrdered = false;
-                        if (qury != null && qury is LambdaExpression)
-                        {
-                            exp = Linq.Expressions.Expression.Invoke(qury, exp);
-                            isOrdered = IsContainsMethodName(qury, nameof(Queryable.OrderBy));
-                        }
-                        if (isOrdered == false)
-                            exp = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.OrderBy), new Type[] { entityType, _entitiyPropertys[_entityKeyPropertyName].PropertyType }, exp, keyLam);//db.Set<T>().OrderBy(i=>i.Key)
-                        exp = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.Count), new Type[] { entityType }, exp);//db.Set<T>().OrderBy(i=>i.Key)...Count();
-                        var lambda = Linq.Expressions.Expression.Lambda<Func<int>>(exp);
-                        return lambda.Compile().Invoke();
-
+                        var query = _queryCountExpression?.Compile();
+                        return query?.Invoke(db) ?? 0;
                     }
                 }
                 catch (Exception e)
@@ -351,8 +513,83 @@ namespace System.Windows
                 return 0;
             });
         }
+        private Task QueryPageAsync(Type contextType,int pageSize, int pageIndex)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    using (var db = (DbContext)Activator.CreateInstance(contextType))
+                    {
+                        if (pageSize <= 0) pageSize = 1;
+                        if (pageIndex <= 0) pageIndex = 1;
+                        var query = _queryPageExpression?.Compile();
+                        _itemsSource.SetSourceAsync(query?.Invoke(db, pageSize * (pageIndex - 1), pageSize), _getKey);
+                    }
+                }
+                catch (Exception e)
+                {
+                    //
+                }
+            });
+        }
 
-        private bool IsContainsMethodName(Linq.Expressions.Expression expression, string methodName)
+        #region linq
+        private Expression<Func<object, object>> GetKeyFunction(Type entityType, PropertyInfo keyPropertyInfo)
+        {
+            if (entityType == default || keyPropertyInfo == null) return null;
+
+            //i=>i.Key
+            var objParam = Linq.Expressions.Expression.Parameter(typeof(object));
+            var model = Linq.Expressions.Expression.Convert(objParam, entityType);
+            var getKey = Linq.Expressions.Expression.Property(model, keyPropertyInfo);
+            var objBordy = Linq.Expressions.Expression.Convert(getKey, typeof(object));
+            return Linq.Expressions.Expression.Lambda<Func<object, object>>(objBordy, objParam);
+        }
+        private Expression<Func<DbContext, int>> GetQueryCountExpression(Type entityType, Linq.Expressions.Expression query = null)
+        {
+            if (entityType == default) return null;
+
+            //完整表达式 return db.Set<T>().Where(i => i).Count();   
+            var db = Linq.Expressions.Expression.Parameter(typeof(DbContext));
+            var dbSet = Linq.Expressions.Expression.Call(db, nameof(DbContext.Set), new Type[] { entityType });//db.Set<T>()
+            //
+            Linq.Expressions.Expression body = dbSet;
+            if (query != null)
+                body = Linq.Expressions.Expression.Invoke(query, dbSet);
+            body = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.Count), new Type[] { entityType }, body);
+            return Linq.Expressions.Expression.Lambda<Func<DbContext, int>>(body,db);
+        }
+        private Expression<Func<DbContext, int, int, IEnumerable<object>>> GetQueryPageExpression(Type entityType, PropertyInfo keyPropertyInfo, Linq.Expressions.Expression query = null)
+        {
+            if (entityType == default || keyPropertyInfo == null) return null;
+
+            //完整表达式 return db.Set<T>().Where().OrderBy().Skip().Take();   
+            var db = Linq.Expressions.Expression.Parameter(typeof(DbContext));
+            var skipCount = Linq.Expressions.Expression.Parameter(typeof(int));
+            var takeCount = Linq.Expressions.Expression.Parameter(typeof(int));
+            var dbSet = Linq.Expressions.Expression.Call(db, nameof(DbContext.Set), new Type[] { entityType });//db.Set<T>()
+            bool hasOrderby = false;
+            Linq.Expressions.Expression body = dbSet;
+            if (query != null)
+            {
+                body = Linq.Expressions.Expression.Invoke(query, dbSet);
+                hasOrderby = IsExpresionContainsMethodName(query, nameof(Queryable.OrderBy));
+            }
+            if (hasOrderby == false)
+            {
+                var model = Linq.Expressions.Expression.Parameter(entityType);
+                var getKey = Linq.Expressions.Expression.Property(model, keyPropertyInfo);
+                var keyExp = Linq.Expressions.Expression.Lambda(getKey, model);
+                body = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.OrderBy),
+                   new Type[] { entityType, keyPropertyInfo.PropertyType },
+                   body, keyExp);//db.Set<T>().OrderBy(i=>i.Key)
+            }
+            body = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.Skip), new Type[] { entityType }, body, skipCount);//db.Set<T>().Where().OrderBy(i=>i.Key).Skip();
+            body = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.Take), new Type[] { entityType }, body, takeCount);//db.Set<T>().Where().OrderBy(i=>i.Key).Skip().Take();
+            return Linq.Expressions.Expression.Lambda<Func<DbContext, int, int, IEnumerable<object>>>(body, db, skipCount, takeCount);
+        }
+        private bool IsExpresionContainsMethodName(Linq.Expressions.Expression expression, string methodName)
         {
             if (expression is MethodCallExpression)
             {
@@ -361,7 +598,7 @@ namespace System.Windows
                     return true;
                 foreach (var item in methodExpression.Arguments)
                 {
-                    if (IsContainsMethodName(item, methodName))
+                    if (IsExpresionContainsMethodName(item, methodName))
                     {
                         return true;
                     }
@@ -369,73 +606,14 @@ namespace System.Windows
             }
             else if (expression is LambdaExpression)
             {
-                if (IsContainsMethodName(((LambdaExpression)expression).Body, methodName))
+                if (IsExpresionContainsMethodName(((LambdaExpression)expression).Body, methodName))
                 {
                     return true;
                 }
             }
             return false;
         }
-
-
-        /// <summary>
-        /// 获取DbSet<Entity>表达式
-        /// </summary>
-        /// <param name="db"></param>
-        /// <param name="entityType"></param>
-        /// <returns></returns>
-        private Linq.Expressions.Expression GetDbSetExpression(DbContext db,Type entityType)
-        {
-            var instance = Linq.Expressions.Expression.Constant(db);//db
-            return Linq.Expressions.Expression.Call(instance, nameof(DbContext.Set), new Type[] { entityType });//db.Set<T>
-        }
-
-      
-
-        /// <summary>
-        /// 获取主键的lambda表达式 i=>i.Key
-        /// </summary>
-        /// <returns></returns>
-        private Linq.Expressions.Expression GetKeyExpression(Type entityType, string keyName)
-        {
-            //构建获取主键的表达式 i=>i.Key;
-            var param = Linq.Expressions.Expression.Parameter(entityType);//参数i
-            var propertyCall = Linq.Expressions.Expression.Property(param, entityType.GetProperty(keyName));//i.Key;
-            return Linq.Expressions.Expression.Lambda(propertyCall, new ParameterExpression[] { param });// i=>i.Key;
-        }
-
-        private Task QueryPageAsync(Type contextType, Type entityType, Linq.Expressions.Expression qury, int pageSize, int pageIndex)
-        {
-            return Task.Run(() =>
-            {
-                try
-                {
-                    using (var db = (DbContext)Activator.CreateInstance(contextType))
-                    {
-                        //完整表达式 return db.Set<T>().Where(i => i).Orderby(i=>i.Key).Skip(pageSize*page).Take(pageSize);
-
-
-
-
-                        //IQueryable queryable;
-
-                        ////构建获取主键的表达式 i=>i.Key;
-                        //var param = Linq.Expressions.Expression.Parameter(entityType);//参数i
-                        //var propertyCall = Linq.Expressions.Expression.Call(param, entityType.GetMethod(_entityKeyPropertyName));//i.Key;
-                        //var getKeyLambda = Linq.Expressions.Expression.Lambda<Func<object, object>>(propertyCall,new ParameterExpression[] { param });// i=>i.Key;
-                        //_itemsSource.SetSourceAsync(queryable, getKeyLambda.Compile());
-                    }
-                }
-                catch (Exception e)
-                {
-
-                }
-                return 0;
-            });
-        }
-
-      
-
+        #endregion
 
         #region Excel 
         ///// <summary>
@@ -778,5 +956,28 @@ namespace System.Windows
         //    MessageBox.Show(builder.ToString(), "导入结果", MessageBoxButton.OK);
         //}
         #endregion
+    }
+
+
+    public struct DisplayPropertyInfo
+    {
+        public DisplayPropertyInfo(PropertyInfo info,GenericNameAttribute attribute)
+        {
+            PropertyName = info.Name;
+            PropertyType = info.PropertyType;
+            GenericName = string.IsNullOrEmpty(attribute.Name) ? PropertyName : attribute.Name;
+            IsReadOnly = attribute.IsReadOnly;
+        }
+        public DisplayPropertyInfo(string propertyName,Type propertyType,string genericName,bool isReadOnly)
+        {
+            PropertyName = propertyName;
+            PropertyType = propertyType;
+            GenericName = genericName;
+            IsReadOnly = isReadOnly;
+        }
+        public string PropertyName { get; }
+        public Type PropertyType { get; }
+        public string GenericName { get; }
+        public bool IsReadOnly { get; }
     }
 }

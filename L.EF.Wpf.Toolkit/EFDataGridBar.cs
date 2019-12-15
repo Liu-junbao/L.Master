@@ -89,24 +89,33 @@ namespace System.Windows
         #endregion
 
         public static readonly DependencyProperty CountProperty =
-          DependencyProperty.Register(nameof(Count), typeof(int), typeof(EFDataGridBar), new PropertyMetadata(0));
+          DependencyProperty.Register(nameof(Count), typeof(int), typeof(EFDataGridBar), new PropertyMetadata(0, OnPropertyChanged));
         public static readonly DependencyProperty PageCountProperty =
-          DependencyProperty.Register(nameof(PageCount), typeof(int), typeof(EFDataGridBar), new PropertyMetadata(0));
+          DependencyProperty.Register(nameof(PageCount), typeof(int), typeof(EFDataGridBar), new PropertyMetadata(0, OnPropertyChanged));
         public static readonly DependencyProperty PageIndexProperty =
           DependencyProperty.Register(nameof(PageIndex), typeof(int), typeof(EFDataGridBar), new PropertyMetadata(0));
-        public static readonly DependencyProperty DisplayCountProperty =
-          DependencyProperty.Register(nameof(DisplayCount), typeof(int), typeof(EFDataGridBar), new PropertyMetadata(5));
+        public static readonly DependencyProperty DisplayPageIndexCountProperty =
+          DependencyProperty.Register(nameof(DisplayPageIndexCount), typeof(int), typeof(EFDataGridBar), new PropertyMetadata(5));
         private static readonly DependencyPropertyKey DisplayIndexStatusPropertyKey =
           DependencyProperty.RegisterReadOnly(nameof(DisplayIndexStatus), typeof(DisplayIndexStatus), typeof(EFDataGridBar), new PropertyMetadata(DisplayIndexStatus.None));
         public static readonly DependencyProperty DisplayIndexStatusProperty = DisplayIndexStatusPropertyKey.DependencyProperty;
         private static readonly DependencyPropertyKey DisplayIndexSourcePropertyKey =
           DependencyProperty.RegisterReadOnly(nameof(DisplayIndexSource), typeof(int[]), typeof(EFDataGridBar), new PropertyMetadata(null));
         public static readonly DependencyProperty DisplayIndexSourceProperty = DisplayIndexSourcePropertyKey.DependencyProperty;
+        private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var bar = (EFDataGridBar)d;
+            if (e.Property == CountProperty || e.Property == PageCountProperty)
+            {
+                bar._displayPageIndexViewIndex = 1;
+                bar.InvalidateDisplayIndex();
+            }
+        }
         static EFDataGridBar()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(EFDataGridBar), new FrameworkPropertyMetadata(typeof(EFDataGridBar)));
         }
-        private int _displayIndex;
+        private int _displayPageIndexViewIndex;
         public EFDataGridBar()
         {
             this.CommandBindings.Add(new CommandBinding(MoveToFirstCommand, new ExecutedRoutedEventHandler(OnMoveToFirst)));
@@ -116,8 +125,7 @@ namespace System.Windows
             this.CommandBindings.Add(new CommandBinding(MoveToCurrentCommand, new ExecutedRoutedEventHandler(OnMoveToCurrent)));
             this.SetBinding(CountProperty, new Binding($"({nameof(EFDataGridBarAssist)}.{EFDataGridBarAssist.CountProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
             this.SetBinding(PageCountProperty, new Binding($"({nameof(EFDataGridBarAssist)}.{EFDataGridBarAssist.PageCountProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
-            this.SetBinding(PageIndexProperty, new Binding($"({nameof(EFDataGridBarAssist)}.{EFDataGridBarAssist.PageIndexProperty.Name})") { Source = this, Mode = BindingMode.TwoWay });
-            this.SetBinding(DisplayCountProperty, new Binding($"({nameof(EFDataGridBarAssist)}.{EFDataGridBarAssist.DisplayCountProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(PageIndexProperty, new Binding($"({nameof(EFDataBox.PageIndex)})") { RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(EFDataBox), 1), Mode = BindingMode.TwoWay });
         }
         public int Count
         {
@@ -134,10 +142,10 @@ namespace System.Windows
             get { return (int)GetValue(PageIndexProperty); }
             set { SetValue(PageIndexProperty, value); }
         }
-        public int DisplayCount
+        public int DisplayPageIndexCount
         {
-            get { return (int)GetValue(DisplayCountProperty); }
-            set { SetValue(DisplayCountProperty, value); }
+            get { return (int)GetValue(DisplayPageIndexCountProperty); }
+            set { SetValue(DisplayPageIndexCountProperty, value); }
         }
         public DisplayIndexStatus DisplayIndexStatus
         {
@@ -152,9 +160,9 @@ namespace System.Windows
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             base.OnPropertyChanged(e);
-            if (e.Property == PageCountProperty || e.Property == DisplayCountProperty)
+            if (e.Property == PageCountProperty || e.Property == DisplayPageIndexCountProperty)
             {
-                _displayIndex = 0;
+                _displayPageIndexViewIndex = 0;
                 InvalidateDisplayIndex();
             }
             else if (e.Property == PageIndexProperty)
@@ -164,22 +172,22 @@ namespace System.Windows
         }
         private void OnMoveToFirst(object sender, ExecutedRoutedEventArgs e)
         {
-            _displayIndex = 0;
+            _displayPageIndexViewIndex = 0;
             InvalidateDisplayIndex();
         }
         private void OnMoveToLast(object sender, ExecutedRoutedEventArgs e)
         {
-            _displayIndex = PageCount;
+            _displayPageIndexViewIndex = PageCount;
             InvalidateDisplayIndex();
         }
         private void OnMoveToPrevious(object sender, ExecutedRoutedEventArgs e)
         {
-            _displayIndex--;
+            _displayPageIndexViewIndex--;
             InvalidateDisplayIndex();
         }
         private void OnMoveToNext(object sender, ExecutedRoutedEventArgs e)
         {
-            _displayIndex++;
+            _displayPageIndexViewIndex++;
             InvalidateDisplayIndex();
         }
         private void OnMoveToCurrent(object sender, ExecutedRoutedEventArgs e)
@@ -202,24 +210,24 @@ namespace System.Windows
             var source = DisplayIndexSource;
             if (source == null || source.Contains(pageIndex) == false)
             {
-                var displayCount = DisplayCount;
+                var displayCount = DisplayPageIndexCount;
                 if (displayCount <= 0)
                     displayCount = 1;
                 int remain;
                 var displayIndex = Math.DivRem(pageIndex, displayCount, out remain) - 1;
                 if (remain > 0)
                     displayIndex++;
-                _displayIndex = displayIndex;
+                _displayPageIndexViewIndex = displayIndex;
                 InvalidateDisplayIndex();
             }
         }
         private void InvalidateDisplayIndex()
         {
             var count = PageCount;
-            var targetDisplayIndex = _displayIndex;
+            var targetDisplayIndex = _displayPageIndexViewIndex;
             if (count > 0)
             {
-                var displayCount = DisplayCount;
+                var displayCount = DisplayPageIndexCount;
                 if (displayCount < 1) displayCount = 1;
                 if (targetDisplayIndex < 0) targetDisplayIndex = 0;
                 int minIndex = targetDisplayIndex * displayCount;
@@ -229,7 +237,7 @@ namespace System.Windows
                     minIndex = targetDisplayIndex * displayCount;
                 }
 
-                _displayIndex = targetDisplayIndex;
+                _displayPageIndexViewIndex = targetDisplayIndex;
 
                 bool isFirstPage = minIndex == 0;
                 bool isLastPage = false;
@@ -282,11 +290,6 @@ namespace System.Windows
             DependencyProperty.RegisterAttached("Count", typeof(int), typeof(EFDataGridBarAssist), new FrameworkPropertyMetadata(0, FrameworkPropertyMetadataOptions.Inherits));
         public static readonly DependencyProperty PageCountProperty =
             DependencyProperty.RegisterAttached("PageCount", typeof(int), typeof(EFDataGridBarAssist), new FrameworkPropertyMetadata(0, FrameworkPropertyMetadataOptions.Inherits));
-        public static readonly DependencyProperty PageIndexProperty =
-            DependencyProperty.RegisterAttached("PageIndex", typeof(int), typeof(EFDataGridBarAssist), new FrameworkPropertyMetadata(0, FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
-        public static readonly DependencyProperty DisplayCountProperty =
-            DependencyProperty.RegisterAttached("DisplayCount", typeof(int), typeof(EFDataGridBarAssist), new FrameworkPropertyMetadata(0, FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
-
         public static int GetCount(DependencyObject obj)
         {
             return (int)obj.GetValue(CountProperty);
@@ -302,22 +305,6 @@ namespace System.Windows
         public static void SetPageCount(DependencyObject obj, int value)
         {
             obj.SetValue(PageCountProperty, value);
-        }
-        public static int GetPageIndex(DependencyObject obj)
-        {
-            return (int)obj.GetValue(PageIndexProperty);
-        }
-        public static void SetPageIndex(DependencyObject obj, int value)
-        {
-            obj.SetValue(PageIndexProperty, value);
-        }
-        public static int GetDisplayCount(DependencyObject obj)
-        {
-            return (int)obj.GetValue(DisplayCountProperty);
-        }
-        public static void SetDisplayCount(DependencyObject obj, int value)
-        {
-            obj.SetValue(DisplayCountProperty, value);
         }
     }
 }

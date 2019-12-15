@@ -7,15 +7,9 @@ namespace System
     public class GenericNameAttribute:Attribute
     {
         public GenericNameAttribute() { }
-        public GenericNameAttribute(string name)
-        {
-            Name = name;
-        }
-        public GenericNameAttribute(string name,string kind)
-        {
-            Name = name;
-            Kind = kind;
-        }
+        public GenericNameAttribute(string name) : this(name, null, false) { }
+        public GenericNameAttribute(string name, string kind) : this(name, kind, false) { }
+        public GenericNameAttribute(string name, bool isReadOnly) : this(name, null, isReadOnly) { }
         public GenericNameAttribute(string name, string kind, bool isReadOnly)
         {
             Name = name;

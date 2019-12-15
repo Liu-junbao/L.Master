@@ -39,9 +39,14 @@ namespace System
         /// <param name="sources">数据源（键值对）</param>
         /// <param name="getValue">创建视图方法</param>
         /// <param name="onUpdateExsitsVeiwModel">更新已经存在的数据</param>
-        public void SetSource<TSource>(Dictionary<TKey, TSource> sources, Func<TSource, TValue, TValue> getValue)
+        public void SetSource<TSource>(Dictionary<TKey, TSource> sources = null, Func<TSource, TValue, TValue> getValue = null)
         {
-            if (sources == null) throw new ArgumentNullException(nameof(sources));
+            if (sources == null)
+            {
+                this.Clear();
+                return;
+            }
+
             if (getValue == null) throw new ArgumentNullException(nameof(getValue));
 
             //olds
@@ -86,8 +91,17 @@ namespace System
         /// <param name="sources"></param>
         /// <param name="getKey"></param>
         /// <param name="getValue"></param>
-        public void SetSourceAsync<TSource>(IEnumerable<TSource> sources, Func<TSource, TKey> getKey, Func<TSource, TValue, TValue> getValue)
+        public void SetSourceAsync<TSource>(IEnumerable<TSource> sources = null, Func<TSource, TKey> getKey = null, Func<TSource, TValue, TValue> getValue = null)
         {
+            if (sources == null)
+            {
+                this.Clear();
+                return;
+            }
+
+            if (getKey == null) throw new ArgumentNullException(nameof(getKey));
+            if (getValue == null) throw new ArgumentNullException(nameof(getValue));
+
             var existKeys = new List<TKey>();
             int sourceIndex = 0;
             var count = Count;
@@ -98,29 +112,28 @@ namespace System
                 {
                     var value = getValue(source, null);
                     if (sourceIndex >= count)
-                        this.BeginInvoke(() => this.Add(key, value));
+                        this.Add(key, value);
                     else
-                        this.BeginInvoke(() => this.Insert(sourceIndex, key, value));
+                        this.Insert(sourceIndex, key, value);
                 }
                 else
                 {
                     var oldValue = this[key];
                     var value = getValue(source, oldValue);
-                    this.BeginInvoke(() => this[key] = value);
+                    this[key] = value;
                 }
+                existKeys.Add(key);
                 sourceIndex++;
             }
+            //old
+            this.RemoveAll(i => existKeys.Contains(i)==false);
         }
         /// <summary>
         /// 改变数据(UI线程安全的)
         /// </summary>
         /// <param name="sources"></param>
         /// <param name="getKey"></param>
-        public void SetSourceAsync(IEnumerable<TValue> sources, Func<TValue, TKey> getKey) => this.SetSourceAsync(sources, getKey, (i, v) => v);
-        private void BeginInvoke(Action action)
-        {
-            _context.Post(i => action(), null);
-        }
+        public void SetSourceAsync(IEnumerable<TValue> sources, Func<TValue, TKey> getKey) => this.SetSourceAsync(sources, getKey, (source, old) => source);
 
         #region Dictonary
         public int Count => _inner.Count;
@@ -135,6 +148,7 @@ namespace System
         public void Add(TKey key, TValue value) => _inner.Add(key, value);
         public void Insert(int index, TKey key, TValue value) => _inner.Insert(index, key, value);
         public bool Remove(TKey key) => _inner.Remove(key);
+        public void RemoveAll(Func<TKey, bool> predict) => _inner.RemoveAll(predict);
         public bool TryGetValue(TKey key, out TValue value) => _inner.TryGetValue(key, out value);
         public void Clear() => _inner.ClearValues();
         #region 
@@ -179,11 +193,19 @@ namespace System
         #region NotifyPropertyChanged
         private void Inner_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            CollectionChanged?.Invoke(this, e);
+            var collectionChanged = CollectionChanged;
+            if (collectionChanged != null)
+            {
+                _context.Post(i => collectionChanged?.Invoke(this, e), null);
+            }
         }
         private void Inner_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            PropertyChanged?.Invoke(this, e);
+            var propertyChanged = PropertyChanged;
+            if (propertyChanged != null)
+            {
+                _context.Post(i => propertyChanged?.Invoke(this, e), null);
+            }
         }
         event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
         {
@@ -210,7 +232,7 @@ namespace System
             {
                 var index = _keys.IndexOf(key);
                 _values[key] = value;
-                SetItem(index, value);
+                this.SetItem(index, value);
             }
         }
         public ICollection<TKey> Keys => _values.Keys;
@@ -236,19 +258,30 @@ namespace System
         }
         public void Insert(int index, TKey key, TValue value)
         {
-            _values.Add(key,value);
-            _keys.Insert(index,key);
-            this.Add(value);
+            _values.Add(key, value);
+            _keys.Insert(index, key);
+            this.Insert(index, value);
         }
         public bool Remove(TKey key)
         {
             if (_values.Remove(key))
             {
                 var index = _keys.IndexOf(key);
-                RemoveAt(index);
+                _keys.Remove(key);
+                this.RemoveAt(index);
                 return true;
             }
             return false;
+        }
+        public void RemoveAll(Func<TKey,bool> predict)
+        {
+            foreach (var item in _keys.ToArray())
+            {
+                if (predict(item))
+                {
+                    Remove(item);
+                }
+            }
         }
         public bool RemoveValueAt(int index)
         {

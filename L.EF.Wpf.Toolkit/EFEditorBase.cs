@@ -11,14 +11,22 @@ namespace System.Windows
         public static readonly DependencyProperty IsRowMouseOverProperty =
            DependencyProperty.Register(nameof(IsRowMouseOver), typeof(bool), typeof(EFEditorBase), new PropertyMetadata(false));
         public static readonly DependencyProperty IsRowSelectedProperty =
-           DependencyProperty.Register(nameof(IsRowSelected), typeof(bool), typeof(EFEditorBase), new PropertyMetadata(false));
+           DependencyProperty.Register(nameof(IsRowSelected), typeof(bool), typeof(EFEditorBase), new PropertyMetadata(false,OnIsRowSelectedChanged));
         public static readonly DependencyProperty IsEditingProperty =
            DependencyProperty.Register(nameof(IsEditing), typeof(bool), typeof(EFEditorBase), new PropertyMetadata(false, OnIsEditingChanged));
+        public static readonly DependencyProperty IsReadOnlyProperty =
+          DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(EFEditorBase), new PropertyMetadata(false));
+        private static void OnIsRowSelectedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            EFEditorBase editor = (EFEditorBase)d;
+            editor.OnIsRowSelectedChanged((bool)e.NewValue);
+        }
         private static void OnIsEditingChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             EFEditorBase editor = (EFEditorBase)d;
             editor.OnIsEditingChanged((bool)e.NewValue);
         }
+
         public EFEditorBase()
         {
             this.SetBinding(IsRowMouseOverProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.IsRowMouseOverProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
@@ -41,6 +49,12 @@ namespace System.Windows
             get { return (bool)GetValue(IsEditingProperty); }
             set { SetValue(IsEditingProperty, value); }
         }
+        public bool IsReadOnly
+        {
+            get { return (bool)GetValue(IsReadOnlyProperty); }
+            set { SetValue(IsReadOnlyProperty, value); }
+        }
+        protected virtual void OnIsRowSelectedChanged(bool isSelected) { }
         protected virtual void OnIsEditingChanged(bool isEditing) { }
     }
 }
