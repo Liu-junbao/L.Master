@@ -15,9 +15,8 @@ using System.Windows.Media.Media3D;
 
 namespace System.Windows
 {
-
-    [ContentProperty(nameof(Columns))]
     [StyleTypedProperty(Property = nameof(ValueEditorStyle), StyleTargetType = typeof(EFValueEditor))]
+    [StyleTypedProperty(Property = nameof(OperatorStyle), StyleTargetType = typeof(EFOperator))]
     public class EFDataGrid : DataGrid
     {
         public static readonly DependencyProperty EditorStyleProperty =
@@ -98,11 +97,32 @@ namespace System.Windows
         protected override void OnLoadingRow(DataGridRowEventArgs e)
         {
             e.Row.Unselected += Row_Unselected;
+            e.Row.AddHandler(EFValueEditor.ValueChangedEvent, new RoutedEventHandler(OnRowValueChanged));
             base.OnLoadingRow(e);
+        }
+        protected override void OnUnloadingRow(DataGridRowEventArgs e)
+        {
+            e.Row.Unselected -= Row_Unselected;
+            e.Row.RemoveHandler(EFValueEditor.ValueChangedEvent, new RoutedEventHandler(OnRowValueChanged));
+            base.OnUnloadingRow(e);
         }
         private void Row_Unselected(object sender, RoutedEventArgs e)
         {
             EFDataGridAssist.SetIsRowEditing((DataGridRow)sender, false);
+        }
+        private void OnRowValueChanged(object sender, RoutedEventArgs e)
+        {
+            var row = sender as DataGridRow;
+            bool isChanged = false;
+            foreach (var item in row.FindChildren<EFValueEditor>())
+            {
+                if (item.IsValueChanged)
+                {
+                    isChanged = true;
+                    break;
+                }
+            }
+            EFDataGridAssist.SetIsRowValueChanged(row, isChanged);
         }
     }
     public static class EFDataGridAssist
@@ -117,6 +137,8 @@ namespace System.Windows
                 DependencyProperty.RegisterAttached("IsRowEditing", typeof(bool), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
         public static readonly DependencyProperty ItemsSourceProperty =
                 DependencyProperty.RegisterAttached("ItemsSource", typeof(IEnumerable), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
+        public static readonly DependencyProperty IsRowValueChangedProperty =
+                DependencyProperty.RegisterAttached("IsRowValueChanged", typeof(bool), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
         public static IEnumerable<DisplayPropertyInfo> GetDisplayPropertyInfos(DependencyObject obj)
         {
             return (IEnumerable<DisplayPropertyInfo>)obj.GetValue(DisplayPropertyInfosProperty);
@@ -148,6 +170,14 @@ namespace System.Windows
         public static void SetIsRowEditing(DependencyObject obj, bool value)
         {
             obj.SetValue(IsRowEditingProperty, value);
+        }
+        public static bool GetIsRowValueChanged(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(IsRowValueChangedProperty);
+        }
+        public static void SetIsRowValueChanged(DependencyObject obj, bool value)
+        {
+            obj.SetValue(IsRowValueChangedProperty, value);
         }
         public static IEnumerable GetItemsSource(DependencyObject obj)
         {

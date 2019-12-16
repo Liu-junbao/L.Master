@@ -11,26 +11,23 @@ namespace System.Windows
         public static readonly DependencyProperty IsRowMouseOverProperty =
            DependencyProperty.Register(nameof(IsRowMouseOver), typeof(bool), typeof(EFEditorBase), new PropertyMetadata(false));
         public static readonly DependencyProperty IsRowSelectedProperty =
-           DependencyProperty.Register(nameof(IsRowSelected), typeof(bool), typeof(EFEditorBase), new PropertyMetadata(false,OnIsRowSelectedChanged));
+           DependencyProperty.Register(nameof(IsRowSelected), typeof(bool), typeof(EFEditorBase), new PropertyMetadata(false));
+        public static readonly DependencyProperty IsRowValueChangedProperty =
+           DependencyProperty.Register(nameof(IsRowValueChanged), typeof(bool), typeof(EFEditorBase), new PropertyMetadata(false));
         public static readonly DependencyProperty IsEditingProperty =
            DependencyProperty.Register(nameof(IsEditing), typeof(bool), typeof(EFEditorBase), new PropertyMetadata(false, OnIsEditingChanged));
         public static readonly DependencyProperty IsReadOnlyProperty =
-          DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(EFEditorBase), new PropertyMetadata(false));
-        private static void OnIsRowSelectedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            EFEditorBase editor = (EFEditorBase)d;
-            editor.OnIsRowSelectedChanged((bool)e.NewValue);
-        }
+           DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(EFEditorBase), new PropertyMetadata(false));
         private static void OnIsEditingChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             EFEditorBase editor = (EFEditorBase)d;
             editor.OnIsEditingChanged((bool)e.NewValue);
         }
-
         public EFEditorBase()
         {
             this.SetBinding(IsRowMouseOverProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.IsRowMouseOverProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
             this.SetBinding(IsRowSelectedProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.IsRowSelectedProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(IsRowValueChangedProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.IsRowValueChangedProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
             this.SetBinding(IsEditingProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.IsRowEditingProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
         }
         public DataGridRow RowOwner => this.FindParent<DataGridRow>();
@@ -44,6 +41,11 @@ namespace System.Windows
             get { return (bool)GetValue(IsRowSelectedProperty); }
             set { SetValue(IsRowSelectedProperty, value); }
         }
+        public bool IsRowValueChanged
+        {
+            get { return (bool)GetValue(IsRowValueChangedProperty); }
+            set { SetValue(IsRowValueChangedProperty, value); }
+        }
         public bool IsEditing
         {
             get { return (bool)GetValue(IsEditingProperty); }
@@ -54,7 +56,6 @@ namespace System.Windows
             get { return (bool)GetValue(IsReadOnlyProperty); }
             set { SetValue(IsReadOnlyProperty, value); }
         }
-        protected virtual void OnIsRowSelectedChanged(bool isSelected) { }
         protected virtual void OnIsEditingChanged(bool isEditing) { }
     }
 }

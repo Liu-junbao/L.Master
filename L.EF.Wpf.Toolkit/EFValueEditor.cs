@@ -1,12 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Windows.Controls;
 using System.Windows.Data;
 
 namespace System.Windows
 {
+    [TemplatePart(Name = PART_TextBox, Type = typeof(TextBox))]
     public class EFValueEditor : EFEditorBase
     {
+        public const string PART_TextBox = nameof(PART_TextBox);
+
+        public static readonly RoutedEvent ValueChangedEvent =
+                  EventManager.RegisterRoutedEvent(nameof(ValueChanged), RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(EFValueEditor));
+
         private static readonly DependencyPropertyKey PropertyNamePropertyKey =
            DependencyProperty.RegisterReadOnly(nameof(PropertyName), typeof(string), typeof(EFValueEditor), new PropertyMetadata(null));
         public static readonly DependencyProperty PropertyNameProperty = PropertyNamePropertyKey.DependencyProperty;
@@ -17,14 +24,16 @@ namespace System.Windows
         public static readonly DependencyProperty PropertyTypeProperty = PropertyTypePropertyKey.DependencyProperty;
         public static readonly DependencyProperty ValueProperty =
            DependencyProperty.Register(nameof(Value), typeof(object), typeof(EFValueEditor), new PropertyMetadata(null, OnValueChanged));
+        public static readonly DependencyProperty ValueTextProperty =
+           DependencyProperty.Register(nameof(ValueText), typeof(string), typeof(EFValueEditor), new PropertyMetadata(null, OnValueTextChanged));
         private static readonly DependencyPropertyKey IsValueChangedPropertyKey =
            DependencyProperty.RegisterReadOnly(nameof(IsValueChanged), typeof(bool), typeof(EFValueEditor), new PropertyMetadata(false));
         public static readonly DependencyProperty IsValueChangedProperty = IsValueChangedPropertyKey.DependencyProperty;
         private static readonly DependencyPropertyKey IsValidValuePropertyKey =
-         DependencyProperty.RegisterReadOnly(nameof(IsValidValue), typeof(bool), typeof(EFValueEditor), new PropertyMetadata(false));
+           DependencyProperty.RegisterReadOnly(nameof(IsValidValue), typeof(bool), typeof(EFValueEditor), new PropertyMetadata(false));
         public static readonly DependencyProperty IsValidValueProperty = IsValidValuePropertyKey.DependencyProperty;
         private static readonly DependencyPropertyKey ValidValuePropertyKey =
-          DependencyProperty.RegisterReadOnly(nameof(ValidValue), typeof(object), typeof(EFValueEditor), new PropertyMetadata(null));
+           DependencyProperty.RegisterReadOnly(nameof(ValidValue), typeof(object), typeof(EFValueEditor), new PropertyMetadata(null));
         public static readonly DependencyProperty ValidValueProperty = ValidValuePropertyKey.DependencyProperty;
         private static void OnPropertyValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -36,13 +45,19 @@ namespace System.Windows
             var editor = (EFValueEditor)d;
             editor.OnValueChanged(e.OldValue, e.NewValue);
         }
+        private static void OnValueTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var editor = (EFValueEditor)d;
+            editor.OnValueTextChanged((string)e.OldValue, (string)e.NewValue);
+        }
         static EFValueEditor()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(EFValueEditor), new FrameworkPropertyMetadata(typeof(EFValueEditor)));
         }
         private BindingExpressionBase _propertyValueBinding;
+        private TextBox _valueTextBox;
         public EFValueEditor() : this(null, default) { }
-        public EFValueEditor(string propertyName,Type propertyType)
+        public EFValueEditor(string propertyName, Type propertyType)
         {
             PropertyName = propertyName;
             PropertyType = propertyType;
@@ -68,6 +83,11 @@ namespace System.Windows
             get { return (object)GetValue(ValueProperty); }
             set { SetValue(ValueProperty, value); }
         }
+        public string ValueText
+        {
+            get { return (string)GetValue(ValueTextProperty); }
+            set { SetValue(ValueTextProperty, value); }
+        }
         public bool IsValueChanged
         {
             get { return (bool)GetValue(IsValueChangedProperty); }
@@ -83,13 +103,47 @@ namespace System.Windows
             get { return (object)GetValue(ValidValueProperty); }
             protected set { SetValue(ValidValuePropertyKey, value); }
         }
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+
+            if (_valueTextBox != null)
+                _valueTextBox.TextChanged -= ValueTextBox_TextChanged;
+            _valueTextBox = this.Template.FindName(PART_TextBox, this) as TextBox;
+            if (_valueTextBox != null)
+                _valueTextBox.TextChanged += ValueTextBox_TextChanged;
+        }
+        private void ValueTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (IsEditing == false) return;
+            var newValue = _valueTextBox?.Text;
+            if (newValue?.Equals(PropertyValue) == false)
+            {
+                object validValue;
+                var isValidValue = TryParse(newValue, out validValue);
+                IsValidValue = isValidValue;
+                ValidValue = validValue;
+                IsValueChanged = isValidValue && validValue?.Equals(PropertyValue) != true;
+            }
+            else
+            {
+                IsValidValue = true;
+                ValidValue = newValue;
+                IsValueChanged = false;
+            }
+            RaiseValueChanged();
+        }
         protected override void OnIsEditingChanged(bool isEditing)
         {
             _propertyValueBinding.UpdateTarget();
+            var value = PropertyValue;
+            Value = value;
+            ValueText = value?.ToString();
         }
         private void OnPropertyValueChanged(object oldValue, object newValue)
         {
             Value = newValue;
+            ValueText = newValue?.ToString();
             if (newValue != null)
                 PropertyType = newValue.GetType();
         }
@@ -109,6 +163,25 @@ namespace System.Windows
                 ValidValue = newValue;
                 IsValueChanged = false;
             }
+            RaiseValueChanged();
+        }
+        protected void OnValueTextChanged(string oldValue, string newValue)
+        {
+            if (newValue?.Equals(PropertyValue) == false)
+            {
+                object validValue;
+                var isValidValue = TryParse(newValue, out validValue);
+                IsValidValue = isValidValue;
+                ValidValue = validValue;
+                IsValueChanged = isValidValue && validValue?.Equals(PropertyValue) != true;
+            }
+            else
+            {
+                IsValidValue = true;
+                ValidValue = newValue;
+                IsValueChanged = false;
+            }
+            RaiseValueChanged();
         }
         private bool TryParse(object value, out object validValue)
         {
@@ -120,6 +193,21 @@ namespace System.Windows
             }
             catch { }
             return false;
+        }
+
+        public event RoutedEventHandler ValueChanged
+        {
+            add { this.AddHandler(ValueChangedEvent, value); }
+            remove { this.RemoveHandler(ValueChangedEvent, value); }
+        }
+        private void RaiseValueChanged()
+        {
+            var e = new RoutedEventArgs(ValueChangedEvent);
+            OnValueChanged(e);
+        }
+        protected virtual void OnValueChanged(RoutedEventArgs e)
+        {
+            this.RaiseEvent(e);
         }
     }
 }
