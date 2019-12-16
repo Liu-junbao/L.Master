@@ -17,7 +17,30 @@
     RegionBrowserAssist.Title="模块B"
     RegionBrowserAssist.ToolTip="模块B"
     mc:Ignorable="d">
-    <EFDataBox DbContextType="{x:Type b:DB}" EntityType="{x:Type b:Model}" QueryExpression="{Binding Query}">
+    <UserControl.Resources>
+        <Style x:Key="st.ValueEditor" TargetType="{x:Type EFValueEditor}">
+            <Style.Triggers>
+                <Trigger Property="PropertyName" Value="Age">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type EFValueEditor}">
+                                <ComboBox Width="50" SelectedItem="{TemplateBinding Value}">
+                                    <sys:Int32>1</sys:Int32>
+                                    <sys:Int32>2</sys:Int32>
+                                    <sys:Int32>3</sys:Int32>
+                                    <sys:Int32>4</sys:Int32>
+                                </ComboBox>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <EFDataBox
+        DbContextType="{x:Type b:DB}"
+        EntityType="{x:Type b:Model}"
+        QueryExpression="{Binding Query}">
         <DockPanel Margin="10">
             <EFDataGridBar DockPanel.Dock="Bottom" />
             <CustomButton
@@ -30,7 +53,7 @@
                 Command="{x:Static EFDataBox.ImportCommand}"
                 Content="导入"
                 DockPanel.Dock="Top" />
-            <EFDataGrid />
+            <EFDataGrid ValueEditorStyle="{StaticResource st.ValueEditor}" />
         </DockPanel>
     </EFDataBox>
 </UserControl>

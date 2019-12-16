@@ -41,6 +41,7 @@ namespace System.Windows
             DefaultStyleKeyProperty.OverrideMetadata(typeof(EFValueEditor), new FrameworkPropertyMetadata(typeof(EFValueEditor)));
         }
         private BindingExpressionBase _propertyValueBinding;
+        public EFValueEditor() : this(null, default) { }
         public EFValueEditor(string propertyName,Type propertyType)
         {
             PropertyName = propertyName;

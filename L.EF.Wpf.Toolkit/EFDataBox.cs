@@ -1,12 +1,17 @@
 ﻿using Microsoft.Win32;
+using NPOI.HSSF.UserModel;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -137,9 +142,9 @@ namespace System.Windows
             DependencyProperty.Register(nameof(EntityType), typeof(Type), typeof(EFDataGrid), new PropertyMetadata(default, OnPropertyChanged));
         public static readonly DependencyProperty ValidKindProperty =
             DependencyProperty.Register(nameof(ValidKind), typeof(string), typeof(EFDataGrid), new PropertyMetadata(null, OnPropertyChanged));
-        private static readonly DependencyPropertyKey EntityDisplayPropertyNamesPropertyKey =
-            DependencyProperty.RegisterReadOnly(nameof(EntityDisplayPropertyNames), typeof(IEnumerable<DisplayPropertyInfo>), typeof(EFDataBox), new PropertyMetadata(null));
-        public static readonly DependencyProperty EntityDisplayPropertyNamesProperty = EntityDisplayPropertyNamesPropertyKey.DependencyProperty;
+        private static readonly DependencyPropertyKey DisplayPropertyInfosPropertyKey =
+            DependencyProperty.RegisterReadOnly(nameof(DisplayPropertyInfos), typeof(IEnumerable<DisplayPropertyInfo>), typeof(EFDataBox), new PropertyMetadata(null));
+        public static readonly DependencyProperty DisplayPropertyInfosProperty = DisplayPropertyInfosPropertyKey.DependencyProperty;
         private static readonly DependencyPropertyKey DisplayItemsSourcePropertyKey =
             DependencyProperty.RegisterReadOnly(nameof(DisplayItemsSource), typeof(IEnumerable), typeof(EFDataBox), new PropertyMetadata(null));
         public static readonly DependencyProperty PageSizeProperty =
@@ -154,6 +159,8 @@ namespace System.Windows
             DependencyProperty.Register(nameof(PageIndex), typeof(int), typeof(EFDataBox), new PropertyMetadata(0,OnPropertyChanged));
         public static readonly DependencyProperty QueryExpressionProperty =
             DependencyProperty.Register(nameof(QueryExpression), typeof(Linq.Expressions.Expression), typeof(EFDataBox), new PropertyMetadata(null));
+        public static readonly DependencyProperty ViewModelProperty =
+            DependencyProperty.Register(nameof(ViewModel), typeof(IEFViewModel), typeof(EFDataBox), new PropertyMetadata(null));
         public static readonly DependencyProperty DisplayItemsSourceProperty = DisplayItemsSourcePropertyKey.DependencyProperty;
         private static readonly DependencyPropertyKey IsLoadingPropertyKey =
             DependencyProperty.RegisterReadOnly(nameof(IsLoading), typeof(bool), typeof(EFDataBox), new PropertyMetadata(false));
@@ -177,6 +184,10 @@ namespace System.Windows
             {
                 box.InitializeQueryExpresion();
             }
+            else if (e.Property == ViewModelProperty)
+            {
+                box.InitializeQueryExpresion();
+            }
             else if (e.Property == ValidKindProperty)
             {
                 box.InitializeDisplayPropertyNames();
@@ -193,27 +204,32 @@ namespace System.Windows
             return baseValue;
         }
         private ObservableDictionary<object, object> _itemsSource;
+        private List<string> _entityNames;
+        private string _entityName;
         private Dictionary<string, PropertyInfo> _entitiyPropertys;
-        private Dictionary<string, string> _headerToPropertyNames;
+        private Dictionary<string, string> _headerToPropertyNames;     
         private PropertyInfo _keyPropertyInfo;
         private string _keyName;
         private Func<object, object> _getKey;
         private Expression<Func<DbContext, int>> _queryCountExpression;
         private Expression<Func<DbContext, int, int, IEnumerable<object>>> _queryPageExpression;
+        private Expression<Func<DbContext, IEnumerable<object>>> _queryExpression;
         private object _loadingLocker;
         private bool _isLoading;
         public EFDataBox()
         {
             _loadingLocker = new object();
             _isLoading = false;
+            _entityNames = new List<string>();
             _entitiyPropertys = new Dictionary<string, PropertyInfo>();
             _headerToPropertyNames = new Dictionary<string, string>();
             _itemsSource = new ObservableDictionary<object, object>();
             EFDataGridAssist.SetItemsSource(this, _itemsSource);
             DisplayItemsSource = _itemsSource;
-            this.SetBinding(EFDataGridAssist.DisplayPropertyNamesProperty, new Binding(nameof(EntityDisplayPropertyNames)) { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(EFDataGridAssist.DisplayPropertyInfosProperty, new Binding(nameof(DisplayPropertyInfos)) { Source = this, Mode = BindingMode.OneWay });
             this.SetBinding(EFDataGridBarAssist.CountProperty, new Binding(nameof(Count)) { Source = this, Mode = BindingMode.OneWay });
             this.SetBinding(EFDataGridBarAssist.PageCountProperty, new Binding(nameof(PageCount)) { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(ViewModelProperty, new Binding("."));
             this.CommandBindings.Add(new CommandBinding(LoadCommand, new ExecutedRoutedEventHandler(OnLoad)));
             this.CommandBindings.Add(new CommandBinding(RefreshCommand, new ExecutedRoutedEventHandler(OnRefresh)));
             this.CommandBindings.Add(new CommandBinding(ExportCommand, new ExecutedRoutedEventHandler(OnExport)));
@@ -239,10 +255,10 @@ namespace System.Windows
             get { return (string)GetValue(ValidKindProperty); }
             set { SetValue(ValidKindProperty, value); }
         }
-        public IEnumerable<DisplayPropertyInfo> EntityDisplayPropertyNames
+        public IEnumerable<DisplayPropertyInfo> DisplayPropertyInfos
         {
-            get { return (IEnumerable<DisplayPropertyInfo>)GetValue(EntityDisplayPropertyNamesProperty); }
-            protected set { SetValue(EntityDisplayPropertyNamesPropertyKey, value); }
+            get { return (IEnumerable<DisplayPropertyInfo>)GetValue(DisplayPropertyInfosProperty); }
+            protected set { SetValue(DisplayPropertyInfosPropertyKey, value); }
         }
         public IEnumerable DisplayItemsSource
         {
@@ -274,6 +290,11 @@ namespace System.Windows
             get { return (Linq.Expressions.Expression)GetValue(QueryExpressionProperty); }
             set { SetValue(QueryExpressionProperty, value); }
         }
+        public IEFViewModel ViewModel
+        {
+            get { return (IEFViewModel)GetValue(ViewModelProperty); }
+            set { SetValue(ViewModelProperty, value); }
+        }
         public bool IsLoading
         {
             get { return (bool)GetValue(IsLoadingProperty); }
@@ -281,7 +302,7 @@ namespace System.Windows
         }
         private void EFDataBox_Loaded(object sender, RoutedEventArgs e)
         {
-            LoadData();
+            Load();
         }
         protected override void OnInitialized(EventArgs e)
         {
@@ -306,14 +327,36 @@ namespace System.Windows
         private void InitializeQueryExpresion()
         {
             var type = EntityType;
-            var query = QueryExpression;
-            _queryCountExpression = GetQueryCountExpression(type, query);
-            _queryPageExpression = GetQueryPageExpression(type, _keyPropertyInfo, query);
+            var query = ViewModel?.QueryExpression;
+            var query1 = QueryExpression;
+            _queryCountExpression = GetQueryCountExpression(type, query, query1);
+            _queryPageExpression = GetQueryPageExpression(type, _keyPropertyInfo, query, query1);
+            _queryExpression = GetQueryExpression(type, query, query1);
         }
         private void InitializeDisplayPropertyNames()
         {
+            _entityNames.Clear();
             _headerToPropertyNames.Clear();
+            var type = EntityType;
             var validKind = ValidKind;
+            _entityNames.Add(type.Name);
+            GenericNameAttribute entityAttr = null;
+            foreach (var att in type.GetCustomAttributes(typeof(GenericNameAttribute)).OfType<GenericNameAttribute>().OrderByDescending(i => i.Kind))
+            {
+                var name = att.Name;
+                var kind = att.Kind;
+                if (_entityNames.Contains(name))
+                    throw new ArgumentException($"实体模型存在同名的标记![{name}]");
+                _entityNames.Add(name);
+                if (entityAttr == null)
+                {
+                    if (kind == validKind)
+                        entityAttr = att;
+                    else if (string.IsNullOrEmpty(kind))
+                        entityAttr = att;
+                }
+            }
+            _entityName = string.IsNullOrEmpty(entityAttr?.Name) == false ? entityAttr.Name : type.Name;
             var genericeNames = new List<DisplayPropertyInfo>();
             foreach (var ppt in _entitiyPropertys.Values)
             {
@@ -324,7 +367,7 @@ namespace System.Windows
                     var name = att.Name;
                     var kind = att.Kind;
                     if (_headerToPropertyNames.ContainsKey(name))
-                        throw new ArgumentException($"存在同名的属性![{name}]");
+                        throw new ArgumentException($"属性存在同名的标记![{name}]");
                     _headerToPropertyNames.Add(att.Name, ppt.Name);
                     if (displayAttr == null)
                     {
@@ -335,9 +378,9 @@ namespace System.Windows
                     }
                 }
                 if (displayAttr != null)
-                    genericeNames.Add(new DisplayPropertyInfo(ppt, displayAttr));
+                    genericeNames.Add(new DisplayPropertyInfo(ppt, displayAttr, entityAttr));
             }
-            EntityDisplayPropertyNames = genericeNames;
+            DisplayPropertyInfos = genericeNames;
         }
         private void OnEdit(object sender, ExecutedRoutedEventArgs e)
         {
@@ -365,18 +408,29 @@ namespace System.Windows
             var item = e.Parameter;
             if (grid != null && item != null)
             {
-                var row = grid.ItemContainerGenerator.ContainerFromItem(item);
-                foreach (var valueEditor in row.FindChildren<EFValueEditor>())
+                try
                 {
-                    if (valueEditor.IsValueChanged)
+                    var row = grid.ItemContainerGenerator.ContainerFromItem(item);
+                    foreach (var valueEditor in row.FindChildren<EFValueEditor>())
                     {
-                        _entitiyPropertys[valueEditor.PropertyName].SetValue(item, valueEditor.ValidValue);
-                        //
-
-
+                        if (valueEditor.IsValueChanged)
+                        {
+                            _entitiyPropertys[valueEditor.PropertyName].SetValue(item, valueEditor.ValidValue);
+                        }
                     }
+                    //保存
+                    using (var db = (DbContext)Activator.CreateInstance(DbContextType))
+                    {
+                        db.Entry(item).State = EntityState.Modified;
+                        db.SaveChanges();
+                    }
+
+                    EFDataGridAssist.SetIsRowEditing(row, false);
                 }
-                EFDataGridAssist.SetIsRowEditing(row, false);
+                catch (Exception ex)
+                {
+                    //
+                }
             }
         }
         private void OnDelete(object sender, ExecutedRoutedEventArgs e)
@@ -386,38 +440,58 @@ namespace System.Windows
             //
             if (grid != null && item != null)
             {
-                var row = grid.ItemContainerGenerator.ContainerFromItem(item);
-                EFDataGridAssist.SetIsRowEditing(row, false);
+                try
+                {
+                    //删除
+                    using (var db = (DbContext)Activator.CreateInstance(DbContextType))
+                    {
+                        db.Entry(item).State = EntityState.Deleted;
+                        db.SaveChanges();
+                    }
+
+                    Refresh();
+
+                    var row = grid.ItemContainerGenerator.ContainerFromItem(item);
+                    EFDataGridAssist.SetIsRowEditing(row, false);
+                }
+                catch (Exception ex)
+                {
+                    //
+                }
             }
         }
         private void OnLoad(object sender, ExecutedRoutedEventArgs e)
         {
-            LoadData();
+            Load();
         }
         private void OnRefresh(object sender, ExecutedRoutedEventArgs e)
         {
             
         }
-        private void OnExport(object sender, ExecutedRoutedEventArgs e)
+        private async void OnExport(object sender, ExecutedRoutedEventArgs e)
         {
-
+            var ret = await ExportWithFileDialog();
+            if (ret == true)
+                ViewModel?.OnCatchedMessage("导出成功");
+            else if (ret == false)
+                ViewModel?.OnCatchedMessage("导出失败");
         }
-        private void OnImport(object sender, ExecutedRoutedEventArgs e)
+        private async void OnImport(object sender, ExecutedRoutedEventArgs e)
         {
-            //var result = await ImportWithFileDialog();
-            //if (result == false)
-            //    OnCapturedMessage("导入失败!");
-            //else if (result == true)
-            //{
-            //    LoadDataAsync();
-            //    OnCapturedMessage("导入成功!");
-            //}
+            var result = await ImportWithFileDialog();
+            if (result == false)
+                ViewModel?.OnCatchedMessage("导入失败!");
+            else if (result == true)
+            {
+                Load();
+                ViewModel?.OnCatchedMessage("导入成功!");
+            }
         }
-        private async void LoadData()
+        private async void Load()
         {
             if (_isLoading) return;
             var dbContextType = DbContextType;
-            if (dbContextType == null || typeof(DbContext).IsAssignableFrom(dbContextType) == false)
+            if (dbContextType == default || typeof(DbContext).IsAssignableFrom(dbContextType) == false)
                 return;
             if (_queryCountExpression == null || _queryPageExpression == null)
                 return;
@@ -426,6 +500,7 @@ namespace System.Windows
                 if (_isLoading) return;
                 _isLoading = true;
             }
+
             try
             {
                 IsLoading = true;
@@ -455,11 +530,16 @@ namespace System.Windows
                 _isLoading = false;
             }
         }
+        private void Refresh()
+        {
+            var pageIndex = PageIndex;
+            LoadPage(pageIndex);
+        }
         private async void LoadPage(int pageIndex)
         {
             if (_isLoading) return;
             var dbContextType = DbContextType;
-            if (dbContextType == null || typeof(DbContext).IsAssignableFrom(dbContextType) == false)
+            if (dbContextType == default || typeof(DbContext).IsAssignableFrom(dbContextType) == false)
                 return;
             if (_queryCountExpression == null || _queryPageExpression == null)
                 return;
@@ -488,11 +568,6 @@ namespace System.Windows
             {
                 _isLoading = false;
             }
-        }
-        private void Refresh()
-        {
-            var pageIndex = PageIndex;
-            LoadPage(pageIndex);
         }
         private Task<int> QueryCountAsync(Type contextType)
         {
@@ -546,7 +621,7 @@ namespace System.Windows
             var objBordy = Linq.Expressions.Expression.Convert(getKey, typeof(object));
             return Linq.Expressions.Expression.Lambda<Func<object, object>>(objBordy, objParam);
         }
-        private Expression<Func<DbContext, int>> GetQueryCountExpression(Type entityType, Linq.Expressions.Expression query = null)
+        private Expression<Func<DbContext, int>> GetQueryCountExpression(Type entityType, params Linq.Expressions.Expression[] querys)
         {
             if (entityType == default) return null;
 
@@ -555,12 +630,20 @@ namespace System.Windows
             var dbSet = Linq.Expressions.Expression.Call(db, nameof(DbContext.Set), new Type[] { entityType });//db.Set<T>()
             //
             Linq.Expressions.Expression body = dbSet;
-            if (query != null)
-                body = Linq.Expressions.Expression.Invoke(query, dbSet);
+            if (querys != null)
+            {
+                foreach (var query in querys)
+                {
+                    if (query != null)
+                    {
+                        body = Linq.Expressions.Expression.Invoke(query, body);
+                    }
+                }
+            }
             body = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.Count), new Type[] { entityType }, body);
             return Linq.Expressions.Expression.Lambda<Func<DbContext, int>>(body,db);
         }
-        private Expression<Func<DbContext, int, int, IEnumerable<object>>> GetQueryPageExpression(Type entityType, PropertyInfo keyPropertyInfo, Linq.Expressions.Expression query = null)
+        private Expression<Func<DbContext, int, int, IEnumerable<object>>> GetQueryPageExpression(Type entityType, PropertyInfo keyPropertyInfo,params Linq.Expressions.Expression[] querys)
         {
             if (entityType == default || keyPropertyInfo == null) return null;
 
@@ -571,10 +654,16 @@ namespace System.Windows
             var dbSet = Linq.Expressions.Expression.Call(db, nameof(DbContext.Set), new Type[] { entityType });//db.Set<T>()
             bool hasOrderby = false;
             Linq.Expressions.Expression body = dbSet;
-            if (query != null)
+            if (querys != null)
             {
-                body = Linq.Expressions.Expression.Invoke(query, dbSet);
-                hasOrderby = IsExpresionContainsMethodName(query, nameof(Queryable.OrderBy));
+                foreach (var query in querys)
+                {
+                    if (query != null)
+                    {
+                        body = Linq.Expressions.Expression.Invoke(query, body);
+                    }
+                }
+                hasOrderby = IsExpresionContainsMethodName(body, nameof(Queryable.OrderBy));
             }
             if (hasOrderby == false)
             {
@@ -588,6 +677,26 @@ namespace System.Windows
             body = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.Skip), new Type[] { entityType }, body, skipCount);//db.Set<T>().Where().OrderBy(i=>i.Key).Skip();
             body = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.Take), new Type[] { entityType }, body, takeCount);//db.Set<T>().Where().OrderBy(i=>i.Key).Skip().Take();
             return Linq.Expressions.Expression.Lambda<Func<DbContext, int, int, IEnumerable<object>>>(body, db, skipCount, takeCount);
+        }
+        private Expression<Func<DbContext, IEnumerable<object>>> GetQueryExpression(Type entityType,params Linq.Expressions.Expression[] querys)
+        {
+            if (entityType == default) return null;
+
+            //完整表达式 return db.Set<T>().Where();   
+            var db = Linq.Expressions.Expression.Parameter(typeof(DbContext));
+            var dbSet = Linq.Expressions.Expression.Call(db, nameof(DbContext.Set), new Type[] { entityType });//db.Set<T>()
+            Linq.Expressions.Expression body = dbSet;
+            if (querys != null)
+            {
+                foreach (var query in querys)
+                {
+                    if (query != null)
+                    {
+                        body = Linq.Expressions.Expression.Invoke(query, body);
+                    }
+                }
+            }
+            return Linq.Expressions.Expression.Lambda<Func<DbContext, IEnumerable<object>>>(body, db);
         }
         private bool IsExpresionContainsMethodName(Linq.Expressions.Expression expression, string methodName)
         {
@@ -616,357 +725,328 @@ namespace System.Windows
         #endregion
 
         #region Excel 
-        ///// <summary>
-        ///// 导出，弹出文件路径选择窗体
-        ///// </summary>
-        ///// <param name="defaultFileName"></param>
-        ///// <param name="tableName"></param>
-        ///// <returns>null:取消 true:导表成功 false:导表失败</returns>
-        //protected async Task<bool?> ExportWithFileDialog(string defaultFileName = null)
-        //{
-        //    SaveFileDialog dialog = new SaveFileDialog();
-        //    dialog.FileName = string.IsNullOrEmpty(defaultFileName) ? _sheetName : defaultFileName;
-        //    dialog.Filter = "Excel2007文件|*.xlsx|Excel2003文件|*.xls";
-        //    if (dialog.ShowDialog() == true)
-        //        return await Export(dialog.FileName, dialog.FilterIndex == 2);
-        //    return null;
-        //}
+        /// <summary>
+        /// 导出，弹出文件路径选择窗体
+        /// </summary>
+        /// <param name="defaultFileName"></param>
+        /// <param name="tableName"></param>
+        /// <returns>null:取消 true:导表成功 false:导表失败</returns>
+        protected async Task<bool?> ExportWithFileDialog()
+        {
+            var dbContextType = DbContextType;
+            if (dbContextType == default || typeof(DbContext).IsAssignableFrom(dbContextType) == false)
+                return null;
+            var qureExpression = _queryExpression;
+            if (qureExpression == null)
+                return null;
 
-        ///// <summary>
-        ///// 导出
-        ///// </summary>
-        ///// <param name="fileName"></param>
-        ///// <param name="tableName"></param>
-        ///// <param name="isXls">xls:Excel2003 xlsx:Excel2007</param>
-        ///// <returns></returns>
-        //protected Task<bool> Export(string fileName, bool isXls = false)
-        //{
-        //    return Task.Run(() =>
-        //    {
-        //        try
-        //        {
-        //            IWorkbook workbook;
-        //            if (File.Exists(fileName) == false)
-        //                workbook = isXls ? new HSSFWorkbook() : (IWorkbook)new XSSFWorkbook();
-        //            else
-        //            {
-        //                try
-        //                {
-        //                    using (var ms = new FileStream(fileName, FileMode.Open, FileAccess.Read))
-        //                    {
-        //                        workbook = isXls ? new HSSFWorkbook(ms) : (IWorkbook)new XSSFWorkbook(ms);
-        //                    }
-        //                }
-        //                catch (Exception e)
-        //                {
-        //                    OnCapturedException(e, "打开文件异常，请检查文件是否破损或者被占用!");
-        //                    return false;
-        //                }
-        //            }
+            var displayPropertyInfos = this.DisplayPropertyInfos;
+            var viewModel = ViewModel;
 
-        //            //删除表
-        //            var oldSheet = workbook.GetSheet(_sheetName);
-        //            if (oldSheet != null)
-        //            {
-        //                var sheetIndex = workbook.GetSheetIndex(oldSheet);
-        //                workbook.RemoveSheetAt(sheetIndex);
-        //            }
+            SaveFileDialog dialog = new SaveFileDialog();
+            dialog.FileName = _entityName;
+            dialog.Filter = "Excel2007文件|*.xlsx|Excel2003文件|*.xls";
+            if (dialog.ShowDialog() == true)
+            {
+                var fileName = dialog.FileName;
+                var isXls = dialog.FilterIndex == 2;
 
-        //            //创建表
-        //            var sheet = workbook.CreateSheet(_sheetName);
-        //            var rowIndex = 0;
+                return await Task.Run(() =>
+                {
+                    try
+                    {
+                        IWorkbook workbook;
+                        if (File.Exists(fileName) == false)
+                            workbook = isXls ? new HSSFWorkbook() : (IWorkbook)new XSSFWorkbook();
+                        else
+                        {
+                            try
+                            {
+                                using (var ms = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+                                {
+                                    workbook = isXls ? new HSSFWorkbook(ms) : (IWorkbook)new XSSFWorkbook(ms);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                viewModel?.OnCatchedException(e, "打开文件异常，请检查文件是否破损或者被占用!");
+                                return false;
+                            }
+                        }
 
-        //            //创建列
-        //            var columnRow = sheet.CreateRow(rowIndex);
-        //            var columnPropertys = new List<PropertyInfo>();
-        //            var columnIndex = 0;
-        //            foreach (var item in GetExportPropertyNames())
-        //            {
-        //                if (_propertyInfos.ContainsKey(item) == false)
-        //                    throw new Exception($"属性{item}不存在!");
-        //                columnPropertys.Add(_propertyInfos[item]);
-        //                var headerText = GetHeader(item);
-        //                var cell = columnRow.CreateCell(columnIndex);
-        //                cell.SetCellValue(headerText);
-        //                columnIndex++;
-        //            }
+                        //删除表
+                        var oldSheet = workbook.GetSheet(_entityName);
+                        if (oldSheet != null)
+                        {
+                            var sheetIndex = workbook.GetSheetIndex(oldSheet);
+                            workbook.RemoveSheetAt(sheetIndex);
+                        }
 
-        //            //表数据                    
-        //            foreach (var model in GetExportModels())
-        //            {
-        //                rowIndex++;
-        //                var row = sheet.CreateRow(rowIndex);
-        //                for (int i = 0; i < columnPropertys.Count; i++)
-        //                {
-        //                    var property = columnPropertys[i];
-        //                    var propertyType = property.PropertyType;
-        //                    var propertyValue = property.GetValue(model);
-        //                    string valueText;
-        //                    if (propertyType == typeof(DateTime) || propertyType == typeof(DateTime?))
-        //                        valueText = $"{propertyValue:yyyy-MM-dd HH:mm:ss.fff}";
-        //                    else if (propertyType == typeof(TimeSpan) || propertyType == typeof(TimeSpan?))
-        //                        valueText = $"{propertyValue:c}";
-        //                    else
-        //                        valueText = propertyValue?.ToString();
-        //                    var cell = row.CreateCell(i);
-        //                    cell.SetCellValue(valueText);
-        //                }
-        //                OnExporting(rowIndex, model);
-        //            }
+                        //创建表
+                        var sheet = workbook.CreateSheet(_entityName);
+                        var rowIndex = 0;
 
-        //            var fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
-        //            workbook.Write(fileStream);
-        //            fileStream.Close();
-        //            return true;
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            OnCapturedException(e, "导表异常");
-        //            return false;
-        //        }
-        //    });
-        //}
+                        //创建列
+                        var columnRow = sheet.CreateRow(rowIndex);
+                        var columnIndex = 0;
+                        foreach (var item in displayPropertyInfos)
+                        {
+                            var headerText = item.GenericName;
+                            var cell = columnRow.CreateCell(columnIndex);
+                            cell.SetCellValue(headerText);
+                            columnIndex++;
+                        }
 
-        ///// <summary>
-        ///// 获取导出数据
-        ///// </summary>
-        ///// <returns></returns>
-        //protected virtual IEnumerable<TModel> GetExportModels() => LoadAll();
+                        //表数据   
 
-        ///// <summary>
-        ///// 获取导出属性
-        ///// </summary>
-        ///// <returns></returns>
-        //protected virtual IEnumerable<string> GetExportPropertyNames() => _propertyInfos.Keys;
+                        using (var db = (DbContext)Activator.CreateInstance(dbContextType))
+                        {
+                            foreach (var model in qureExpression.Compile().Invoke(db))
+                            {
+                                rowIndex++;
+                                var row = sheet.CreateRow(rowIndex);
+                                var colIndex = 0;
+                                foreach (var item in displayPropertyInfos)
+                                {
+                                    var property = _entitiyPropertys[item.PropertyName];
+                                    var propertyType = property.PropertyType;
+                                    var propertyValue = property.GetValue(model);
+                                    string valueText;
+                                    if (propertyType == typeof(DateTime) || propertyType == typeof(DateTime?))
+                                        valueText = $"{propertyValue:yyyy-MM-dd HH:mm:ss.fff}";
+                                    else if (propertyType == typeof(TimeSpan) || propertyType == typeof(TimeSpan?))
+                                        valueText = $"{propertyValue:c}";
+                                    else
+                                        valueText = propertyValue?.ToString();
+                                    var cell = row.CreateCell(colIndex);
+                                    cell.SetCellValue(valueText);
+                                    colIndex++;
+                                }
+                            }
+                        }
 
-        ///// <summary>
-        ///// 导出过程
-        ///// </summary>
-        ///// <param name="index"></param>
-        //protected virtual void OnExporting(int index, TModel model) { }
+                        var fileStream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
+                        workbook.Write(fileStream);
+                        fileStream.Close();
+                        return true;
+                    }
+                    catch (Exception e)
+                    {
+                        viewModel?.OnCatchedException(e, "导表异常");
+                        return false;
+                    }
+                });
+            }
+            return null;
+        }
+        /// <summary>
+        /// 导入
+        /// </summary>
+        /// <returns></returns>
+        protected async Task<bool?> ImportWithFileDialog()
+        {
+            var dbContextType = DbContextType;
+            var entityType = EntityType;
+            if (dbContextType == default || typeof(DbContext).IsAssignableFrom(dbContextType) == false || entityType == default)
+                return null;
 
-        ///// <summary>
-        ///// 导入
-        ///// </summary>
-        ///// <returns></returns>
-        //protected async Task<bool?> ImportWithFileDialog()
-        //{
-        //    OpenFileDialog dialog = new OpenFileDialog();
-        //    dialog.Filter = "Excel2007文件|*.xlsx|Excel2003文件|*.xls";
-        //    if (dialog.ShowDialog() == true)
-        //        return await Import(dialog.FileName, dialog.FilterIndex == 2);
-        //    return null;
-        //}
-        ///// <summary>
-        ///// 导入
-        ///// </summary>
-        ///// <param name="fileName"></param>
-        ///// <param name="isXls"></param>
-        ///// <returns></returns>
-        //protected Task<bool> Import(string fileName, bool isXls = false)
-        //{
-        //    return Task.Run(() =>
-        //    {
-        //        try
-        //        {
-        //            IWorkbook workbook;
-        //            if (File.Exists(fileName) == false)
-        //            {
-        //                OnCapturedMessage("文件不存在!");
-        //                return false;
-        //            }
-        //            else
-        //            {
-        //                try
-        //                {
-        //                    using (var ms = new FileStream(fileName, FileMode.Open, FileAccess.ReadWrite))
-        //                    {
-        //                        workbook = isXls ? new HSSFWorkbook(ms) : (IWorkbook)new XSSFWorkbook(ms);
-        //                    }
-        //                }
-        //                catch (Exception e)
-        //                {
-        //                    OnCapturedException(e, "打开文件失败，请检查文件是否破损或者被占用!");
-        //                    return false;
-        //                }
-        //            }
+            var viewModel = ViewModel;
 
-        //            //获取表
-        //            ISheet sheet = workbook.GetSheet(_sheetName);
-        //            if (sheet == null)
-        //                sheet = workbook.GetSheetAt(0);
-        //            if (sheet == null)
-        //            {
-        //                OnCapturedMessage("文件中无数据!");
-        //                return false;
-        //            }
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Filter = "Excel2007文件|*.xlsx|Excel2003文件|*.xls";
+            if (dialog.ShowDialog() == true)
+            {
+                var fileName = dialog.FileName;
+                var isXls = dialog.FilterIndex == 2;
+                return await Task.Run(() =>
+                {
+                    try
+                    {
+                        IWorkbook workbook;
+                        if (File.Exists(fileName) == false)
+                        {
+                            viewModel?.OnCatchedMessage("文件不存在!");
+                            return false;
+                        }
+                        else
+                        {
+                            try
+                            {
+                                using (var ms = new FileStream(fileName, FileMode.Open, FileAccess.ReadWrite))
+                                {
+                                    workbook = isXls ? new HSSFWorkbook(ms) : (IWorkbook)new XSSFWorkbook(ms);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                viewModel?.OnCatchedException(e, "打开文件失败，请检查文件是否破损或者被占用!");
+                                return false;
+                            }
+                        }
 
-        //            //读取列
-        //            var columnRow = sheet.GetRow(sheet.FirstRowNum);
-        //            var hasKeyColumn = false;
-        //            var keyColumnName = string.Empty;
-        //            var keyIndex = -1;
-        //            var columnIndex = 0;
-        //            var columns = new List<Tuple<string, string>>();
-        //            foreach (var item in columnRow)
-        //            {
-        //                var columnName = item?.ToString();
-        //                if (_headerToPropertyNameDictionary.ContainsKey(columnName))
-        //                {
-        //                    var propertyName = _headerToPropertyNameDictionary[columnName];
-        //                    if (propertyName == KeyPropertyName)
-        //                    {
-        //                        if (hasKeyColumn == false)
-        //                        {
-        //                            hasKeyColumn = true;
-        //                            keyColumnName = columnName;
-        //                            keyIndex = columnIndex;
-        //                        }
-        //                        else
-        //                        {
-        //                            OnCapturedMessage($"存在多个主键列[{keyIndex}:{keyColumnName}][{columnIndex}:{columnName}]");
-        //                            return false;
-        //                        }
-        //                    }
-        //                    columns.Add(new Tuple<string, string>(columnName, propertyName));
-        //                }
-        //                columnIndex++;
-        //            }
+                        //获取表
+                        ISheet sheet = workbook.GetSheet(_entityName);
+                        if (sheet == null)
+                            sheet = workbook.GetSheetAt(0);
+                        if (sheet == null)
+                        {
+                            viewModel?.OnCatchedMessage("文件中无数据!");
+                            return false;
+                        }
 
-        //            //读取值
-        //            if (columns.Count == 0)
-        //            {
-        //                OnCapturedMessage("文件中未匹配到列!");
-        //                return false;
-        //            }
-        //            var updateItems = new List<TModel>();
-        //            var errors = new List<Tuple<int, string, object>>();
-        //            bool isSkipError = false;
-        //            using (var db = new TDbContext())
-        //            {
-        //                var dataSet = db.Set<TModel>();
-        //                foreach (IRow item in sheet)
-        //                {
-        //                    if (item != columnRow)
-        //                    {
-        //                        TModel model = null;
-        //                        bool isNewItem = false;
-        //                        bool hasError = false;
-        //                        if (hasKeyColumn)
-        //                        {
-        //                            var readedValue = item.GetCell(keyIndex)?.ToString();
-        //                            object value;
-        //                            if (this.TryParse(KeyPropertyName, readedValue, out value))
-        //                            {
-        //                                model = dataSet.Find(value);
-        //                            }
-        //                            else if (string.IsNullOrEmpty(readedValue) == false)
-        //                            {
-        //                                if (isSkipError || OnImportedFirstErrorItem(item.RowNum, KeyPropertyName, readedValue))
-        //                                {
-        //                                    isSkipError = true;
-        //                                    hasError = true;
-        //                                    errors.Add(new Tuple<int, string, object>(item.RowNum, KeyPropertyName, readedValue));
-        //                                    continue;
-        //                                }
-        //                            }
-        //                        }
-        //                        if (model == null)
-        //                        {
-        //                            isNewItem = true;
-        //                            model = new TModel();
-        //                        }
-        //                        for (int i = 0; i < columns.Count; i++)
-        //                        {
-        //                            if (isNewItem == false && hasKeyColumn && i == keyIndex)//已存在的列不允许修改主键列
-        //                                continue;
+                        //读取列
+                        var columnRow = sheet.GetRow(sheet.FirstRowNum);
+                        var hasKeyColumn = false;
+                        var keyColumnName = string.Empty;
+                        var keyIndex = -1;
+                        var columnIndex = 0;
+                        var columns = new List<Tuple<string, string>>();
+                        foreach (var item in columnRow)
+                        {
+                            var columnName = item?.ToString();
+                            if (_headerToPropertyNames.ContainsKey(columnName))
+                            {
+                                var propertyName = _headerToPropertyNames[columnName];
+                                if (propertyName == _keyName)
+                                {
+                                    if (hasKeyColumn == false)
+                                    {
+                                        hasKeyColumn = true;
+                                        keyColumnName = columnName;
+                                        keyIndex = columnIndex;
+                                    }
+                                    else
+                                    {
+                                        viewModel?.OnCatchedMessage($"存在多个主键列[{keyIndex}:{keyColumnName}][{columnIndex}:{columnName}]");
+                                        return false;
+                                    }
+                                }
+                                columns.Add(new Tuple<string, string>(columnName, propertyName));
+                            }
+                            columnIndex++;
+                        }
 
-        //                            var readedValue = item.GetCell(i)?.ToString();
-        //                            var pair = columns[i];
-        //                            var columnName = pair.Item1;
-        //                            var propertyName = pair.Item2;
-        //                            object value;
-        //                            if (this.TryParse(propertyName, readedValue, out value))
-        //                            {
-        //                                OnImporting(item.RowNum, model);
-        //                                _propertyInfos[propertyName].SetValue(model, value);
-        //                            }
-        //                            else if (isSkipError || OnImportedFirstErrorItem(item.RowNum, columnName, readedValue))
-        //                            {
-        //                                isSkipError = true;
-        //                                hasError = true;
-        //                                errors.Add(new Tuple<int, string, object>(item.RowNum, columnName, readedValue));
-        //                                break;
-        //                            }
-        //                            else
-        //                            {
-        //                                return false;
-        //                            }
-        //                        }
+                        //读取值
+                        if (columns.Count == 0)
+                        {
+                            viewModel?.OnCatchedMessage("文件中未匹配到列!");
+                            return false;
+                        }
+                        var updateItems = new List<object>();
+                        var errors = new List<Tuple<int, string, object>>();
+                        bool isSkipError = false;
+                        using (var db = (DbContext)Activator.CreateInstance(dbContextType))
+                        {
+                            var dataSet = db.Set(entityType);
+                            foreach (IRow item in sheet)
+                            {
+                                if (item != columnRow)
+                                {
+                                    object model = null;
+                                    bool isNewItem = false;
+                                    bool hasError = false;
+                                    if (hasKeyColumn)
+                                    {
+                                        var readedValue = item.GetCell(keyIndex)?.ToString();
+                                        object value;
+                                        if (this.TryParse(_keyName, readedValue, out value))
+                                        {
+                                            model = dataSet.Find(value);
+                                        }
+                                        else if (string.IsNullOrEmpty(readedValue) == false)
+                                        {
+                                            if (isSkipError || viewModel?.IsImportIgnoreErrorItemsWhenImportedFirstErrorItem(item.RowNum, keyColumnName, readedValue) == true)
+                                            {
+                                                isSkipError = true;
+                                                hasError = true;
+                                                errors.Add(new Tuple<int, string, object>(item.RowNum, keyColumnName, readedValue));
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                    if (model == null)
+                                    {
+                                        isNewItem = true;
+                                        model = Activator.CreateInstance(entityType);
+                                    }
+                                    for (int i = 0; i < columns.Count; i++)
+                                    {
+                                        if (isNewItem == false && hasKeyColumn && i == keyIndex)//已存在的列不允许修改主键列
+                                            continue;
 
-        //                        if (hasError)
-        //                        {
-        //                            continue;
-        //                        }
+                                        var readedValue = item.GetCell(i)?.ToString();
+                                        var pair = columns[i];
+                                        var columnName = pair.Item1;
+                                        var propertyName = pair.Item2;
+                                        object value;
+                                        if (this.TryParse(propertyName, readedValue, out value))
+                                        {
+                                            _entitiyPropertys[propertyName].SetValue(model, value);
+                                        }
+                                        else if (isSkipError || viewModel?.IsImportIgnoreErrorItemsWhenImportedFirstErrorItem(item.RowNum, columnName, readedValue) == true)
+                                        {
+                                            isSkipError = true;
+                                            hasError = true;
+                                            errors.Add(new Tuple<int, string, object>(item.RowNum, columnName, readedValue));
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            return false;
+                                        }
+                                    }
 
-        //                        updateItems.Add(model);
-        //                        if (isNewItem)
-        //                        {
-        //                            dataSet.Add(model);
-        //                        }
-        //                    }
-        //                }
-        //                //
-        //                db.SaveChanges();
-        //            }
-        //            //
-        //            OnImportedCompleted(updateItems, errors);
-        //            return true;
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            OnCapturedException(e, "导入数据异常");
-        //        }
+                                    if (hasError)
+                                    {
+                                        continue;
+                                    }
 
-        //        return false;
-        //    });
-        //}
+                                    updateItems.Add(model);
+                                    if (isNewItem)
+                                    {
+                                        dataSet.Add(model);
+                                    }
+                                }
+                            }
+                            //
+                            db.SaveChanges();
+                        }
+                        //
+                        viewModel?.OnImportedCompleted(updateItems, errors);
+                        return true;
+                    }
+                    catch (Exception e)
+                    {
+                        viewModel?.OnCatchedException(e, "导入数据异常");
+                    }
 
-        //protected virtual void OnImporting(int rowIndex, TModel model) { }
-        //protected virtual bool OnImportedFirstErrorItem(int rowIndex, string columnName, object value)
-        //{
-        //    if (MessageBox.Show($"数据格式不正确，是否忽略所有错误行？ [行：{rowIndex}   列：{columnName}   值：{value}]", "警告", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
-        //    {
-        //        return true;
-        //    }
-        //    return false;
-        //}
-        //protected virtual void OnImportedCompleted(List<TModel> importeds, List<Tuple<int, string, object>> errors)
-        //{
-        //    StringBuilder builder = new StringBuilder();
-        //    builder.AppendLine($"更新成功数量：{importeds.Count}  失败数量：{errors.Count}");
-        //    if (errors.Count > 0)
-        //    {
-        //        builder.AppendLine("失败明细列表：");
-        //        foreach (var item in errors)
-        //        {
-        //            builder.AppendLine($"[行：{item.Item1}   列：{item.Item2}   值：{item.Item3}]");
-        //        }
-        //    }
-        //    MessageBox.Show(builder.ToString(), "导入结果", MessageBoxButton.OK);
-        //}
+                    return false;
+                });
+            }
+            return null;
+        }
+        private bool TryParse(string propertyName, object parseValue, out object value)
+        {
+            value = null;
+            try
+            {
+                var property = _entitiyPropertys[propertyName];
+                value = Convert.ChangeType(parseValue, property.PropertyType);
+                return true;
+            }
+            catch { }
+            return false;
+        }
         #endregion
     }
-
-
     public struct DisplayPropertyInfo
     {
-        public DisplayPropertyInfo(PropertyInfo info,GenericNameAttribute attribute)
+        public DisplayPropertyInfo(PropertyInfo info, GenericNameAttribute attribute, GenericNameAttribute entityAttibute)
         {
             PropertyName = info.Name;
             PropertyType = info.PropertyType;
             GenericName = string.IsNullOrEmpty(attribute.Name) ? PropertyName : attribute.Name;
-            IsReadOnly = attribute.IsReadOnly;
+            IsReadOnly = attribute.IsReadOnly != null ? attribute.IsReadOnly.Value : entityAttibute?.IsReadOnly == true;
         }
         public DisplayPropertyInfo(string propertyName,Type propertyType,string genericName,bool isReadOnly)
         {

@@ -39,7 +39,7 @@ namespace System.Windows
         }
         public EFDataGrid()
         {
-            this.SetBinding(DisplayPropertyNamesProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.DisplayPropertyNamesProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(DisplayPropertyNamesProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.DisplayPropertyInfosProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
             this.SetBinding(ItemsSourceProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.ItemsSourceProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
         }
         public Style ValueEditorStyle
@@ -107,8 +107,8 @@ namespace System.Windows
     }
     public static class EFDataGridAssist
     {
-        public static readonly DependencyProperty DisplayPropertyNamesProperty =
-                DependencyProperty.RegisterAttached("DisplayPropertyNames", typeof(IEnumerable<DisplayPropertyInfo>), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
+        public static readonly DependencyProperty DisplayPropertyInfosProperty =
+                DependencyProperty.RegisterAttached("DisplayPropertyInfos", typeof(IEnumerable<DisplayPropertyInfo>), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
         public static readonly DependencyProperty IsRowMouseOverProperty =
                 DependencyProperty.RegisterAttached("IsRowMouseOver", typeof(bool), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
         public static readonly DependencyProperty IsRowSelectedProperty =
@@ -117,13 +117,13 @@ namespace System.Windows
                 DependencyProperty.RegisterAttached("IsRowEditing", typeof(bool), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
         public static readonly DependencyProperty ItemsSourceProperty =
                 DependencyProperty.RegisterAttached("ItemsSource", typeof(IEnumerable), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
-        public static IEnumerable<DisplayPropertyInfo> GetDisplayPropertyNames(DependencyObject obj)
+        public static IEnumerable<DisplayPropertyInfo> GetDisplayPropertyInfos(DependencyObject obj)
         {
-            return (IEnumerable<DisplayPropertyInfo>)obj.GetValue(DisplayPropertyNamesProperty);
+            return (IEnumerable<DisplayPropertyInfo>)obj.GetValue(DisplayPropertyInfosProperty);
         }
-        public static void SetDisplayPropertyNames(DependencyObject obj, IEnumerable<DisplayPropertyInfo> value)
+        public static void SetDisplayPropertyInfos(DependencyObject obj, IEnumerable<DisplayPropertyInfo> value)
         {
-            obj.SetValue(DisplayPropertyNamesProperty, value);
+            obj.SetValue(DisplayPropertyInfosProperty, value);
         }
         public static bool GetIsRowMouseOver(DependencyObject obj)
         {

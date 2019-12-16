@@ -7,10 +7,11 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace ModuleB.ViewModels
 {
-    public class ViewAViewModel :BindableBase
+    public class ViewAViewModel : EFViewModel<Model>
     {
         private string _message;
         public string Message
@@ -18,7 +19,6 @@ namespace ModuleB.ViewModels
             get { return _message; }
             set { SetProperty(ref _message, value); }
         }
-
-        public Expression<Func<IQueryable<Model>, IQueryable<Model>>> Query => q => q.Where(i => i.Name != null).OrderBy(i=>i.Name);
+        public override Expression<Func<IQueryable<Model>, IQueryable<Model>>> QueryExpression => q => q.Where(i => i.Name != null).OrderBy(i => i.Name);
     }
 }

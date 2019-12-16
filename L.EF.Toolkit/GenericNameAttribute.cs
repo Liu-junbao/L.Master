@@ -18,6 +18,6 @@ namespace System
         }
         public string Name { get; set; }
         public string Kind { get; set; }
-        public bool IsReadOnly { get; set; }
+        public bool? IsReadOnly { get; set; }
     }
 }
