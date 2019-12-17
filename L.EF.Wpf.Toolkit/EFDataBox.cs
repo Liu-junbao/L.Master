@@ -388,8 +388,19 @@ namespace System.Windows
             var item = e.Parameter;
             if (grid != null && item != null)
             {
-                var row = grid.ItemContainerGenerator.ContainerFromItem(item);
-                EFDataGridAssist.SetIsRowEditing(row, true);
+                try
+                {
+                    if (ViewModel?.CanEditItem(item) != false)
+                    {
+                        var row = grid.ItemContainerGenerator.ContainerFromItem(item);
+                        EFDataGridAssist.SetIsRowEditing(row, true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //
+                    ViewModel?.OnCatchedException(ex,"编辑异常");
+                }
             }
         }
         private void OnCancel(object sender, ExecutedRoutedEventArgs e)
@@ -398,38 +409,58 @@ namespace System.Windows
             var item = e.Parameter;
             if (grid != null && item != null)
             {
-                var row = grid.ItemContainerGenerator.ContainerFromItem(item);
-                EFDataGridAssist.SetIsRowEditing(row, false);
+                try
+                {
+                    var row = grid.ItemContainerGenerator.ContainerFromItem(item);
+                    EFDataGridAssist.SetIsRowEditing(row, false);
+                }
+                catch (Exception ex)
+                {
+                    //
+                    ViewModel?.OnCatchedException(ex, "取消异常");
+                }
             }
         }
         private void OnSave(object sender, ExecutedRoutedEventArgs e)
         {
             var grid = e.Source as EFDataGrid;
             var item = e.Parameter;
+            var viewModel = ViewModel;
             if (grid != null && item != null)
             {
                 try
                 {
+                    var changedProperties = new Dictionary<string, object>();
                     var row = grid.ItemContainerGenerator.ContainerFromItem(item);
                     foreach (var valueEditor in row.FindChildren<EFValueEditor>())
                     {
                         if (valueEditor.IsValueChanged)
                         {
-                            _entitiyPropertys[valueEditor.PropertyName].SetValue(item, valueEditor.ValidValue);
+                            changedProperties.Add(valueEditor.PropertyName, valueEditor.ValidValue);
                         }
                     }
-                    //保存
-                    using (var db = (DbContext)Activator.CreateInstance(DbContextType))
-                    {
-                        db.Entry(item).State = EntityState.Modified;
-                        db.SaveChanges();
-                    }
 
-                    EFDataGridAssist.SetIsRowEditing(row, false);
+                    if (viewModel?.CanSaveItem(item, changedProperties) != false)
+                    {
+                        //保存
+                        using (var db = (DbContext)Activator.CreateInstance(DbContextType))
+                        {
+                            db.Entry(item).State = EntityState.Modified;
+                            foreach (var property in changedProperties)
+                            {
+                                _entitiyPropertys[property.Key].SetValue(item, property.Value);
+                            }
+                            db.SaveChanges();
+                        }
+
+                        EFDataGridAssist.SetIsRowEditing(row, false);
+                    }
+                    viewModel?.OnCatchedMessage("保存成功!");
                 }
                 catch (Exception ex)
                 {
                     //
+                    viewModel?.OnCatchedException(ex, "保存异常");
                 }
             }
         }
@@ -437,26 +468,32 @@ namespace System.Windows
         {
             var grid = e.Source as EFDataGrid;
             var item = e.Parameter;
+            var viewModel = ViewModel;
             //
             if (grid != null && item != null)
             {
                 try
                 {
-                    //删除
-                    using (var db = (DbContext)Activator.CreateInstance(DbContextType))
+                    if (viewModel?.CanDeleteItem(item) != false)
                     {
-                        db.Entry(item).State = EntityState.Deleted;
-                        db.SaveChanges();
+                        //删除
+                        using (var db = (DbContext)Activator.CreateInstance(DbContextType))
+                        {
+                            db.Entry(item).State = EntityState.Deleted;
+                            db.SaveChanges();
+                        }
+
+                        Refresh();
+
+                        var row = grid.ItemContainerGenerator.ContainerFromItem(item);
+                        EFDataGridAssist.SetIsRowEditing(row, false);
                     }
-
-                    Refresh();
-
-                    var row = grid.ItemContainerGenerator.ContainerFromItem(item);
-                    EFDataGridAssist.SetIsRowEditing(row, false);
+                    viewModel?.OnCatchedMessage("删除成功!");
                 }
                 catch (Exception ex)
                 {
                     //
+                    viewModel?.OnCatchedException(ex, "删除异常");
                 }
             }
         }
