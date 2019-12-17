@@ -11,7 +11,7 @@ using System.Windows;
 
 namespace ModuleB.ViewModels
 {
-    public class ViewAViewModel : EFViewModel<Model>
+    public class ViewAViewModel : EFViewModel<Model,DB>
     {
         private string _message;
         public string Message

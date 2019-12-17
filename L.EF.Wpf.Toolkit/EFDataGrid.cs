@@ -25,8 +25,8 @@ namespace System.Windows
            DependencyProperty.Register(nameof(OperatorStyle), typeof(Style), typeof(EFDataGrid), new PropertyMetadata(null));
         public static readonly DependencyProperty IsOperableProperty =
            DependencyProperty.Register(nameof(IsOperable), typeof(bool), typeof(EFDataGrid), new PropertyMetadata(true, OnPropertyChanged));
-        public static readonly DependencyProperty DisplayPropertyNamesProperty =
-           DependencyProperty.Register(nameof(DisplayPropertyNames), typeof(IEnumerable<DisplayPropertyInfo>), typeof(EFDataGrid), new PropertyMetadata(null,OnPropertyChanged));
+        public static readonly DependencyProperty DisplayPropertyInfosProperty =
+           DependencyProperty.Register(nameof(DisplayPropertyInfos), typeof(IEnumerable<DisplayPropertyInfo>), typeof(EFDataGrid), new PropertyMetadata(null,OnPropertyChanged));
         private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             EFDataGrid dataGrid = (EFDataGrid)d;
@@ -38,7 +38,7 @@ namespace System.Windows
         }
         public EFDataGrid()
         {
-            this.SetBinding(DisplayPropertyNamesProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.DisplayPropertyInfosProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(DisplayPropertyInfosProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.DisplayPropertyInfosProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
             this.SetBinding(ItemsSourceProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.ItemsSourceProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
         }
         public Style ValueEditorStyle
@@ -56,17 +56,17 @@ namespace System.Windows
             get { return (bool)GetValue(IsOperableProperty); }
             set { SetValue(IsOperableProperty, value); }
         }
-        public IEnumerable<DisplayPropertyInfo> DisplayPropertyNames
+        public IEnumerable<DisplayPropertyInfo> DisplayPropertyInfos
         {
-            get { return (IEnumerable<DisplayPropertyInfo>)GetValue(DisplayPropertyNamesProperty); }
-            set { SetValue(DisplayPropertyNamesProperty, value); }
+            get { return (IEnumerable<DisplayPropertyInfo>)GetValue(DisplayPropertyInfosProperty); }
+            set { SetValue(DisplayPropertyInfosProperty, value); }
         }
         private void Invalidate()
         {
             this.Columns.Clear();
-            if (DisplayPropertyNames != null)
+            if (DisplayPropertyInfos != null)
             {
-                foreach (var item in DisplayPropertyNames)
+                foreach (var item in DisplayPropertyInfos)
                 {
                     var propertyName = item.PropertyName;
                     var propertyType = item.PropertyType;

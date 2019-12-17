@@ -138,8 +138,14 @@ namespace System.Windows
 
         public static readonly DependencyProperty DbContextTypeProperty =
             DependencyProperty.Register(nameof(DbContextType), typeof(Type), typeof(EFDataGrid), new PropertyMetadata(default, OnPropertyChanged));
+        private static readonly DependencyPropertyKey ActualDbContextTypePropertyKey =
+            DependencyProperty.RegisterReadOnly(nameof(ActualDbContextType), typeof(Type), typeof(EFDataBox), new PropertyMetadata(default, OnPropertyChanged));
+        public static readonly DependencyProperty ActualDbContextTypeProperty = ActualDbContextTypePropertyKey.DependencyProperty;
         public static readonly DependencyProperty EntityTypeProperty =
             DependencyProperty.Register(nameof(EntityType), typeof(Type), typeof(EFDataGrid), new PropertyMetadata(default, OnPropertyChanged));
+        private static readonly DependencyPropertyKey ActualEntityTypePropertyKey =
+            DependencyProperty.RegisterReadOnly(nameof(ActualEntityType), typeof(Type), typeof(EFDataBox), new PropertyMetadata(default, OnPropertyChanged));
+        public static readonly DependencyProperty ActualEntityTypeProperty = ActualEntityTypePropertyKey.DependencyProperty;
         public static readonly DependencyProperty ValidKindProperty =
             DependencyProperty.Register(nameof(ValidKind), typeof(string), typeof(EFDataGrid), new PropertyMetadata(null, OnPropertyChanged));
         private static readonly DependencyPropertyKey DisplayPropertyInfosPropertyKey =
@@ -156,7 +162,7 @@ namespace System.Windows
             DependencyProperty.RegisterReadOnly(nameof(PageCount), typeof(int), typeof(EFDataBox), new PropertyMetadata(0));
         public static readonly DependencyProperty PageCountProperty = PageCountPropertyKey.DependencyProperty;
         public static readonly DependencyProperty PageIndexProperty =
-            DependencyProperty.Register(nameof(PageIndex), typeof(int), typeof(EFDataBox), new PropertyMetadata(0,OnPropertyChanged));
+            DependencyProperty.Register(nameof(PageIndex), typeof(int), typeof(EFDataBox), new PropertyMetadata(0, OnPropertyChanged));
         public static readonly DependencyProperty QueryExpressionProperty =
             DependencyProperty.Register(nameof(QueryExpression), typeof(Linq.Expressions.Expression), typeof(EFDataBox), new PropertyMetadata(null));
         public static readonly DependencyProperty ViewModelProperty =
@@ -171,12 +177,19 @@ namespace System.Windows
             if (e.Property == DbContextTypeProperty)
             {
                 var dbContextType = (Type)e.NewValue;
-                if (dbContextType == null || typeof(DbContext).IsAssignableFrom(dbContextType) == false)
+                if (dbContextType != null && typeof(DbContext).IsAssignableFrom(dbContextType) == false)
                 {
                     throw new Exception("必须是数据库入口类DbContext");
                 }
             }
             else if (e.Property == EntityTypeProperty)
+            {
+                if (box.ViewModel == null)
+                {
+                    box.ActualEntityType = (Type)e.NewValue;
+                }
+            }
+            else if (e.Property == ActualEntityTypeProperty)
             {
                 box.InitializeEntityType();
             }
@@ -186,7 +199,17 @@ namespace System.Windows
             }
             else if (e.Property == ViewModelProperty)
             {
-                box.InitializeQueryExpresion();
+                var viewModel = e.NewValue as IEFViewModel;
+                if (viewModel == null)
+                {
+                    box.ActualDbContextType = box.DbContextType;
+                    box.ActualEntityType = box.EntityType;
+                }
+                else
+                {
+                    box.ActualDbContextType = viewModel.DbContextType;
+                    box.ActualEntityType = viewModel.EntityType;
+                }
             }
             else if (e.Property == ValidKindProperty)
             {
@@ -207,7 +230,7 @@ namespace System.Windows
         private List<string> _entityNames;
         private string _entityName;
         private Dictionary<string, PropertyInfo> _entitiyPropertys;
-        private Dictionary<string, string> _headerToPropertyNames;     
+        private Dictionary<string, string> _headerToPropertyNames;
         private PropertyInfo _keyPropertyInfo;
         private string _keyName;
         private Func<object, object> _getKey;
@@ -245,10 +268,20 @@ namespace System.Windows
             get { return (Type)GetValue(DbContextTypeProperty); }
             set { SetValue(DbContextTypeProperty, value); }
         }
+        public Type ActualDbContextType
+        {
+            get { return (Type)GetValue(ActualDbContextTypeProperty); }
+            protected set { SetValue(ActualDbContextTypePropertyKey, value); }
+        }
         public Type EntityType
         {
             get { return (Type)GetValue(EntityTypeProperty); }
             set { SetValue(EntityTypeProperty, value); }
+        }
+        public Type ActualEntityType
+        {
+            get { return (Type)GetValue(ActualEntityTypeProperty); }
+            protected set { SetValue(ActualEntityTypePropertyKey, value); }
         }
         public string ValidKind
         {
@@ -307,26 +340,30 @@ namespace System.Windows
         protected override void OnInitialized(EventArgs e)
         {
             base.OnInitialized(e);
-            InitializeEntityType();
+            ActualDbContextType = ViewModel?.DbContextType ?? DbContextType;
+            ActualEntityType = ViewModel?.EntityType ?? EntityType;
         }
         private void InitializeEntityType()
         {
-            var type = EntityType;
+            var type = ActualEntityType;
             _entitiyPropertys.Clear();
-            foreach (var item in type.GetProperties())
+            if (type != default)
             {
-                _entitiyPropertys.Add(item.Name, item);
+                foreach (var item in type.GetProperties())
+                {
+                    _entitiyPropertys.Add(item.Name, item);
+                }
             }
             //默认第一个属性为主键
             _keyPropertyInfo = _entitiyPropertys.Values.FirstOrDefault();
             _keyName = _keyPropertyInfo?.Name;
-            _getKey = GetKeyFunction(type, _keyPropertyInfo)?.Compile();
+            _getKey = GetKeyFunction(type, _keyName)?.Compile();
             InitializeQueryExpresion();
             InitializeDisplayPropertyNames();
         }
         private void InitializeQueryExpresion()
         {
-            var type = EntityType;
+            var type = ActualEntityType;
             var query = ViewModel?.QueryExpression;
             var query1 = QueryExpression;
             _queryCountExpression = GetQueryCountExpression(type, query, query1);
@@ -337,48 +374,51 @@ namespace System.Windows
         {
             _entityNames.Clear();
             _headerToPropertyNames.Clear();
-            var type = EntityType;
-            var validKind = ValidKind;
-            _entityNames.Add(type.Name);
-            GenericNameAttribute entityAttr = null;
-            foreach (var att in type.GetCustomAttributes(typeof(GenericNameAttribute)).OfType<GenericNameAttribute>().OrderByDescending(i => i.Kind))
-            {
-                var name = att.Name;
-                var kind = att.Kind;
-                if (_entityNames.Contains(name))
-                    throw new ArgumentException($"实体模型存在同名的标记![{name}]");
-                _entityNames.Add(name);
-                if (entityAttr == null)
-                {
-                    if (kind == validKind)
-                        entityAttr = att;
-                    else if (string.IsNullOrEmpty(kind))
-                        entityAttr = att;
-                }
-            }
-            _entityName = string.IsNullOrEmpty(entityAttr?.Name) == false ? entityAttr.Name : type.Name;
             var genericeNames = new List<DisplayPropertyInfo>();
-            foreach (var ppt in _entitiyPropertys.Values)
+            var type = ActualEntityType;
+            if (type != default)
             {
-                _headerToPropertyNames.Add(ppt.Name, ppt.Name);
-                GenericNameAttribute displayAttr = null;
-                foreach (var att in ppt.GetCustomAttributes(typeof(GenericNameAttribute)).OfType<GenericNameAttribute>().OrderByDescending(i => i.Kind))
+                var validKind = ValidKind;
+                _entityNames.Add(type.Name);
+                GenericNameAttribute entityAttr = null;
+                foreach (var att in type.GetCustomAttributes(typeof(GenericNameAttribute)).OfType<GenericNameAttribute>().OrderByDescending(i => i.Kind))
                 {
                     var name = att.Name;
                     var kind = att.Kind;
-                    if (_headerToPropertyNames.ContainsKey(name))
-                        throw new ArgumentException($"属性存在同名的标记![{name}]");
-                    _headerToPropertyNames.Add(att.Name, ppt.Name);
-                    if (displayAttr == null)
+                    if (_entityNames.Contains(name))
+                        throw new ArgumentException($"实体模型存在同名的标记![{name}]");
+                    _entityNames.Add(name);
+                    if (entityAttr == null)
                     {
                         if (kind == validKind)
-                            displayAttr = att;
+                            entityAttr = att;
                         else if (string.IsNullOrEmpty(kind))
-                            displayAttr = att;
+                            entityAttr = att;
                     }
                 }
-                if (displayAttr != null)
-                    genericeNames.Add(new DisplayPropertyInfo(ppt, displayAttr, entityAttr));
+                _entityName = string.IsNullOrEmpty(entityAttr?.Name) == false ? entityAttr.Name : type.Name;
+                foreach (var ppt in _entitiyPropertys.Values)
+                {
+                    _headerToPropertyNames.Add(ppt.Name, ppt.Name);
+                    GenericNameAttribute displayAttr = null;
+                    foreach (var att in ppt.GetCustomAttributes(typeof(GenericNameAttribute)).OfType<GenericNameAttribute>().OrderByDescending(i => i.Kind))
+                    {
+                        var name = att.Name;
+                        var kind = att.Kind;
+                        if (_headerToPropertyNames.ContainsKey(name))
+                            throw new ArgumentException($"属性存在同名的标记![{name}]");
+                        _headerToPropertyNames.Add(att.Name, ppt.Name);
+                        if (displayAttr == null)
+                        {
+                            if (kind == validKind)
+                                displayAttr = att;
+                            else if (string.IsNullOrEmpty(kind))
+                                displayAttr = att;
+                        }
+                    }
+                    if (displayAttr != null)
+                        genericeNames.Add(new DisplayPropertyInfo(ppt, displayAttr, entityAttr));
+                }
             }
             DisplayPropertyInfos = genericeNames;
         }
@@ -399,7 +439,7 @@ namespace System.Windows
                 catch (Exception ex)
                 {
                     //
-                    ViewModel?.OnCatchedException(ex,"编辑异常");
+                    ViewModel?.OnCatchedException(ex, "编辑异常");
                 }
             }
         }
@@ -423,6 +463,7 @@ namespace System.Windows
         }
         private void OnSave(object sender, ExecutedRoutedEventArgs e)
         {
+
             var grid = e.Source as EFDataGrid;
             var item = e.Parameter;
             var viewModel = ViewModel;
@@ -442,8 +483,12 @@ namespace System.Windows
 
                     if (viewModel?.CanSaveItem(item, changedProperties) != false)
                     {
+                        var dbContextType = ActualDbContextType;
+                        if (dbContextType == default || typeof(DbContext).IsAssignableFrom(dbContextType) == false)
+                            return;
+
                         //保存
-                        using (var db = (DbContext)Activator.CreateInstance(DbContextType))
+                        using (var db = (DbContext)Activator.CreateInstance(dbContextType))
                         {
                             db.Entry(item).State = EntityState.Modified;
                             foreach (var property in changedProperties)
@@ -476,8 +521,12 @@ namespace System.Windows
                 {
                     if (viewModel?.CanDeleteItem(item) != false)
                     {
+                        var dbContextType = ActualDbContextType;
+                        if (dbContextType == default || typeof(DbContext).IsAssignableFrom(dbContextType) == false)
+                            return;
+
                         //删除
-                        using (var db = (DbContext)Activator.CreateInstance(DbContextType))
+                        using (var db = (DbContext)Activator.CreateInstance(dbContextType))
                         {
                             db.Entry(item).State = EntityState.Deleted;
                             db.SaveChanges();
@@ -503,7 +552,7 @@ namespace System.Windows
         }
         private void OnRefresh(object sender, ExecutedRoutedEventArgs e)
         {
-            
+
         }
         private async void OnExport(object sender, ExecutedRoutedEventArgs e)
         {
@@ -527,7 +576,7 @@ namespace System.Windows
         private async void Load()
         {
             if (_isLoading) return;
-            var dbContextType = DbContextType;
+            var dbContextType = ActualDbContextType;
             if (dbContextType == default || typeof(DbContext).IsAssignableFrom(dbContextType) == false)
                 return;
             if (_queryCountExpression == null || _queryPageExpression == null)
@@ -575,7 +624,7 @@ namespace System.Windows
         private async void LoadPage(int pageIndex)
         {
             if (_isLoading) return;
-            var dbContextType = DbContextType;
+            var dbContextType = ActualDbContextType;
             if (dbContextType == default || typeof(DbContext).IsAssignableFrom(dbContextType) == false)
                 return;
             if (_queryCountExpression == null || _queryPageExpression == null)
@@ -625,7 +674,7 @@ namespace System.Windows
                 return 0;
             });
         }
-        private Task QueryPageAsync(Type contextType,int pageSize, int pageIndex)
+        private Task QueryPageAsync(Type contextType, int pageSize, int pageIndex)
         {
             return Task.Run(() =>
             {
@@ -647,14 +696,14 @@ namespace System.Windows
         }
 
         #region linq
-        private Expression<Func<object, object>> GetKeyFunction(Type entityType, PropertyInfo keyPropertyInfo)
+        private Expression<Func<object, object>> GetKeyFunction(Type entityType, string keyPropertyName)
         {
-            if (entityType == default || keyPropertyInfo == null) return null;
+            if (entityType == default || string.IsNullOrEmpty(keyPropertyName)) return null;
 
             //i=>i.Key
             var objParam = Linq.Expressions.Expression.Parameter(typeof(object));
             var model = Linq.Expressions.Expression.Convert(objParam, entityType);
-            var getKey = Linq.Expressions.Expression.Property(model, keyPropertyInfo);
+            var getKey = Linq.Expressions.Expression.Property(model, keyPropertyName);
             var objBordy = Linq.Expressions.Expression.Convert(getKey, typeof(object));
             return Linq.Expressions.Expression.Lambda<Func<object, object>>(objBordy, objParam);
         }
@@ -678,9 +727,9 @@ namespace System.Windows
                 }
             }
             body = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.Count), new Type[] { entityType }, body);
-            return Linq.Expressions.Expression.Lambda<Func<DbContext, int>>(body,db);
+            return Linq.Expressions.Expression.Lambda<Func<DbContext, int>>(body, db);
         }
-        private Expression<Func<DbContext, int, int, IEnumerable<object>>> GetQueryPageExpression(Type entityType, PropertyInfo keyPropertyInfo,params Linq.Expressions.Expression[] querys)
+        private Expression<Func<DbContext, int, int, IEnumerable<object>>> GetQueryPageExpression(Type entityType, PropertyInfo keyPropertyInfo, params Linq.Expressions.Expression[] querys)
         {
             if (entityType == default || keyPropertyInfo == null) return null;
 
@@ -700,12 +749,12 @@ namespace System.Windows
                         body = Linq.Expressions.Expression.Invoke(query, body);
                     }
                 }
-                hasOrderby = IsExpresionContainsMethodName(body, nameof(Queryable.OrderBy));
+                hasOrderby = body.FindMethodCallExpressions(typeof(Queryable), nameof(Queryable.OrderBy)).FirstOrDefault() != null;
             }
             if (hasOrderby == false)
             {
                 var model = Linq.Expressions.Expression.Parameter(entityType);
-                var getKey = Linq.Expressions.Expression.Property(model, keyPropertyInfo);
+                var getKey = Linq.Expressions.Expression.Property(model, keyPropertyInfo.Name);
                 var keyExp = Linq.Expressions.Expression.Lambda(getKey, model);
                 body = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.OrderBy),
                    new Type[] { entityType, keyPropertyInfo.PropertyType },
@@ -715,7 +764,7 @@ namespace System.Windows
             body = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.Take), new Type[] { entityType }, body, takeCount);//db.Set<T>().Where().OrderBy(i=>i.Key).Skip().Take();
             return Linq.Expressions.Expression.Lambda<Func<DbContext, int, int, IEnumerable<object>>>(body, db, skipCount, takeCount);
         }
-        private Expression<Func<DbContext, IEnumerable<object>>> GetQueryExpression(Type entityType,params Linq.Expressions.Expression[] querys)
+        private Expression<Func<DbContext, IEnumerable<object>>> GetQueryExpression(Type entityType, params Linq.Expressions.Expression[] querys)
         {
             if (entityType == default) return null;
 
@@ -735,30 +784,7 @@ namespace System.Windows
             }
             return Linq.Expressions.Expression.Lambda<Func<DbContext, IEnumerable<object>>>(body, db);
         }
-        private bool IsExpresionContainsMethodName(Linq.Expressions.Expression expression, string methodName)
-        {
-            if (expression is MethodCallExpression)
-            {
-                var methodExpression = (MethodCallExpression)expression;
-                if (methodExpression.Method.Name == methodName)
-                    return true;
-                foreach (var item in methodExpression.Arguments)
-                {
-                    if (IsExpresionContainsMethodName(item, methodName))
-                    {
-                        return true;
-                    }
-                }
-            }
-            else if (expression is LambdaExpression)
-            {
-                if (IsExpresionContainsMethodName(((LambdaExpression)expression).Body, methodName))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
+
         #endregion
 
         #region Excel 
@@ -770,7 +796,7 @@ namespace System.Windows
         /// <returns>null:取消 true:导表成功 false:导表失败</returns>
         protected async Task<bool?> ExportWithFileDialog()
         {
-            var dbContextType = DbContextType;
+            var dbContextType = ActualDbContextType;
             if (dbContextType == default || typeof(DbContext).IsAssignableFrom(dbContextType) == false)
                 return null;
             var qureExpression = _queryExpression;
@@ -882,8 +908,8 @@ namespace System.Windows
         /// <returns></returns>
         protected async Task<bool?> ImportWithFileDialog()
         {
-            var dbContextType = DbContextType;
-            var entityType = EntityType;
+            var dbContextType = ActualDbContextType;
+            var entityType = ActualEntityType;
             if (dbContextType == default || typeof(DbContext).IsAssignableFrom(dbContextType) == false || entityType == default)
                 return null;
 

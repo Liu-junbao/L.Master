@@ -11,7 +11,6 @@
     d:DesignHeight="300"
     d:DesignWidth="300"
     prism:ViewModelLocator.AutoWireViewModel="True"
-    IsEnabled="{Binding IsLoading, Converter={IsLoadingToEnabled}}"
     RegionBrowserAssist.Data="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
     RegionBrowserAssist.StrokeThickness="0.1"
     RegionBrowserAssist.Title="模块B"
@@ -42,10 +41,7 @@
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
-    <EFDataBox
-        DbContextType="{x:Type b:DB}"
-        EntityType="{x:Type b:Model}"
-        QueryExpression="{Binding Query}">
+    <EFDataBox>
         <DockPanel Margin="10">
             <EFDataGridBar DockPanel.Dock="Bottom" />
             <CustomButton

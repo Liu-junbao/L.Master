@@ -10,6 +10,8 @@ namespace System
 {
     public interface IEFViewModel
     {
+        Type DbContextType { get; }
+        Type EntityType { get; }
         Linq.Expressions.Expression QueryExpression { get; }
         bool CanEditItem(object item);
         bool CanDeleteItem(object item);
@@ -19,8 +21,18 @@ namespace System
         bool IsImportIgnoreErrorItemsWhenImportedFirstErrorItem(int errorRowIndex, string errorColumnName, object value);
         void OnImportedCompleted(List<object> importedItems, List<Tuple<int, string, object>> errorItems);
     }
-    public abstract class EFViewModel<TModel> : NotifyPropertyChanged, IEFViewModel
+    public abstract class EFViewModel<TModel, TDbContext> : NotifyPropertyChanged, IEFViewModel
+        where TDbContext : DbContext, new()
     {
+        private Type _dbContextType;
+        private Type _entityType;
+        public EFViewModel()
+        {
+            _dbContextType = typeof(TDbContext);
+            _entityType = typeof(TModel);
+        }
+        Type IEFViewModel.DbContextType => _dbContextType;
+        Type IEFViewModel.EntityType => _entityType;
         Linq.Expressions.Expression IEFViewModel.QueryExpression => this.QueryExpression;
         public virtual Expression<Func<IQueryable<TModel>, IQueryable<TModel>>> QueryExpression => i => i;
         protected virtual bool CanEditItem(TModel item) => true;
@@ -79,7 +91,5 @@ namespace System
             }
             MessageBox.Show(builder.ToString(), "导入结果", MessageBoxButton.OK);
         }
-
-     
     }
 }
