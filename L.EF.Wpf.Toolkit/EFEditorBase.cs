@@ -25,10 +25,10 @@ namespace System.Windows
         }
         public EFEditorBase()
         {
-            this.SetBinding(IsRowMouseOverProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.IsRowMouseOverProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
-            this.SetBinding(IsRowSelectedProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.IsRowSelectedProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
-            this.SetBinding(IsRowValueChangedProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.IsRowValueChangedProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
-            this.SetBinding(IsEditingProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.IsRowEditingProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(IsRowMouseOverProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.IsRowMouseOverProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(IsRowSelectedProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.IsRowSelectedProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(IsRowValueChangedProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.IsRowValueChangedProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(IsEditingProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.IsRowEditingProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
         }
         public DataGridRow RowOwner => this.FindParent<DataGridRow>();
         public bool IsRowMouseOver

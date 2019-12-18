@@ -26,7 +26,7 @@ namespace System.Windows
         public static readonly DependencyProperty IsOperableProperty =
            DependencyProperty.Register(nameof(IsOperable), typeof(bool), typeof(EFDataGrid), new PropertyMetadata(true, OnPropertyChanged));
         public static readonly DependencyProperty DisplayPropertyInfosProperty =
-           DependencyProperty.Register(nameof(DisplayPropertyInfos), typeof(IEnumerable<DisplayPropertyInfo>), typeof(EFDataGrid), new PropertyMetadata(null,OnPropertyChanged));
+           DependencyProperty.Register(nameof(DisplayPropertyInfos), typeof(IEnumerable<EFDisplayPropertyInfo>), typeof(EFDataGrid), new PropertyMetadata(null,OnPropertyChanged));
         private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             EFDataGrid dataGrid = (EFDataGrid)d;
@@ -38,8 +38,8 @@ namespace System.Windows
         }
         public EFDataGrid()
         {
-            this.SetBinding(DisplayPropertyInfosProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.DisplayPropertyInfosProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
-            this.SetBinding(ItemsSourceProperty, new Binding($"({nameof(EFDataGridAssist)}.{EFDataGridAssist.ItemsSourceProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(DisplayPropertyInfosProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.DisplayPropertyInfosProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(ItemsSourceProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.ItemsSourceProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
         }
         public Style ValueEditorStyle
         {
@@ -56,9 +56,9 @@ namespace System.Windows
             get { return (bool)GetValue(IsOperableProperty); }
             set { SetValue(IsOperableProperty, value); }
         }
-        public IEnumerable<DisplayPropertyInfo> DisplayPropertyInfos
+        public IEnumerable<EFDisplayPropertyInfo> DisplayPropertyInfos
         {
-            get { return (IEnumerable<DisplayPropertyInfo>)GetValue(DisplayPropertyInfosProperty); }
+            get { return (IEnumerable<EFDisplayPropertyInfo>)GetValue(DisplayPropertyInfosProperty); }
             set { SetValue(DisplayPropertyInfosProperty, value); }
         }
         private void Invalidate()
@@ -89,8 +89,8 @@ namespace System.Windows
         protected override void PrepareContainerForItemOverride(DependencyObject element, object item)
         {
             DataGridRow row = (DataGridRow)element;
-            row.SetBinding(EFDataGridAssist.IsRowMouseOverProperty, new Binding(nameof(row.IsMouseOver)) { Source = row, Mode = BindingMode.OneWay });
-            row.SetBinding(EFDataGridAssist.IsRowSelectedProperty, new Binding(nameof(row.IsSelected)) { Source = row, Mode = BindingMode.OneWay });
+            row.SetBinding(EFDataBoxAssist.IsRowMouseOverProperty, new Binding(nameof(row.IsMouseOver)) { Source = row, Mode = BindingMode.OneWay });
+            row.SetBinding(EFDataBoxAssist.IsRowSelectedProperty, new Binding(nameof(row.IsSelected)) { Source = row, Mode = BindingMode.OneWay });
            
             base.PrepareContainerForItemOverride(element, item);
         }
@@ -108,7 +108,7 @@ namespace System.Windows
         }
         private void Row_Unselected(object sender, RoutedEventArgs e)
         {
-            EFDataGridAssist.SetIsRowEditing((DataGridRow)sender, false);
+            EFDataBoxAssist.SetIsRowEditing((DataGridRow)sender, false);
         }
         private void OnRowValueChanged(object sender, RoutedEventArgs e)
         {
@@ -122,70 +122,7 @@ namespace System.Windows
                     break;
                 }
             }
-            EFDataGridAssist.SetIsRowValueChanged(row, isChanged);
-        }
-    }
-    public static class EFDataGridAssist
-    {
-        public static readonly DependencyProperty DisplayPropertyInfosProperty =
-                DependencyProperty.RegisterAttached("DisplayPropertyInfos", typeof(IEnumerable<DisplayPropertyInfo>), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
-        public static readonly DependencyProperty IsRowMouseOverProperty =
-                DependencyProperty.RegisterAttached("IsRowMouseOver", typeof(bool), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
-        public static readonly DependencyProperty IsRowSelectedProperty =
-                DependencyProperty.RegisterAttached("IsRowSelected", typeof(bool), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
-        public static readonly DependencyProperty IsRowEditingProperty =
-                DependencyProperty.RegisterAttached("IsRowEditing", typeof(bool), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
-        public static readonly DependencyProperty ItemsSourceProperty =
-                DependencyProperty.RegisterAttached("ItemsSource", typeof(IEnumerable), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
-        public static readonly DependencyProperty IsRowValueChangedProperty =
-                DependencyProperty.RegisterAttached("IsRowValueChanged", typeof(bool), typeof(EFDataGridAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
-        public static IEnumerable<DisplayPropertyInfo> GetDisplayPropertyInfos(DependencyObject obj)
-        {
-            return (IEnumerable<DisplayPropertyInfo>)obj.GetValue(DisplayPropertyInfosProperty);
-        }
-        public static void SetDisplayPropertyInfos(DependencyObject obj, IEnumerable<DisplayPropertyInfo> value)
-        {
-            obj.SetValue(DisplayPropertyInfosProperty, value);
-        }
-        public static bool GetIsRowMouseOver(DependencyObject obj)
-        {
-            return (bool)obj.GetValue(IsRowMouseOverProperty);
-        }
-        public static void SetIsRowMouseOver(DependencyObject obj, bool value)
-        {
-            obj.SetValue(IsRowMouseOverProperty, value);
-        }
-        public static bool GetIsRowSelected(DependencyObject obj)
-        {
-            return (bool)obj.GetValue(IsRowSelectedProperty);
-        }
-        public static void SetIsRowSelected(DependencyObject obj, bool value)
-        {
-            obj.SetValue(IsRowSelectedProperty, value);
-        }
-        public static bool GetIsRowEditing(DependencyObject obj)
-        {
-            return (bool)obj.GetValue(IsRowEditingProperty);
-        }
-        public static void SetIsRowEditing(DependencyObject obj, bool value)
-        {
-            obj.SetValue(IsRowEditingProperty, value);
-        }
-        public static bool GetIsRowValueChanged(DependencyObject obj)
-        {
-            return (bool)obj.GetValue(IsRowValueChangedProperty);
-        }
-        public static void SetIsRowValueChanged(DependencyObject obj, bool value)
-        {
-            obj.SetValue(IsRowValueChangedProperty, value);
-        }
-        public static IEnumerable GetItemsSource(DependencyObject obj)
-        {
-            return (IEnumerable)obj.GetValue(ItemsSourceProperty);
-        }
-        public static void SetItemsSource(DependencyObject obj, IEnumerable value)
-        {
-            obj.SetValue(ItemsSourceProperty, value);
+            EFDataBoxAssist.SetIsRowValueChanged(row, isChanged);
         }
     }
     class GenerateValueDataGridColumn : DataGridColumn

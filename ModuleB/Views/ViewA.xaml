@@ -41,7 +41,7 @@
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
-    <EFDataBox>
+    <EFDataBox ViewModel="{Binding}">
         <DockPanel Margin="10">
             <EFDataGridBar DockPanel.Dock="Bottom" />
             <CustomButton

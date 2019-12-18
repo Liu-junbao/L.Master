@@ -137,7 +137,6 @@
         BasedOn="{StaticResource {x:Type DataGrid}}"
         TargetType="local:EFDataGrid">
         <Setter Property="IsReadOnly" Value="True" />
-        <Setter Property="ItemsSource" Value="{Binding RelativeSource={RelativeSource Self}, Path=(EFDataGridAssist.ItemsSource)}" />
         <Setter Property="AutoGenerateColumns" Value="False" />
         <Setter Property="SelectionMode" Value="Single" />
         <Setter Property="CanUserSortColumns" Value="False" />
@@ -507,6 +506,32 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <Style x:Key="st.EFDataBox" TargetType="{x:Type local:EFDataBox}">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:EFDataBox}">
+                    <Border
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        SnapsToDevicePixels="True">
+                        <ContentPresenter
+                            Margin="{TemplateBinding Padding}"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsLoading" Value="True">
+                <Setter Property="IsEnabled" Value="False" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
 </ResourceDictionary>

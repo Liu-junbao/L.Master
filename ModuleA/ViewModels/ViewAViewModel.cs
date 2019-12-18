@@ -21,6 +21,60 @@ namespace ModuleA.ViewModels
         public ViewAViewModel()
         {
             Message = "View A from your Prism Module";
+
+
+            
+        }
+
+
+        public bool And(bool a, bool b)
+        {
+            bool result = true;
+            if (a == false)
+            {
+                result = false;
+            }
+            if (b == true)
+            {
+                result = false;
+            }
+            return result;
+        }
+        public bool AndAlso(bool a, bool b)
+        {
+            if (a == true)
+            {
+                if (b == true)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public bool OrElse(bool a, bool b)
+        {
+            if (a == true)
+            {
+                return true;
+            }
+            else if (b == true)
+            {
+                return true;
+            }
+            return false;
+        }
+        public bool Or(bool a, bool b)
+        {
+            bool result = false;
+            if (a == true)
+            {
+                result = true;
+            }
+            if (b == true)
+            {
+                result = true;
+            }
+            return result;
         }
     }
 

@@ -9,4 +9,5 @@
     <Style BasedOn="{StaticResource st.EFOperator}" TargetType="{x:Type local:EFOperator}" />
     <Style BasedOn="{StaticResource st.EFDataGrid}" TargetType="local:EFDataGrid" />
     <Style BasedOn="{StaticResource st.EFDataGridBar}" TargetType="local:EFDataGridBar" />
+    <Style BasedOn="{StaticResource st.EFDataBox}" TargetType="{x:Type local:EFDataBox}" />
 </ResourceDictionary>

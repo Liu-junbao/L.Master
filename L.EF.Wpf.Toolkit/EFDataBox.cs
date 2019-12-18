@@ -149,7 +149,7 @@ namespace System.Windows
         public static readonly DependencyProperty ValidKindProperty =
             DependencyProperty.Register(nameof(ValidKind), typeof(string), typeof(EFDataGrid), new PropertyMetadata(null, OnPropertyChanged));
         private static readonly DependencyPropertyKey DisplayPropertyInfosPropertyKey =
-            DependencyProperty.RegisterReadOnly(nameof(DisplayPropertyInfos), typeof(IEnumerable<DisplayPropertyInfo>), typeof(EFDataBox), new PropertyMetadata(null));
+            DependencyProperty.RegisterReadOnly(nameof(DisplayPropertyInfos), typeof(IEnumerable<EFDisplayPropertyInfo>), typeof(EFDataBox), new PropertyMetadata(null));
         public static readonly DependencyProperty DisplayPropertyInfosProperty = DisplayPropertyInfosPropertyKey.DependencyProperty;
         private static readonly DependencyPropertyKey DisplayItemsSourcePropertyKey =
             DependencyProperty.RegisterReadOnly(nameof(DisplayItemsSource), typeof(IEnumerable), typeof(EFDataBox), new PropertyMetadata(null));
@@ -166,7 +166,7 @@ namespace System.Windows
         public static readonly DependencyProperty QueryExpressionProperty =
             DependencyProperty.Register(nameof(QueryExpression), typeof(Linq.Expressions.Expression), typeof(EFDataBox), new PropertyMetadata(null));
         public static readonly DependencyProperty ViewModelProperty =
-            DependencyProperty.Register(nameof(ViewModel), typeof(IEFViewModel), typeof(EFDataBox), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(ViewModel), typeof(IEFViewModel), typeof(EFDataBox), new PropertyMetadata(null,OnPropertyChanged));
         public static readonly DependencyProperty DisplayItemsSourceProperty = DisplayItemsSourcePropertyKey.DependencyProperty;
         private static readonly DependencyPropertyKey IsLoadingPropertyKey =
             DependencyProperty.RegisterReadOnly(nameof(IsLoading), typeof(bool), typeof(EFDataBox), new PropertyMetadata(false));
@@ -180,6 +180,10 @@ namespace System.Windows
                 if (dbContextType != null && typeof(DbContext).IsAssignableFrom(dbContextType) == false)
                 {
                     throw new Exception("必须是数据库入口类DbContext");
+                }
+                if (box.ViewModel == null)
+                {
+                    box.ActualDbContextType = (Type)e.NewValue;
                 }
             }
             else if (e.Property == EntityTypeProperty)
@@ -239,6 +243,10 @@ namespace System.Windows
         private Expression<Func<DbContext, IEnumerable<object>>> _queryExpression;
         private object _loadingLocker;
         private bool _isLoading;
+        static EFDataBox()
+        {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(EFDataBox),new FrameworkPropertyMetadata(typeof(EFDataBox)));
+        }
         public EFDataBox()
         {
             _loadingLocker = new object();
@@ -247,12 +255,12 @@ namespace System.Windows
             _entitiyPropertys = new Dictionary<string, PropertyInfo>();
             _headerToPropertyNames = new Dictionary<string, string>();
             _itemsSource = new ObservableDictionary<object, object>();
-            EFDataGridAssist.SetItemsSource(this, _itemsSource);
+            EFDataBoxAssist.SetItemsSource(this, _itemsSource);
             DisplayItemsSource = _itemsSource;
-            this.SetBinding(EFDataGridAssist.DisplayPropertyInfosProperty, new Binding(nameof(DisplayPropertyInfos)) { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(EFDataBoxAssist.EntityTypeProperty, new Binding(nameof(ActualEntityType)) { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(EFDataBoxAssist.DisplayPropertyInfosProperty, new Binding(nameof(DisplayPropertyInfos)) { Source = this, Mode = BindingMode.OneWay });
             this.SetBinding(EFDataGridBarAssist.CountProperty, new Binding(nameof(Count)) { Source = this, Mode = BindingMode.OneWay });
             this.SetBinding(EFDataGridBarAssist.PageCountProperty, new Binding(nameof(PageCount)) { Source = this, Mode = BindingMode.OneWay });
-            this.SetBinding(ViewModelProperty, new Binding("."));
             this.CommandBindings.Add(new CommandBinding(LoadCommand, new ExecutedRoutedEventHandler(OnLoad)));
             this.CommandBindings.Add(new CommandBinding(RefreshCommand, new ExecutedRoutedEventHandler(OnRefresh)));
             this.CommandBindings.Add(new CommandBinding(ExportCommand, new ExecutedRoutedEventHandler(OnExport)));
@@ -288,9 +296,9 @@ namespace System.Windows
             get { return (string)GetValue(ValidKindProperty); }
             set { SetValue(ValidKindProperty, value); }
         }
-        public IEnumerable<DisplayPropertyInfo> DisplayPropertyInfos
+        public IEnumerable<EFDisplayPropertyInfo> DisplayPropertyInfos
         {
-            get { return (IEnumerable<DisplayPropertyInfo>)GetValue(DisplayPropertyInfosProperty); }
+            get { return (IEnumerable<EFDisplayPropertyInfo>)GetValue(DisplayPropertyInfosProperty); }
             protected set { SetValue(DisplayPropertyInfosPropertyKey, value); }
         }
         public IEnumerable DisplayItemsSource
@@ -374,7 +382,7 @@ namespace System.Windows
         {
             _entityNames.Clear();
             _headerToPropertyNames.Clear();
-            var genericeNames = new List<DisplayPropertyInfo>();
+            var genericeNames = new List<EFDisplayPropertyInfo>();
             var type = ActualEntityType;
             if (type != default)
             {
@@ -417,7 +425,7 @@ namespace System.Windows
                         }
                     }
                     if (displayAttr != null)
-                        genericeNames.Add(new DisplayPropertyInfo(ppt, displayAttr, entityAttr));
+                        genericeNames.Add(new EFDisplayPropertyInfo(ppt, displayAttr, entityAttr));
                 }
             }
             DisplayPropertyInfos = genericeNames;
@@ -433,7 +441,7 @@ namespace System.Windows
                     if (ViewModel?.CanEditItem(item) != false)
                     {
                         var row = grid.ItemContainerGenerator.ContainerFromItem(item);
-                        EFDataGridAssist.SetIsRowEditing(row, true);
+                        EFDataBoxAssist.SetIsRowEditing(row, true);
                     }
                 }
                 catch (Exception ex)
@@ -452,7 +460,7 @@ namespace System.Windows
                 try
                 {
                     var row = grid.ItemContainerGenerator.ContainerFromItem(item);
-                    EFDataGridAssist.SetIsRowEditing(row, false);
+                    EFDataBoxAssist.SetIsRowEditing(row, false);
                 }
                 catch (Exception ex)
                 {
@@ -463,7 +471,6 @@ namespace System.Windows
         }
         private void OnSave(object sender, ExecutedRoutedEventArgs e)
         {
-
             var grid = e.Source as EFDataGrid;
             var item = e.Parameter;
             var viewModel = ViewModel;
@@ -498,9 +505,10 @@ namespace System.Windows
                             db.SaveChanges();
                         }
 
-                        EFDataGridAssist.SetIsRowEditing(row, false);
+                        EFDataBoxAssist.SetIsRowEditing(row, false);
+
+                        viewModel?.OnCatchedMessage("保存成功!");
                     }
-                    viewModel?.OnCatchedMessage("保存成功!");
                 }
                 catch (Exception ex)
                 {
@@ -535,9 +543,10 @@ namespace System.Windows
                         Refresh();
 
                         var row = grid.ItemContainerGenerator.ContainerFromItem(item);
-                        EFDataGridAssist.SetIsRowEditing(row, false);
+                        EFDataBoxAssist.SetIsRowEditing(row, false);
+
+                        viewModel?.OnCatchedMessage("删除成功!");
                     }
-                    viewModel?.OnCatchedMessage("删除成功!");
                 }
                 catch (Exception ex)
                 {
@@ -1102,25 +1111,79 @@ namespace System.Windows
         }
         #endregion
     }
-    public struct DisplayPropertyInfo
+
+    public static class EFDataBoxAssist
     {
-        public DisplayPropertyInfo(PropertyInfo info, GenericNameAttribute attribute, GenericNameAttribute entityAttibute)
+        public static readonly DependencyProperty EntityTypeProperty =
+                DependencyProperty.RegisterAttached("EntityType", typeof(Type), typeof(EFDataBoxAssist), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
+        public static readonly DependencyProperty DisplayPropertyInfosProperty =
+                DependencyProperty.RegisterAttached("DisplayPropertyInfos", typeof(IEnumerable<EFDisplayPropertyInfo>), typeof(EFDataBoxAssist), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
+        public static readonly DependencyProperty IsRowMouseOverProperty =
+                DependencyProperty.RegisterAttached("IsRowMouseOver", typeof(bool), typeof(EFDataBoxAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
+        public static readonly DependencyProperty IsRowSelectedProperty =
+                DependencyProperty.RegisterAttached("IsRowSelected", typeof(bool), typeof(EFDataBoxAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
+        public static readonly DependencyProperty IsRowEditingProperty =
+                DependencyProperty.RegisterAttached("IsRowEditing", typeof(bool), typeof(EFDataBoxAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
+        public static readonly DependencyProperty ItemsSourceProperty =
+                DependencyProperty.RegisterAttached("ItemsSource", typeof(IEnumerable), typeof(EFDataBoxAssist), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
+        public static readonly DependencyProperty IsRowValueChangedProperty =
+                DependencyProperty.RegisterAttached("IsRowValueChanged", typeof(bool), typeof(EFDataBoxAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
+        public static Type GetEntityType(DependencyObject obj)
         {
-            PropertyName = info.Name;
-            PropertyType = info.PropertyType;
-            GenericName = string.IsNullOrEmpty(attribute.Name) ? PropertyName : attribute.Name;
-            IsReadOnly = attribute.IsReadOnly != null ? attribute.IsReadOnly.Value : entityAttibute?.IsReadOnly == true;
+            return (Type)obj.GetValue(EntityTypeProperty);
         }
-        public DisplayPropertyInfo(string propertyName,Type propertyType,string genericName,bool isReadOnly)
+        public static void SetEntityType(DependencyObject obj, Type value)
         {
-            PropertyName = propertyName;
-            PropertyType = propertyType;
-            GenericName = genericName;
-            IsReadOnly = isReadOnly;
+            obj.SetValue(EntityTypeProperty, value);
         }
-        public string PropertyName { get; }
-        public Type PropertyType { get; }
-        public string GenericName { get; }
-        public bool IsReadOnly { get; }
+        public static IEnumerable<EFDisplayPropertyInfo> GetDisplayPropertyInfos(DependencyObject obj)
+        {
+            return (IEnumerable<EFDisplayPropertyInfo>)obj.GetValue(DisplayPropertyInfosProperty);
+        }
+        public static void SetDisplayPropertyInfos(DependencyObject obj, IEnumerable<EFDisplayPropertyInfo> value)
+        {
+            obj.SetValue(DisplayPropertyInfosProperty, value);
+        }
+        public static bool GetIsRowMouseOver(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(IsRowMouseOverProperty);
+        }
+        public static void SetIsRowMouseOver(DependencyObject obj, bool value)
+        {
+            obj.SetValue(IsRowMouseOverProperty, value);
+        }
+        public static bool GetIsRowSelected(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(IsRowSelectedProperty);
+        }
+        public static void SetIsRowSelected(DependencyObject obj, bool value)
+        {
+            obj.SetValue(IsRowSelectedProperty, value);
+        }
+        public static bool GetIsRowEditing(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(IsRowEditingProperty);
+        }
+        public static void SetIsRowEditing(DependencyObject obj, bool value)
+        {
+            obj.SetValue(IsRowEditingProperty, value);
+        }
+        public static bool GetIsRowValueChanged(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(IsRowValueChangedProperty);
+        }
+        public static void SetIsRowValueChanged(DependencyObject obj, bool value)
+        {
+            obj.SetValue(IsRowValueChangedProperty, value);
+        }
+        public static IEnumerable GetItemsSource(DependencyObject obj)
+        {
+            return (IEnumerable)obj.GetValue(ItemsSourceProperty);
+        }
+        public static void SetItemsSource(DependencyObject obj, IEnumerable value)
+        {
+            obj.SetValue(ItemsSourceProperty, value);
+        }
     }
+
 }
