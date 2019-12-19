@@ -1,10 +1,7 @@
-﻿using CommonServiceLocator;
-using Prism.Ioc;
+﻿using Prism.Ioc;
 using Prism.Regions;
-using Prism.Regions.Behaviors;
 using System;
 using System.Collections;
-using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,7 +11,7 @@ using System.Windows.Markup;
 namespace Prism
 {
     [ContentProperty(nameof(Child))]
-    public class RegionBrowser :ContentControl
+    public class RegionBrowser : ContentControl
     {
         #region commands
         private static RoutedUICommand _closePage;
@@ -143,9 +140,10 @@ namespace Prism
                 Region = region;
                 Views = region.Views;
                 ActiveView = region.ActiveViews.FirstOrDefault();
-                region.ActiveViews.CollectionChanged += (s, e) => this.Dispatcher.BeginInvoke(new Action(() => {
+                region.ActiveViews.CollectionChanged += (s, e) => this.Dispatcher.BeginInvoke(new Action(() =>
+                {
                     var activeView = region.ActiveViews.FirstOrDefault();
-                    if (ActiveView!=activeView)
+                    if (ActiveView != activeView)
                         ActiveView = activeView;
                 }));
             }

@@ -15,14 +15,8 @@ using System.Windows.Media.Media3D;
 
 namespace System.Windows
 {
-    [StyleTypedProperty(Property = nameof(ValueEditorStyle), StyleTargetType = typeof(EFValueEditor))]
-    [StyleTypedProperty(Property = nameof(OperatorStyle), StyleTargetType = typeof(EFOperator))]
     public class EFDataGrid : DataGrid
     {
-        public static readonly DependencyProperty EditorStyleProperty =
-           DependencyProperty.Register(nameof(ValueEditorStyle), typeof(Style), typeof(EFDataGrid), new PropertyMetadata(null));
-        public static readonly DependencyProperty OperatorStyleProperty =
-           DependencyProperty.Register(nameof(OperatorStyle), typeof(Style), typeof(EFDataGrid), new PropertyMetadata(null));
         public static readonly DependencyProperty IsOperableProperty =
            DependencyProperty.Register(nameof(IsOperable), typeof(bool), typeof(EFDataGrid), new PropertyMetadata(true, OnPropertyChanged));
         public static readonly DependencyProperty DisplayPropertyInfosProperty =
@@ -40,16 +34,6 @@ namespace System.Windows
         {
             this.SetBinding(DisplayPropertyInfosProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.DisplayPropertyInfosProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
             this.SetBinding(ItemsSourceProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.ItemsSourceProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
-        }
-        public Style ValueEditorStyle
-        {
-            get { return (Style)GetValue(EditorStyleProperty); }
-            set { SetValue(EditorStyleProperty, value); }
-        }
-        public Style OperatorStyle
-        {
-            get { return (Style)GetValue(OperatorStyleProperty); }
-            set { SetValue(OperatorStyleProperty, value); }
         }
         public bool IsOperable
         {
@@ -73,13 +57,11 @@ namespace System.Windows
                     var genericName = item.GenericName;
                     var isReadOnly = item.IsReadOnly;
                     var column = new GenerateValueDataGridColumn(propertyName, propertyType) { Header = genericName, IsReadOnly = isReadOnly };
-                    BindingOperations.SetBinding(column, GenerateValueDataGridColumn.EditorStyleProperty, new Binding(nameof(ValueEditorStyle)) { Source = this });
                     this.Columns.Add(column);
                 }
                 if (IsOperable)
                 {
                     var column = new GenerateOperatorGridColumn();
-                    BindingOperations.SetBinding(column, GenerateOperatorGridColumn.EditorStyleProperty, new Binding(nameof(OperatorStyle)) { Source = this });
                     this.Columns.Add(column);
                 }
             }

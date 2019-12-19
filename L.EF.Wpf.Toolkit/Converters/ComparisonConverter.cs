@@ -11,7 +11,7 @@ namespace System.Windows
         public bool IsSign { get; set; }
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null) return null;
+            if (value == null || value.GetType() != typeof(EFComparison)) return null;
             switch ((EFComparison)value)
             {
                 case EFComparison.Equal:

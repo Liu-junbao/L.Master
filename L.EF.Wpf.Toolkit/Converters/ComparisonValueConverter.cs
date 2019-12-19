@@ -10,8 +10,8 @@ namespace System.Windows
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null) return "空";
-            return value.ToString();
+            if (value == null || string.IsNullOrEmpty(value.ToString())) return "空";
+            return $"\"{value}\"";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -19,5 +19,5 @@ namespace System.Windows
             throw new NotImplementedException();
         }
     }
-    public class ComparisonValueExtension : NewMarkupExtension { }
+    public class ComparisonValueExtension : NewMarkupExtension<ComparisonValueConverter> { }
 }

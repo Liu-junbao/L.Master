@@ -67,45 +67,55 @@ namespace System.Windows
             DependencyProperty.Register(nameof(EntityType), typeof(Type), typeof(EFDataFilter), new PropertyMetadata(default));
         public static readonly DependencyProperty DisplayPropertyInfosProperty =
             DependencyProperty.Register(nameof(DisplayPropertyInfos), typeof(IEnumerable<EFDisplayPropertyInfo>), typeof(EFDataFilter), new PropertyMetadata(null, OnPropertyChanged));
-        private static readonly DependencyPropertyKey PropertyInfoSelectionsPropertyKey =
-            DependencyProperty.RegisterReadOnly(nameof(DisplayPropertyInfoSelections), typeof(IEnumerable<EFDisplayPropertyInfo>), typeof(EFDataFilter), new PropertyMetadata(null));
-        public static readonly DependencyProperty DisplayPropertyInfoSelectionsProperty = PropertyInfoSelectionsPropertyKey.DependencyProperty;
         public static readonly DependencyProperty QueryExpressionProperty = QueryExpressionPropertyKey.DependencyProperty;
         private static readonly DependencyPropertyKey FiltersPropertyKey =
             DependencyProperty.RegisterReadOnly(nameof(PropertyFilters), typeof(IEnumerable), typeof(EFDataFilter), new PropertyMetadata(null));
         public static readonly DependencyProperty PropertyFiltersProperty = FiltersPropertyKey.DependencyProperty;
         public static readonly DependencyProperty SelectedPropertyInfoProperty =
-            DependencyProperty.Register(nameof(SelectedPropertyInfo), typeof(EFDisplayPropertyInfo), typeof(EFDataFilter), new PropertyMetadata(null, OnPropertyChanged));
+            DependencyProperty.Register(nameof(SelectedPropertyInfo), typeof(EFDisplayPropertyInfo), typeof(EFDataFilter), new PropertyMetadata(default(EFDisplayPropertyInfo), OnPropertyChanged));
         private static readonly DependencyPropertyKey ComparisonSelectionsPropertyKey =
             DependencyProperty.RegisterReadOnly(nameof(ComparisonSelections), typeof(IEnumerable<EFComparison>), typeof(EFDataFilter), new PropertyMetadata(null));
         public static readonly DependencyProperty ComparisonSelectionsProperty = ComparisonSelectionsPropertyKey.DependencyProperty;
         public static readonly DependencyProperty SelectedComparisonProperty =
-            DependencyProperty.Register(nameof(SelectedComparison), typeof(EFComparison), typeof(EFDataFilter), new PropertyMetadata(EFComparison.Equal));
-        public static readonly DependencyProperty ValueProperty =
-            DependencyProperty.Register(nameof(Value), typeof(object), typeof(EFDataFilter), new PropertyMetadata(null, OnPropertyChanged));
-        private static readonly DependencyPropertyKey IsValidValuePropertyKey =
-            DependencyProperty.RegisterReadOnly(nameof(IsValidValue), typeof(bool), typeof(EFDataFilter), new PropertyMetadata(false));
-        public static readonly DependencyProperty IsValidValueProperty = IsValidValuePropertyKey.DependencyProperty;
-        private static readonly DependencyPropertyKey ValidValuePropertyKey =
-            DependencyProperty.RegisterReadOnly(nameof(ValidValue), typeof(object), typeof(EFDataFilter), new PropertyMetadata(null));
-        public static readonly DependencyProperty ValidValueProperty = ValidValuePropertyKey.DependencyProperty;
+            DependencyProperty.Register(nameof(SelectedComparison), typeof(EFComparison), typeof(EFDataFilter), new PropertyMetadata(EFComparison.Equal, OnPropertyChanged));
+        public static readonly DependencyProperty ComparisonValueProperty =
+            DependencyProperty.Register(nameof(ComparisonValue), typeof(object), typeof(EFDataFilter), new PropertyMetadata(null, OnPropertyChanged));
+        private static readonly DependencyPropertyKey IsValidComparisonValuePropertyKey =
+            DependencyProperty.RegisterReadOnly(nameof(IsValidComparisonValue), typeof(bool), typeof(EFDataFilter), new PropertyMetadata(false));
+        public static readonly DependencyProperty IsValidComparisonValueProperty = IsValidComparisonValuePropertyKey.DependencyProperty;
+        private static readonly DependencyPropertyKey ValidComparisonValuePropertyKey =
+            DependencyProperty.RegisterReadOnly(nameof(ValidComparisonValue), typeof(object), typeof(EFDataFilter), new PropertyMetadata(null));
+        public static readonly DependencyProperty ValidComparisonValueProperty = ValidComparisonValuePropertyKey.DependencyProperty;
         private static readonly DependencyPropertyKey IsExistsItemPropertyKey =
-           DependencyProperty.RegisterReadOnly(nameof(IsExistsItem), typeof(bool), typeof(EFDataFilter), new PropertyMetadata(false));
+            DependencyProperty.RegisterReadOnly(nameof(IsExistsItem), typeof(bool), typeof(EFDataFilter), new PropertyMetadata(false));
         public static readonly DependencyProperty IsExistsItemProperty = IsExistsItemPropertyKey.DependencyProperty;
-        private static readonly DependencyPropertyKey IsSelectedExistsItemPropertyKey =
-          DependencyProperty.RegisterReadOnly(nameof(IsSelectedExistsItem), typeof(bool), typeof(EFDataFilter), new PropertyMetadata(false));
-        public static readonly DependencyProperty IsSelectedExistsItemProperty = IsSelectedExistsItemPropertyKey.DependencyProperty;
+        private static readonly DependencyPropertyKey IsSelectedPropertyExistsItemPropertyKey =
+            DependencyProperty.RegisterReadOnly(nameof(IsSelectedPropertyExistsItem), typeof(bool), typeof(EFDataFilter), new PropertyMetadata(false));
+        public static readonly DependencyProperty IsSelectedPropertyExistsItemProperty = IsSelectedPropertyExistsItemPropertyKey.DependencyProperty;
+        public static readonly DependencyProperty SelectedOperationProperty =
+            DependencyProperty.Register(nameof(SelectedOperation), typeof(EFOperation), typeof(EFDataFilter), new PropertyMetadata(EFOperation.And, OnPropertyChanged));
+        private static readonly DependencyPropertyKey OperationSelectionsPropertyKey =
+            DependencyProperty.RegisterReadOnly(nameof(OperationSelections), typeof(IEnumerable<EFOperation>), typeof(EFDataFilter), new PropertyMetadata(null));
+        public static readonly DependencyProperty OperationSelectionsProperty = OperationSelectionsPropertyKey.DependencyProperty;
 
         private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var filter = (EFDataFilter)d;
             if (e.Property == DisplayPropertyInfosProperty)
             {
-                filter.Invalidate();
+                filter.InitalizeDisplayPropertyInfos();
             }
             else if (e.Property == SelectedPropertyInfoProperty)
             {
-
+                filter.OnSelectedPropertyInfoChanged((EFDisplayPropertyInfo)e.OldValue, (EFDisplayPropertyInfo)e.NewValue);
+            }
+            else if (e.Property == ComparisonValueProperty)
+            {
+                filter.OnComparisonValueChanged(e.OldValue, e.NewValue);
+            }
+            else if (e.Property == SelectedComparisonProperty)
+            {
+                filter.OnSelectedComparisonChanged((EFComparison)e.OldValue, (EFComparison)e.NewValue);
             }
         }
         static EFDataFilter()
@@ -113,13 +123,12 @@ namespace System.Windows
             DefaultStyleKeyProperty.OverrideMetadata(typeof(EFDataFilter), new FrameworkPropertyMetadata(typeof(EFDataFilter)));
         }
         private Dictionary<EFDisplayPropertyInfo, EFDataPropertyFilter> _propertyFilters;
-        private TextBox _valueTextBox;
+       
         public EFDataFilter()
         {
             _propertyFilters = new Dictionary<EFDisplayPropertyInfo, EFDataPropertyFilter>();
             this.SetBinding(EntityTypeProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.EntityTypeProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
             this.SetBinding(DisplayPropertyInfosProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.DisplayPropertyInfosProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
-            this.SetBinding(QueryExpressionProperty, new Binding(nameof(EFDataBox.QueryExpression)) { Source = this, Mode = BindingMode.TwoWay });
             this.CommandBindings.Add(new CommandBinding(AddCommand, new ExecutedRoutedEventHandler(OnAdd)));
             this.CommandBindings.Add(new CommandBinding(DeleteCommand, new ExecutedRoutedEventHandler(OnDelete)));
             this.CommandBindings.Add(new CommandBinding(ClearCommand, new ExecutedRoutedEventHandler(OnClear)));
@@ -139,11 +148,6 @@ namespace System.Windows
             get { return (IEnumerable<EFDisplayPropertyInfo>)GetValue(DisplayPropertyInfosProperty); }
             set { SetValue(DisplayPropertyInfosProperty, value); }
         }
-        public IEnumerable<EFDisplayPropertyInfo> DisplayPropertyInfoSelections
-        {
-            get { return (IEnumerable<EFDisplayPropertyInfo>)GetValue(DisplayPropertyInfoSelectionsProperty); }
-            protected set { SetValue(PropertyInfoSelectionsPropertyKey, value); }
-        }
         public EFDisplayPropertyInfo SelectedPropertyInfo
         {
             get { return (EFDisplayPropertyInfo)GetValue(SelectedPropertyInfoProperty); }
@@ -159,131 +163,69 @@ namespace System.Windows
             get { return (EFComparison)GetValue(SelectedComparisonProperty); }
             set { SetValue(SelectedComparisonProperty, value); }
         }
-        public object Value
+        public EFOperation SelectedOperation
         {
-            get { return (object)GetValue(ValueProperty); }
-            set { SetValue(ValueProperty, value); }
+            get { return (EFOperation)GetValue(SelectedOperationProperty); }
+            set { SetValue(SelectedOperationProperty, value); }
         }
-        public bool IsValidValue
+        public IEnumerable<EFOperation> OperationSelections
         {
-            get { return (bool)GetValue(IsValidValueProperty); }
-            protected set { SetValue(IsValidValuePropertyKey, value); }
-        }
-        public object ValidValue
-        {
-            get { return (object)GetValue(ValidValueProperty); }
-            protected set { SetValue(ValidValuePropertyKey, value); }
-        }
+            get { return (IEnumerable<EFOperation>)GetValue(OperationSelectionsProperty); }
+            protected set { SetValue(OperationSelectionsPropertyKey, value); }
+        } 
         public bool IsExistsItem
         {
             get { return (bool)GetValue(IsExistsItemProperty); }
             protected set { SetValue(IsExistsItemPropertyKey, value); }
         }
-        public bool IsSelectedExistsItem
+        public bool IsSelectedPropertyExistsItem
         {
-            get { return (bool)GetValue(IsSelectedExistsItemProperty); }
-            protected set { SetValue(IsSelectedExistsItemPropertyKey, value); }
+            get { return (bool)GetValue(IsSelectedPropertyExistsItemProperty); }
+            protected set { SetValue(IsSelectedPropertyExistsItemPropertyKey, value); }
         }
         public IEnumerable PropertyFilters
         {
             get { return (IEnumerable)GetValue(PropertyFiltersProperty); }
             protected set { SetValue(FiltersPropertyKey, value); }
         }
-        public override void OnApplyTemplate()
+        private void InitalizeDisplayPropertyInfos()
         {
-            base.OnApplyTemplate();
-            if (_valueTextBox != null)
-                _valueTextBox.TextChanged -= ValueTextBox_TextChanged;
-            _valueTextBox = this.Template.FindName(PART_TextBox, this) as TextBox;
-            if (_valueTextBox != null)
-                _valueTextBox.TextChanged += ValueTextBox_TextChanged;
+            _propertyFilters.Clear();
+            PropertyFilters = _propertyFilters.Values.ToArray();
+            SelectedPropertyInfo = DisplayPropertyInfos.FirstOrDefault();
+            IsExistsItem = false;
+            IsSelectedPropertyExistsItem = false;
+            OperationSelections = GetOperations();
+            InitializeQueryExpression();
         }
-        private void ValueTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        protected virtual void OnSelectedPropertyInfoChanged(EFDisplayPropertyInfo oldValue, EFDisplayPropertyInfo newValue)
         {
-            var newValue = _valueTextBox?.Text;
-            object validValue;
-            var isValidValue = TryParse(newValue, out validValue);
-            IsValidValue = isValidValue;
-            ValidValue = validValue;
-        }
-        private bool TryParse(object value, out object validValue)
-        {
-            validValue = null;
-            try
-            {
-                validValue = Convert.ChangeType(value, SelectedPropertyInfo.PropertyType);
-                return true;
-            }
-            catch { }
-            return false;
+            InitializeSelectedPropertyInfoComparisons();
+            IsSelectedPropertyExistsItem = _propertyFilters.ContainsKey(newValue) && _propertyFilters[newValue].IsEmpty == false;
+            ResetComparisonValue();
         }
 
-        private void Invalidate()
-        {
-            _propertyFilters.Clear();
-            PropertyFilters = _propertyFilters.Values;
-            DisplayPropertyInfoSelections = DisplayPropertyInfos;
-            SelectedPropertyInfo = DisplayPropertyInfos.FirstOrDefault();
-            InitializeQueryExpression();
-        }
-        private void OnSelectedPropertyInfoChanged(EFDisplayPropertyInfo oldValue, EFDisplayPropertyInfo newValue)
-        {
-            InitializeSelectedPropertyInfoComparisons();
-        }
-        private void OnAdd(object sender, ExecutedRoutedEventArgs e)
-        {
-            var selectedPropertyInfo = SelectedPropertyInfo;
-            if (_propertyFilters.ContainsKey(selectedPropertyInfo) || DisplayPropertyInfos.Contains(selectedPropertyInfo) == false)
-                return;
-            var filter = PreparePropertyItemFrom(selectedPropertyInfo) ?? throw new Exception();
-            _propertyFilters.Add(selectedPropertyInfo, filter);
-            PropertyFilters = _propertyFilters.Values;
-            DisplayPropertyInfoSelections = DisplayPropertyInfos.Where(i => _propertyFilters.ContainsKey(i) == false);
-            InitializeSelectedPropertyInfoComparisons();
-        }
-        private void OnDelete(object sender, ExecutedRoutedEventArgs e)
-        {
-            var propertyFilter = e.Source as EFDataPropertyFilter;
-            if (propertyFilter != null)
-            {
-                _propertyFilters.Remove(propertyFilter.PropertyInfo);
-                PropertyFilters = _propertyFilters.Values;
-                DisplayPropertyInfoSelections = DisplayPropertyInfos.Where(i => _propertyFilters.ContainsKey(i) == false);
-                InitializeQueryExpression();
-            }
-        }
-        private void OnClear(object sender, ExecutedRoutedEventArgs e)
-        {
-            _propertyFilters.Clear();
-            PropertyFilters = _propertyFilters.Values;
-            DisplayPropertyInfoSelections = DisplayPropertyInfos.Where(i => _propertyFilters.ContainsKey(i) == false);
-            InitializeQueryExpression();
-        }
-        private void InitializeQueryExpression()
-        {
-            QueryExpression = GetQueryExpression(EntityType, _propertyFilters.Values);
-        }
+        #region comparison
         private void InitializeSelectedPropertyInfoComparisons()
         {
-            var info = SelectedPropertyInfo;
-            if (_propertyFilters.ContainsKey(info))
+            var selectedPropertyInfo = SelectedPropertyInfo;
+            if (_propertyFilters.ContainsKey(selectedPropertyInfo))
             {
-                var filter = _propertyFilters[info];
+                var filter = _propertyFilters[selectedPropertyInfo];
                 var exists = filter.Filters.Select(i => i.Comparison).ToList();
-                ComparisonSelections = GetComparisons(info.PropertyType).Where(i => exists.Contains(i) == false);
+                ComparisonSelections = GetComparisons(selectedPropertyInfo.PropertyType).Where(i => exists.Contains(i) == false);
             }
             else
             {
-                ComparisonSelections = GetComparisons(info.PropertyType);
+                ComparisonSelections = GetComparisons(selectedPropertyInfo.PropertyType);
             }
+            SelectedComparison = ComparisonSelections.FirstOrDefault();
         }
-        protected virtual EFDataPropertyFilter PreparePropertyItemFrom(EFDisplayPropertyInfo propertyInfo)
+        private IEnumerable<EFOperation> GetOperations()
         {
-            return new EFDataPropertyFilter(propertyInfo);
+            yield return EFOperation.And;
+            yield return EFOperation.Or;
         }
-    
-
-        #region comparison
         private IEnumerable<EFComparison> GetComparisons(Type type)
         {
             yield return EFComparison.Equal;
@@ -312,7 +254,174 @@ namespace System.Windows
         }
         #endregion
 
-        #region linq
+        protected void OnSelectedComparisonChanged(EFComparison oldValue, EFComparison newValue)
+        {
+            ReCheckComparisonValue();
+        }
+
+        #region comparisonValue
+        private TextBox _comparisonValueTextBox;
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+            if (_comparisonValueTextBox != null)
+                _comparisonValueTextBox.TextChanged -= ComparisonValue_TextChanged;
+            _comparisonValueTextBox = this.Template.FindName(PART_TextBox, this) as TextBox;
+            if (_comparisonValueTextBox != null)
+                _comparisonValueTextBox.TextChanged += ComparisonValue_TextChanged;
+        }
+        public object ComparisonValue
+        {
+            get { return (object)GetValue(ComparisonValueProperty); }
+            set { SetValue(ComparisonValueProperty, value); }
+        }
+        public bool IsValidComparisonValue
+        {
+            get { return (bool)GetValue(IsValidComparisonValueProperty); }
+            protected set { SetValue(IsValidComparisonValuePropertyKey, value); }
+        }
+        public object ValidComparisonValue
+        {
+            get { return (object)GetValue(ValidComparisonValueProperty); }
+            protected set { SetValue(ValidComparisonValuePropertyKey, value); }
+        }
+        private void ComparisonValue_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CheckComparisonValue(_comparisonValueTextBox.Text);
+        }
+        private void OnComparisonValueChanged(object oldValue, object newValue)
+        {
+            CheckComparisonValue(newValue);
+        }
+        private void CheckComparisonValue(object value)
+        {
+            object validValue;
+            var isValidValue = TryParseComparisonValue(value, out validValue);
+            IsValidComparisonValue = isValidValue;
+            ValidComparisonValue = validValue;
+        }
+        private void ResetComparisonValue()
+        {
+            ComparisonValue = null;
+            if (_comparisonValueTextBox != null)
+                _comparisonValueTextBox.Text = null;
+            CheckComparisonValue(null);
+        }
+        private void ReCheckComparisonValue()
+        {
+            var value = ComparisonValue;
+            if (_comparisonValueTextBox != null)
+                value = _comparisonValueTextBox.Text;
+            CheckComparisonValue(value);
+        }
+        private bool TryParseComparisonValue(object value, out object validValue)
+        {
+            validValue = null;
+            try
+            {
+                var propertyType = SelectedPropertyInfo.PropertyType;
+                var comparison = SelectedComparison;
+                validValue = Convert.ChangeType(value, SelectedPropertyInfo.PropertyType);
+                return IsValidValueForComparison(comparison, validValue);
+            }
+            catch { }
+            return false;
+        }
+        private bool IsValidValueForComparison(EFComparison comparison,object value)
+        {
+            switch (comparison)
+            {
+                case EFComparison.Equal:
+                    break;
+                case EFComparison.NotEqual:
+                    break;
+                case EFComparison.GreaterThan:
+                    break;
+                case EFComparison.GreaterThanOrEqual:
+                    break;
+                case EFComparison.LessThan:
+                    break;
+                case EFComparison.LessThanOrEqual:
+                    break;
+                case EFComparison.Contains:
+                    return string.IsNullOrEmpty(value?.ToString()) == false;
+                case EFComparison.NotContains:
+                    return string.IsNullOrEmpty(value?.ToString()) == false;
+                case EFComparison.StartWith:
+                    return string.IsNullOrEmpty(value?.ToString()) == false;
+                case EFComparison.EndWith:
+                    return string.IsNullOrEmpty(value?.ToString()) == false;
+                case EFComparison.Match:
+                    return string.IsNullOrEmpty(value?.ToString()) == false;
+                default:
+                    break;
+            }
+            return true;
+        }
+        #endregion
+
+        private void OnAdd(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (IsValidComparisonValue == false) return;
+            var comparison = SelectedComparison;
+            var comparisonValue = ValidComparisonValue;
+            var operation = SelectedOperation;
+            var selectedPropertyInfo = SelectedPropertyInfo;
+            if (DisplayPropertyInfos.Contains(selectedPropertyInfo) == false)
+                return;
+            EFDataPropertyFilter filter;
+            if (_propertyFilters.ContainsKey(selectedPropertyInfo))
+            {
+                filter = _propertyFilters[selectedPropertyInfo];
+            }
+            else
+            {
+                filter = PreparePropertyItemFrom(selectedPropertyInfo) ?? throw new Exception();
+                _propertyFilters.Add(selectedPropertyInfo, filter);
+            }
+            filter.AddLast(new EFValueFilter(comparison, comparisonValue, operation));
+            PropertyFilters = _propertyFilters.Values.ToArray(); 
+            IsExistsItem = true;
+            IsSelectedPropertyExistsItem = true;
+            InitializeSelectedPropertyInfoComparisons();
+            InitializeQueryExpression();
+        }
+        private void OnDelete(object sender, ExecutedRoutedEventArgs e)
+        {
+            var selectedPropertyInfo = SelectedPropertyInfo;
+            if (DisplayPropertyInfos.Contains(selectedPropertyInfo) == false)
+                return;
+            if (_propertyFilters.ContainsKey(selectedPropertyInfo) == false)
+                return;
+            var filter = _propertyFilters[selectedPropertyInfo];
+            filter.RemoveLast();
+            if (filter.IsEmpty)
+                _propertyFilters.Remove(selectedPropertyInfo);
+            PropertyFilters = _propertyFilters.Values.ToArray();
+            IsExistsItem = _propertyFilters.Count > 0;
+            IsSelectedPropertyExistsItem = filter.IsEmpty == false;
+            InitializeSelectedPropertyInfoComparisons();
+            InitializeQueryExpression();
+        }
+        private void OnClear(object sender, ExecutedRoutedEventArgs e)
+        {
+            _propertyFilters.Clear();
+            PropertyFilters = _propertyFilters.Values.ToArray();
+            IsExistsItem = false;
+            IsSelectedPropertyExistsItem = false;
+            InitializeSelectedPropertyInfoComparisons();
+            InitializeQueryExpression();
+        }
+        protected virtual EFDataPropertyFilter PreparePropertyItemFrom(EFDisplayPropertyInfo propertyInfo)
+        {
+            return new EFDataPropertyFilter(propertyInfo);
+        }
+
+        #region queryExpression
+        private void InitializeQueryExpression()
+        {
+            QueryExpression = GetQueryExpression(EntityType, _propertyFilters.Values);
+        }
         private Linq.Expressions.Expression GetQueryExpression(Type entityType, ICollection<EFDataPropertyFilter> propertyFilters)
         {
             if (entityType == default || propertyFilters == default || propertyFilters.Count == 0) return null;
@@ -377,7 +486,7 @@ namespace System.Windows
         private static readonly DependencyPropertyKey PropertyNamePropertyKey =
             DependencyProperty.RegisterReadOnly(nameof(PropertyName), typeof(string), typeof(EFDataPropertyFilter), new PropertyMetadata(null));
         private static readonly DependencyPropertyKey GenericNamePropertyKey =
-            DependencyProperty.RegisterReadOnly(nameof(GenericName), typeof(string), typeof(EFDataFilter), new PropertyMetadata(null));
+            DependencyProperty.RegisterReadOnly(nameof(GenericName), typeof(string), typeof(EFDataPropertyFilter), new PropertyMetadata(null));
         public static readonly DependencyProperty GenericNameProperty = GenericNamePropertyKey.DependencyProperty;
         public static readonly DependencyProperty PropertyNameProperty = PropertyNamePropertyKey.DependencyProperty;
         private static readonly DependencyPropertyKey PropertyTypePropertyKey =
@@ -391,25 +500,24 @@ namespace System.Windows
         public static readonly DependencyProperty IsSelectedProperty =
             DependencyProperty.Register(nameof(IsSelected), typeof(bool), typeof(EFDataPropertyFilter), new PropertyMetadata(false));
         private static readonly DependencyPropertyKey IsEmptyPropertyKey =
-           DependencyProperty.RegisterReadOnly(nameof(IsEmpty), typeof(bool), typeof(EFDataFilter), new PropertyMetadata(true));
+           DependencyProperty.RegisterReadOnly(nameof(IsEmpty), typeof(bool), typeof(EFDataPropertyFilter), new PropertyMetadata(true));
         public static readonly DependencyProperty IsEmptyProperty = IsEmptyPropertyKey.DependencyProperty;
         static EFDataPropertyFilter()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(EFDataPropertyFilter), new FrameworkPropertyMetadata(typeof(EFDataPropertyFilter)));
         }
-
         private LinkedList<EFValueFilter> _filters;
         public EFDataPropertyFilter()
         {
             _filters = new LinkedList<EFValueFilter>();
+            Filters = _filters.AsEnumerable();
         }
-        public EFDataPropertyFilter(EFDisplayPropertyInfo propertyInfo)
+        public EFDataPropertyFilter(EFDisplayPropertyInfo propertyInfo):this()
         {
             PropertyInfo = propertyInfo;
             PropertyName = propertyInfo.PropertyName;
             GenericName = propertyInfo.GenericName;
             PropertyType = propertyInfo.PropertyType;
-            _filters = new LinkedList<EFValueFilter>();
         }
         public EFDisplayPropertyInfo PropertyInfo { get; }
         public string PropertyName
@@ -450,25 +558,73 @@ namespace System.Windows
         public void AddLast(EFValueFilter filter)
         {
             _filters.AddLast(filter);
-            Filters = _filters.AsEnumerable();
+            Filters = _filters.ToArray();
             IsEmpty = false;
         }
         public void RemoveLast()
         {
             if (_filters.Count > 0)
                 _filters.RemoveLast();
-            Filters = _filters.AsEnumerable();
+            Filters = _filters.ToArray();
             IsEmpty = _filters.Count == 0;
         }
         public void Clear()
         {
             _filters.Clear();
-            Filters = _filters.AsEnumerable();
+            Filters = _filters.ToArray();
             IsEmpty = true;
         }
         public Linq.Expressions.Expression GetConditionExpression(ParameterExpression modelExp)
         {
+            if (_filters.Count == 0)
+                return null;
+            var first = _filters.First;
+
             return null;
+        }
+
+        private Linq.Expressions.Expression GetExpression(ParameterExpression modelExp,Type propertyType,string propertyName,EFComparison comparison,object comparisonValue)
+        {
+            var propertyExp = Linq.Expressions.Expression.Property(modelExp, propertyName);
+            var valueExp = Linq.Expressions.Expression.Constant(comparisonValue);
+            var trueExp = Linq.Expressions.Expression.Constant(true);
+            switch (comparison)
+            {
+                case EFComparison.Equal:
+                    if (propertyType == typeof(string) && string.IsNullOrEmpty(comparisonValue?.ToString()))
+                        return Linq.Expressions.Expression.Call(typeof(string), nameof(string.IsNullOrEmpty), null, propertyExp);// string.IsNullOrEmpty(i.PropertyName)
+                    else
+                        return Linq.Expressions.Expression.Equal(propertyExp, valueExp);//i.PropertyName = value;
+                case EFComparison.NotEqual:
+                    if (propertyType == typeof(string) && string.IsNullOrEmpty(comparisonValue?.ToString()))// string.IsNullOrEmpty(i.PropertyName)==false
+                    {
+                        var isNullExp = Linq.Expressions.Expression.Call(typeof(string), nameof(string.IsNullOrEmpty), null, propertyExp);// string.IsNullOrEmpty(i.PropertyName)
+                        return Linq.Expressions.Expression.NotEqual(isNullExp, trueExp);//string.IsNullOrEmpty(i.PropertyName) != true
+                    }
+                    else
+                        return Linq.Expressions.Expression.NotEqual(propertyExp, valueExp);//i.PropertyName != value;
+                case EFComparison.GreaterThan:
+                    return Linq.Expressions.Expression.GreaterThan(propertyExp, valueExp);//i.PropertyName > value;
+                case EFComparison.GreaterThanOrEqual:
+                    return Linq.Expressions.Expression.GreaterThanOrEqual(propertyExp, valueExp);//i.PropertyName >= value;
+                case EFComparison.LessThan:
+                    return Linq.Expressions.Expression.LessThan(propertyExp, valueExp);//i.PropertyName < value;
+                case EFComparison.LessThanOrEqual:
+                    return Linq.Expressions.Expression.LessThanOrEqual(propertyExp, valueExp);//i.PropertyName <= value;
+                case EFComparison.Contains:
+                    return Linq.Expressions.Expression.Call(propertyExp, nameof(string.Contains), null, valueExp);// i.PropertyName.Contains(value);
+                case EFComparison.NotContains:
+                    var containsExp = Linq.Expressions.Expression.Call(propertyExp, nameof(string.Contains), null, valueExp);
+                    return Linq.Expressions.Expression.NotEqual(containsExp, trueExp);//i.PropertyName.Contains(value) != true
+                case EFComparison.StartWith:
+                    return Linq.Expressions.Expression.Call(propertyExp, nameof(string.StartsWith), null, valueExp);// i.PropertyName.StartsWith(value);
+                case EFComparison.EndWith:
+                    return Linq.Expressions.Expression.Call(propertyExp, nameof(string.EndsWith), null, valueExp);// i.PropertyName.EndsWith(value);
+                case EFComparison.Match:
+                    return Linq.Expressions.Expression.Call(typeof(Regex), nameof(Regex.IsMatch), null, propertyExp, valueExp);// i.PropertyName.EndsWith(value);
+                default:
+                    break;
+            }
         }
     }
 

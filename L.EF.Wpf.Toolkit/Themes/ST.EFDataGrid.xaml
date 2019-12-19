@@ -538,22 +538,30 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:EFDataPropertyFilter}">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock>
-                            <Run Text="{Binding GenericName}" />
-                            <Run Text=":" />
-                        </TextBlock>
-                        <ItemsControl ItemsSource="{Binding Filters}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock>
-                                        <Run Text="{Binding Comparison, Converter={local:Comparison}}" />
-                                        <Run Text="{Binding ComparisonValue, Converter={local:ComparisonValue}}" />
-                                    </TextBlock>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
+                    <Border>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock>
+                                <Run Text="{TemplateBinding GenericName}" />
+                                <Run Text=":" />
+                            </TextBlock>
+                            <ItemsControl ItemsSource="{TemplateBinding Filters}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock>
+                                            <Run Text="{Binding Operation, Converter={local:Operation}, Mode=OneWay}" />
+                                            <Run Text="{Binding Comparison, Converter={local:Comparison}, Mode=OneWay}" />
+                                            <Run Text="{Binding ComparisonValue, Converter={local:ComparisonValue}, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <VirtualizingStackPanel IsItemsHost="True" Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -566,23 +574,33 @@
                     <Border>
                         <StackPanel>
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="条件" />
+                                <TextBlock Text="条件：" />
                                 <ComboBox
-                                    Width="200"
-                                    ItemsSource="{TemplateBinding DisplayPropertyInfoSelections}"
-                                    SelectedItem="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SelectedPropertyInfo}">
+                                    Name="cbbOperation"
+                                    ItemsSource="{TemplateBinding OperationSelections}"
+                                    SelectedItem="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SelectedOperation}">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding PropertyName, Mode=OneWay}" />
+                                            <TextBlock Text="{Binding ., Converter={local:Operation}}" />
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                                 <ComboBox
-                                    Width="50"
+                                    MinWidth="50"
+                                    ItemsSource="{TemplateBinding DisplayPropertyInfos}"
+                                    SelectedItem="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SelectedPropertyInfo}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding GenericName, Mode=OneWay}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <ComboBox
+                                    MinWidth="50"
                                     ItemsSource="{TemplateBinding ComparisonSelections}"
                                     SelectedItem="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SelectedComparison}">
                                     <ComboBox.ItemTemplate>
-                                        <DataTemplate DataType="local:EFComparison">
+                                        <DataTemplate>
                                             <TextBlock Text="{Binding ., Converter={local:Comparison}}" />
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
@@ -591,25 +609,24 @@
                                 <CustomButton
                                     Command="{x:Static local:EFDataFilter.AddCommand}"
                                     Content="添加"
-                                    IsEnabled="{TemplateBinding IsValidValue}" />
+                                    IsEnabled="{TemplateBinding IsValidComparisonValue}" />
                                 <CustomButton
                                     Command="{x:Static local:EFDataFilter.DeleteCommand}"
                                     Content="取消"
-                                    IsEnabled="{TemplateBinding IsSelectedExistsItem}" />
+                                    IsEnabled="{TemplateBinding IsSelectedPropertyExistsItem}" />
                                 <CustomButton
                                     Command="{x:Static local:EFDataFilter.ClearCommand}"
                                     Content="清空"
                                     IsEnabled="{TemplateBinding IsExistsItem}" />
                             </StackPanel>
-                            <ItemsControl ItemsSource="{TemplateBinding PropertyFilters}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <VirtualizingStackPanel IsItemsHost="True" Orientation="Horizontal" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                            </ItemsControl>
+                            <ItemsControl ItemsSource="{TemplateBinding PropertyFilters}" />
                         </StackPanel>
                     </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelectedPropertyExistsItem" Value="False">
+                            <Setter TargetName="cbbOperation" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

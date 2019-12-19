@@ -4,8 +4,6 @@
     <TargetFrameworks>net45;netcoreapp3.0</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <RootNamespace>System.Windows</RootNamespace>
-    <AssemblyVersion>6.6.6.0</AssemblyVersion>
-    <FileVersion>3.6.6.0</FileVersion>
     <Version>19.12.10.01</Version>
     <PackageProjectUrl>https://github.com/Liu-junbao/L.Master.git</PackageProjectUrl>
     <ApplicationIcon />
@@ -19,6 +17,11 @@
 
   <ItemGroup>
     <Resource Include="Images\star.png" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
 
 </Project>

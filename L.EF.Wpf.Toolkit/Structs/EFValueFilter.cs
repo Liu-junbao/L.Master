@@ -6,7 +6,7 @@ namespace System
 {
     public struct EFValueFilter
     {
-        public EFValueFilter(EFComparison comparison, object comparisonValue, EFOperation operation)
+        public EFValueFilter(EFComparison comparison, object comparisonValue,EFOperation operation)
         {
             Comparison = comparison;
             ComparisonValue = comparisonValue;

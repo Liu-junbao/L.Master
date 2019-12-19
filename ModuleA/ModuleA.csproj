@@ -99,7 +99,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj">
-      <Project>{49e8d090-1cb1-45ac-b5e4-ce1a08dd9c66}</Project>
+      <Project>{53542008-a112-4631-a7c2-3548bfb30d30}</Project>
       <Name>L.Prism.Wpf.Toolkit</Name>
     </ProjectReference>
   </ItemGroup>

@@ -17,7 +17,7 @@
     RegionBrowserAssist.ToolTip="模块B"
     mc:Ignorable="d">
     <UserControl.Resources>
-        <Style x:Key="st.ValueEditor" TargetType="{x:Type EFValueEditor}">
+        <Style TargetType="{x:Type EFValueEditor}">
             <Style.Triggers>
                 <MultiTrigger>
                     <MultiTrigger.Conditions>
@@ -54,7 +54,8 @@
                 Command="{x:Static EFDataBox.ImportCommand}"
                 Content="导入"
                 DockPanel.Dock="Top" />
-            <EFDataGrid ValueEditorStyle="{StaticResource st.ValueEditor}" />
+            <EFDataFilter DockPanel.Dock="Top"/>
+            <EFDataGrid/>
         </DockPanel>
     </EFDataBox>
 </UserControl>
