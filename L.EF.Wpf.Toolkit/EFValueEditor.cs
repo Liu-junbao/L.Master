@@ -24,8 +24,6 @@ namespace System.Windows
         public static readonly DependencyProperty PropertyTypeProperty = PropertyTypePropertyKey.DependencyProperty;
         public static readonly DependencyProperty ValueProperty =
            DependencyProperty.Register(nameof(Value), typeof(object), typeof(EFValueEditor), new PropertyMetadata(null, OnValueChanged));
-        public static readonly DependencyProperty ValueTextProperty =
-           DependencyProperty.Register(nameof(ValueText), typeof(string), typeof(EFValueEditor), new PropertyMetadata(null, OnValueTextChanged));
         private static readonly DependencyPropertyKey IsValueChangedPropertyKey =
            DependencyProperty.RegisterReadOnly(nameof(IsValueChanged), typeof(bool), typeof(EFValueEditor), new PropertyMetadata(false));
         public static readonly DependencyProperty IsValueChangedProperty = IsValueChangedPropertyKey.DependencyProperty;
@@ -83,11 +81,6 @@ namespace System.Windows
             get { return (object)GetValue(ValueProperty); }
             set { SetValue(ValueProperty, value); }
         }
-        public string ValueText
-        {
-            get { return (string)GetValue(ValueTextProperty); }
-            set { SetValue(ValueTextProperty, value); }
-        }
         public bool IsValueChanged
         {
             get { return (bool)GetValue(IsValueChangedProperty); }
@@ -138,12 +131,10 @@ namespace System.Windows
             _propertyValueBinding.UpdateTarget();
             var value = PropertyValue;
             Value = value;
-            ValueText = value?.ToString();
         }
         private void OnPropertyValueChanged(object oldValue, object newValue)
         {
             Value = newValue;
-            ValueText = newValue?.ToString();
             if (newValue != null)
                 PropertyType = newValue.GetType();
         }

@@ -10,4 +10,6 @@
     <Style BasedOn="{StaticResource st.EFDataGrid}" TargetType="local:EFDataGrid" />
     <Style BasedOn="{StaticResource st.EFDataGridBar}" TargetType="local:EFDataGridBar" />
     <Style BasedOn="{StaticResource st.EFDataBox}" TargetType="{x:Type local:EFDataBox}" />
+    <Style BasedOn="{StaticResource st.EFDataPropertyFilter}" TargetType="{x:Type local:EFDataPropertyFilter}" />
+    <Style BasedOn="{StaticResource st.EFDataFilter}" TargetType="{x:Type local:EFDataFilter}" />
 </ResourceDictionary>

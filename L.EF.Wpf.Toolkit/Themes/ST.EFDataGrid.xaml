@@ -25,7 +25,8 @@
                             Margin="3,5"
                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                            Text="{TemplateBinding ValueText}" />
+                            Text="{TemplateBinding Value,
+                                                   Converter={ToString}}" />
                     </Border>
                 </ControlTemplate>
             </Setter.Value>
@@ -46,8 +47,7 @@
                                 <TextBox
                                     x:Name="PART_TextBox"
                                     Margin="3,1"
-                                    VerticalContentAlignment="Center"
-                                    Text="{Binding ValueText, RelativeSource={RelativeSource TemplatedParent}}" />
+                                    VerticalContentAlignment="Center" />
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>
@@ -532,6 +532,87 @@
                 <Setter Property="IsEnabled" Value="False" />
             </Trigger>
         </Style.Triggers>
+    </Style>
+
+    <Style x:Key="st.EFDataPropertyFilter" TargetType="{x:Type local:EFDataPropertyFilter}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:EFDataPropertyFilter}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock>
+                            <Run Text="{Binding GenericName}" />
+                            <Run Text=":" />
+                        </TextBlock>
+                        <ItemsControl ItemsSource="{Binding Filters}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <Run Text="{Binding Comparison, Converter={local:Comparison}}" />
+                                        <Run Text="{Binding ComparisonValue, Converter={local:ComparisonValue}}" />
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="st.EFDataFilter" TargetType="{x:Type local:EFDataFilter}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:EFDataFilter}">
+                    <Border>
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="条件" />
+                                <ComboBox
+                                    Width="200"
+                                    ItemsSource="{TemplateBinding DisplayPropertyInfoSelections}"
+                                    SelectedItem="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SelectedPropertyInfo}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding PropertyName, Mode=OneWay}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <ComboBox
+                                    Width="50"
+                                    ItemsSource="{TemplateBinding ComparisonSelections}"
+                                    SelectedItem="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SelectedComparison}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate DataType="local:EFComparison">
+                                            <TextBlock Text="{Binding ., Converter={local:Comparison}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <TextBox x:Name="PART_TextBox" Width="100" />
+                                <CustomButton
+                                    Command="{x:Static local:EFDataFilter.AddCommand}"
+                                    Content="添加"
+                                    IsEnabled="{TemplateBinding IsValidValue}" />
+                                <CustomButton
+                                    Command="{x:Static local:EFDataFilter.DeleteCommand}"
+                                    Content="取消"
+                                    IsEnabled="{TemplateBinding IsSelectedExistsItem}" />
+                                <CustomButton
+                                    Command="{x:Static local:EFDataFilter.ClearCommand}"
+                                    Content="清空"
+                                    IsEnabled="{TemplateBinding IsExistsItem}" />
+                            </StackPanel>
+                            <ItemsControl ItemsSource="{TemplateBinding PropertyFilters}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <VirtualizingStackPanel IsItemsHost="True" Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
 </ResourceDictionary>

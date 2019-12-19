@@ -17,15 +17,20 @@ namespace System.Windows
         }
     }
     public abstract class NewMarkupExtension<TValue> : MarkupExtension
+        where TValue : new()
     {
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
+            TValue value;
             var args = CreateArgs();
             if (args != null)
-                return Activator.CreateInstance(typeof(TValue), args);
+                value = (TValue)Activator.CreateInstance(typeof(TValue), args);
             else
-                return Activator.CreateInstance(typeof(TValue));
+                value = new TValue();
+            OnInitialize(value);
+            return value;
         }
         protected virtual object[] CreateArgs() => null;
+        protected virtual void OnInitialize(TValue value) { }
     }
 }
