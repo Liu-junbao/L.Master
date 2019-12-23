@@ -17,7 +17,7 @@
     RegionBrowserAssist.Title="模块A"
     RegionBrowserAssist.ToolTip="Home"
     mc:Ignorable="d">
-    <Grid>
+    <Grid Background="#FF3296FA">
         <ListView>
             <s:String>1</s:String>
             <s:String>2</s:String>

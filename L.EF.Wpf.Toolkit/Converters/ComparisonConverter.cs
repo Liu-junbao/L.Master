@@ -15,27 +15,27 @@ namespace System.Windows
             switch ((EFComparison)value)
             {
                 case EFComparison.Equal:
-                    return IsSign ? "== " : "等于";
+                    return IsSign ? "==" : "等于";
                 case EFComparison.NotEqual:
-                    return IsSign ? "!= " : "不等于";
+                    return IsSign ? "!=" : "不等于";
                 case EFComparison.GreaterThan:
-                    return IsSign ? "> " : "大于";
+                    return IsSign ? ">" : "大于";
                 case EFComparison.GreaterThanOrEqual:
-                    return IsSign ? ">= " : "大于等于";
+                    return IsSign ? ">=" : "大于等于";
                 case EFComparison.LessThan:
-                    return IsSign ? "< " : "小于";
+                    return IsSign ? "<" : "小于";
                 case EFComparison.LessThanOrEqual:
-                    return IsSign ? "<= " : "小于等于";
+                    return IsSign ? "<=" : "小于等于";
                 case EFComparison.Contains:
-                    return IsSign ? "Contains " : "包含";
+                    return IsSign ? "Contains" : "包含";
                 case EFComparison.NotContains:
-                    return IsSign ? "NotContains " : "不包含";
+                    return IsSign ? "NotContains" : "不包含";
                 case EFComparison.StartWith:
-                    return IsSign ? "StartWith " : "开头为";
+                    return IsSign ? "StartWith" : "开头为";
                 case EFComparison.EndWith:
-                    return IsSign ? "EndWith " : "结尾为";
+                    return IsSign ? "EndWith" : "结尾为";
                 case EFComparison.Match:
-                    return IsSign ? "Match " : "符合正则";
+                    return IsSign ? "Match" : "符合正则";
                 default:
                     break;
             }

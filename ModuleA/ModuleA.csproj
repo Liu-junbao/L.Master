@@ -93,6 +93,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Prism.Wpf" Version="7.2.0.1422" />
+    <PackageReference Include="System.Threading.Tasks.Extensions">
+      <Version>4.5.3</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="YF.ico" />

@@ -61,13 +61,12 @@ namespace System.Windows
         }
         #endregion
 
-        private static readonly DependencyPropertyKey QueryExpressionPropertyKey =
-            DependencyProperty.RegisterReadOnly(nameof(QueryExpression), typeof(Linq.Expressions.Expression), typeof(EFDataFilter), new PropertyMetadata(null));
+        public static readonly DependencyProperty QueryExpressionProperty =
+            DependencyProperty.Register(nameof(QueryExpression), typeof(Linq.Expressions.Expression), typeof(EFDataFilter), new PropertyMetadata(null));
         public static readonly DependencyProperty EntityTypeProperty =
             DependencyProperty.Register(nameof(EntityType), typeof(Type), typeof(EFDataFilter), new PropertyMetadata(default));
         public static readonly DependencyProperty DisplayPropertyInfosProperty =
             DependencyProperty.Register(nameof(DisplayPropertyInfos), typeof(IEnumerable<EFDisplayPropertyInfo>), typeof(EFDataFilter), new PropertyMetadata(null, OnPropertyChanged));
-        public static readonly DependencyProperty QueryExpressionProperty = QueryExpressionPropertyKey.DependencyProperty;
         private static readonly DependencyPropertyKey FiltersPropertyKey =
             DependencyProperty.RegisterReadOnly(nameof(PropertyFilters), typeof(IEnumerable), typeof(EFDataFilter), new PropertyMetadata(null));
         public static readonly DependencyProperty PropertyFiltersProperty = FiltersPropertyKey.DependencyProperty;
@@ -129,6 +128,7 @@ namespace System.Windows
             _propertyFilters = new Dictionary<EFDisplayPropertyInfo, EFDataPropertyFilter>();
             this.SetBinding(EntityTypeProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.EntityTypeProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
             this.SetBinding(DisplayPropertyInfosProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.DisplayPropertyInfosProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
+            this.SetBinding(QueryExpressionProperty, new Binding($"({nameof(EFDataBox.QueryExpression)})") { RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(EFDataBox), 1), Mode = BindingMode.TwoWay });
             this.CommandBindings.Add(new CommandBinding(AddCommand, new ExecutedRoutedEventHandler(OnAdd)));
             this.CommandBindings.Add(new CommandBinding(DeleteCommand, new ExecutedRoutedEventHandler(OnDelete)));
             this.CommandBindings.Add(new CommandBinding(ClearCommand, new ExecutedRoutedEventHandler(OnClear)));
@@ -136,7 +136,7 @@ namespace System.Windows
         public Linq.Expressions.Expression QueryExpression
         {
             get { return (Linq.Expressions.Expression)GetValue(QueryExpressionProperty); }
-            protected set { SetValue(QueryExpressionPropertyKey, value); }
+            set { SetValue(QueryExpressionProperty, value); }
         }
         public Type EntityType
         {
@@ -212,8 +212,7 @@ namespace System.Windows
             if (_propertyFilters.ContainsKey(selectedPropertyInfo))
             {
                 var filter = _propertyFilters[selectedPropertyInfo];
-                var exists = filter.Filters.Select(i => i.Comparison).ToList();
-                ComparisonSelections = GetComparisons(selectedPropertyInfo.PropertyType).Where(i => exists.Contains(i) == false);
+                ComparisonSelections = GetComparisons(selectedPropertyInfo.PropertyType);
             }
             else
             {
@@ -379,12 +378,14 @@ namespace System.Windows
                 filter = PreparePropertyItemFrom(selectedPropertyInfo) ?? throw new Exception();
                 _propertyFilters.Add(selectedPropertyInfo, filter);
             }
-            filter.AddLast(new EFValueFilter(comparison, comparisonValue, operation));
-            PropertyFilters = _propertyFilters.Values.ToArray(); 
-            IsExistsItem = true;
-            IsSelectedPropertyExistsItem = true;
-            InitializeSelectedPropertyInfoComparisons();
-            InitializeQueryExpression();
+            if (filter.AddLast(operation, comparison, comparisonValue))
+            {
+                PropertyFilters = _propertyFilters.Values.ToArray();
+                IsExistsItem = true;
+                IsSelectedPropertyExistsItem = true;
+                InitializeSelectedPropertyInfoComparisons();
+                InitializeQueryExpression();
+            }
         }
         private void OnDelete(object sender, ExecutedRoutedEventArgs e)
         {
@@ -555,16 +556,22 @@ namespace System.Windows
             get { return (bool)GetValue(IsEmptyProperty); }
             protected set { SetValue(IsEmptyPropertyKey, value); }
         }
-        public void AddLast(EFValueFilter filter)
+        public bool AddLast(EFOperation operation, EFComparison comparison, object comparisonValue)
         {
-            _filters.AddLast(filter);
+            if (_filters.Count == 0)
+                _filters.AddLast(new EFValueFilter(comparison, comparisonValue, null));
+            else
+                _filters.AddLast(new EFValueFilter(comparison, comparisonValue, operation));
             Filters = _filters.ToArray();
             IsEmpty = false;
+            return true;
         }
         public void RemoveLast()
         {
             if (_filters.Count > 0)
+            {
                 _filters.RemoveLast();
+            }
             Filters = _filters.ToArray();
             IsEmpty = _filters.Count == 0;
         }
@@ -578,11 +585,31 @@ namespace System.Windows
         {
             if (_filters.Count == 0)
                 return null;
+            var propertyType = PropertyType;
+            var propertyName = PropertyName;
             var first = _filters.First;
+            var value = first.Value;
+            var body = GetExpression(modelExp, propertyType, propertyName, value.Comparison, value.ComparisonValue);
+            var next = first.Next;
+            while (next != null)
+            {
+                value = next.Value;
+                switch (value.Operation)
+                {
+                    case EFOperation.And:
+                        body = Linq.Expressions.Expression.AndAlso(body, GetExpression(modelExp, propertyType, propertyName, value.Comparison, value.ComparisonValue));//i.Key>0 && i.Key<1
+                        break;
+                    case EFOperation.Or:
+                        body = Linq.Expressions.Expression.OrElse(body, GetExpression(modelExp, propertyType, propertyName, value.Comparison, value.ComparisonValue));//i.Key>0 || i.Key<1
+                        break;
+                    default:
+                        break;
+                }
 
-            return null;
+                next = next.Next;
+            }
+            return body;
         }
-
         private Linq.Expressions.Expression GetExpression(ParameterExpression modelExp,Type propertyType,string propertyName,EFComparison comparison,object comparisonValue)
         {
             var propertyExp = Linq.Expressions.Expression.Property(modelExp, propertyName);
@@ -625,6 +652,7 @@ namespace System.Windows
                 default:
                     break;
             }
+            return null;
         }
     }
 

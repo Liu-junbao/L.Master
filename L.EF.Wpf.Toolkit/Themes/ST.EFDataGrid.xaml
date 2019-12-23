@@ -540,18 +540,18 @@
                 <ControlTemplate TargetType="{x:Type local:EFDataPropertyFilter}">
                     <Border>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock>
+                            <TextBlock Margin="3" VerticalAlignment="Center">
                                 <Run Text="{TemplateBinding GenericName}" />
                                 <Run Text=":" />
                             </TextBlock>
                             <ItemsControl ItemsSource="{TemplateBinding Filters}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock>
-                                            <Run Text="{Binding Operation, Converter={local:Operation}, Mode=OneWay}" />
-                                            <Run Text="{Binding Comparison, Converter={local:Comparison}, Mode=OneWay}" />
-                                            <Run Text="{Binding ComparisonValue, Converter={local:ComparisonValue}, Mode=OneWay}" />
-                                        </TextBlock>
+                                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                            <TextBlock Margin="3" VerticalAlignment="Center" Text="{Binding Operation, Converter={local:Operation}, Mode=OneWay}" />
+                                            <TextBlock Margin="3" VerticalAlignment="Center" Text="{Binding Comparison, Converter={local:Comparison}, Mode=OneWay}" />
+                                            <TextBlock Margin="3" VerticalAlignment="Center" Text="{Binding ComparisonValue, Converter={local:ComparisonValue}, Mode=OneWay}" />
+                                        </StackPanel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                                 <ItemsControl.ItemsPanel>
@@ -574,9 +574,13 @@
                     <Border>
                         <StackPanel>
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="条件：" />
+                                <TextBlock
+                                    Margin="3"
+                                    VerticalAlignment="Center"
+                                    Text="筛选条件:" />
                                 <ComboBox
                                     Name="cbbOperation"
+                                    Margin="3"
                                     ItemsSource="{TemplateBinding OperationSelections}"
                                     SelectedItem="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SelectedOperation}">
                                     <ComboBox.ItemTemplate>
@@ -587,6 +591,7 @@
                                 </ComboBox>
                                 <ComboBox
                                     MinWidth="50"
+                                    Margin="3"
                                     ItemsSource="{TemplateBinding DisplayPropertyInfos}"
                                     SelectedItem="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SelectedPropertyInfo}">
                                     <ComboBox.ItemTemplate>
@@ -597,6 +602,7 @@
                                 </ComboBox>
                                 <ComboBox
                                     MinWidth="50"
+                                    Margin="3"
                                     ItemsSource="{TemplateBinding ComparisonSelections}"
                                     SelectedItem="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SelectedComparison}">
                                     <ComboBox.ItemTemplate>
@@ -605,16 +611,22 @@
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                                <TextBox x:Name="PART_TextBox" Width="100" />
+                                <TextBox
+                                    x:Name="PART_TextBox"
+                                    MinWidth="50"
+                                    Margin="3" />
                                 <CustomButton
+                                    Margin="3"
                                     Command="{x:Static local:EFDataFilter.AddCommand}"
                                     Content="添加"
                                     IsEnabled="{TemplateBinding IsValidComparisonValue}" />
                                 <CustomButton
+                                    Margin="3"
                                     Command="{x:Static local:EFDataFilter.DeleteCommand}"
                                     Content="取消"
                                     IsEnabled="{TemplateBinding IsSelectedPropertyExistsItem}" />
                                 <CustomButton
+                                    Margin="3"
                                     Command="{x:Static local:EFDataFilter.ClearCommand}"
                                     Content="清空"
                                     IsEnabled="{TemplateBinding IsExistsItem}" />

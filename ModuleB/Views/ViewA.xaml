@@ -46,6 +46,16 @@
             <EFDataGridBar DockPanel.Dock="Bottom" />
             <CustomButton
                 HorizontalAlignment="Left"
+                Command="{x:Static EFDataBox.LoadCommand}"
+                Content="搜索"
+                DockPanel.Dock="Top" />
+            <CustomButton
+                HorizontalAlignment="Left"
+                Command="{x:Static EFDataBox.RefreshCommand}"
+                Content="刷新"
+                DockPanel.Dock="Top" />
+            <CustomButton
+                HorizontalAlignment="Left"
                 Command="{x:Static EFDataBox.ExportCommand}"
                 Content="导出"
                 DockPanel.Dock="Top" />
@@ -54,8 +64,8 @@
                 Command="{x:Static EFDataBox.ImportCommand}"
                 Content="导入"
                 DockPanel.Dock="Top" />
-            <EFDataFilter DockPanel.Dock="Top"/>
-            <EFDataGrid/>
+            <EFDataFilter DockPanel.Dock="Top" />
+            <EFDataGrid />
         </DockPanel>
     </EFDataBox>
 </UserControl>

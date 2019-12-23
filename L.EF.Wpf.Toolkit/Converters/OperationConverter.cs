@@ -17,9 +17,9 @@ namespace System.Windows
             switch ((EFOperation)value)
             {
                 case EFOperation.And:
-                    return IsSign ? "And" : "而且";
+                    return IsSign ? "And" : "且";
                 case EFOperation.Or:
-                    return IsSign ? "Or" : "或者";
+                    return IsSign ? "Or" : "或";
                 default:
                     break;
             }

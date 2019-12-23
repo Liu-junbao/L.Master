@@ -136,8 +136,9 @@ namespace System.Windows
         }
         #endregion
 
+        #region register properties
         public static readonly DependencyProperty DbContextTypeProperty =
-            DependencyProperty.Register(nameof(DbContextType), typeof(Type), typeof(EFDataGrid), new PropertyMetadata(default, OnPropertyChanged));
+           DependencyProperty.Register(nameof(DbContextType), typeof(Type), typeof(EFDataGrid), new PropertyMetadata(default, OnPropertyChanged));
         private static readonly DependencyPropertyKey ActualDbContextTypePropertyKey =
             DependencyProperty.RegisterReadOnly(nameof(ActualDbContextType), typeof(Type), typeof(EFDataBox), new PropertyMetadata(default, OnPropertyChanged));
         public static readonly DependencyProperty ActualDbContextTypeProperty = ActualDbContextTypePropertyKey.DependencyProperty;
@@ -166,7 +167,7 @@ namespace System.Windows
         public static readonly DependencyProperty QueryExpressionProperty =
             DependencyProperty.Register(nameof(QueryExpression), typeof(Linq.Expressions.Expression), typeof(EFDataBox), new PropertyMetadata(null));
         public static readonly DependencyProperty ViewModelProperty =
-            DependencyProperty.Register(nameof(ViewModel), typeof(IEFViewModel), typeof(EFDataBox), new PropertyMetadata(null,OnPropertyChanged));
+            DependencyProperty.Register(nameof(ViewModel), typeof(IEFViewModel), typeof(EFDataBox), new PropertyMetadata(null, OnPropertyChanged));
         public static readonly DependencyProperty DisplayItemsSourceProperty = DisplayItemsSourcePropertyKey.DependencyProperty;
         private static readonly DependencyPropertyKey IsLoadingPropertyKey =
             DependencyProperty.RegisterReadOnly(nameof(IsLoading), typeof(bool), typeof(EFDataBox), new PropertyMetadata(false));
@@ -197,10 +198,6 @@ namespace System.Windows
             {
                 box.InitializeEntityType();
             }
-            else if (e.Property == QueryExpressionProperty)
-            {
-                box.InitializeQueryExpresion();
-            }
             else if (e.Property == ViewModelProperty)
             {
                 var viewModel = e.NewValue as IEFViewModel;
@@ -230,6 +227,13 @@ namespace System.Windows
                 return 50;
             return baseValue;
         }
+        static EFDataBox()
+        {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(EFDataBox), new FrameworkPropertyMetadata(typeof(EFDataBox)));
+        }
+        #endregion
+
+        #region fields and constructors
         private ObservableDictionary<object, object> _itemsSource;
         private List<string> _entityNames;
         private string _entityName;
@@ -243,10 +247,6 @@ namespace System.Windows
         private Expression<Func<DbContext, IEnumerable<object>>> _queryExpression;
         private object _loadingLocker;
         private bool _isLoading;
-        static EFDataBox()
-        {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(EFDataBox),new FrameworkPropertyMetadata(typeof(EFDataBox)));
-        }
         public EFDataBox()
         {
             _loadingLocker = new object();
@@ -269,8 +269,10 @@ namespace System.Windows
             this.CommandBindings.Add(new CommandBinding(CancelCommand, new ExecutedRoutedEventHandler(OnCancel)));
             this.CommandBindings.Add(new CommandBinding(DeleteCommand, new ExecutedRoutedEventHandler(OnDelete)));
             this.CommandBindings.Add(new CommandBinding(SaveCommand, new ExecutedRoutedEventHandler(OnSave)));
-            this.Loaded += EFDataBox_Loaded;
         }
+        #endregion
+
+        #region properties
         public Type DbContextType
         {
             get { return (Type)GetValue(DbContextTypeProperty); }
@@ -341,15 +343,14 @@ namespace System.Windows
             get { return (bool)GetValue(IsLoadingProperty); }
             protected set { SetValue(IsLoadingPropertyKey, value); }
         }
-        private void EFDataBox_Loaded(object sender, RoutedEventArgs e)
-        {
-            Load();
-        }
+        #endregion
+
         protected override void OnInitialized(EventArgs e)
         {
             base.OnInitialized(e);
             ActualDbContextType = ViewModel?.DbContextType ?? DbContextType;
             ActualEntityType = ViewModel?.EntityType ?? EntityType;
+            Load();
         }
         private void InitializeEntityType()
         {
@@ -366,8 +367,8 @@ namespace System.Windows
             _keyPropertyInfo = _entitiyPropertys.Values.FirstOrDefault();
             _keyName = _keyPropertyInfo?.Name;
             _getKey = GetKeyFunction(type, _keyName)?.Compile();
-            InitializeQueryExpresion();
             InitializeDisplayPropertyNames();
+            _itemsSource?.Clear();
         }
         private void InitializeQueryExpresion()
         {
@@ -578,7 +579,7 @@ namespace System.Windows
                 ViewModel?.OnCatchedMessage("导入失败!");
             else if (result == true)
             {
-                Load();
+                Refresh();
                 ViewModel?.OnCatchedMessage("导入成功!");
             }
         }
@@ -588,6 +589,7 @@ namespace System.Windows
             var dbContextType = ActualDbContextType;
             if (dbContextType == default || typeof(DbContext).IsAssignableFrom(dbContextType) == false)
                 return;
+            InitializeQueryExpresion();
             if (_queryCountExpression == null || _queryPageExpression == null)
                 return;
             lock (_loadingLocker)
@@ -613,7 +615,7 @@ namespace System.Windows
                 Count = count;
                 PageCount = pageCount;
                 PageIndex = pageIndex;
-                await QueryPageAsync(dbContextType, pageSize, pageIndex);
+                await QueryPageAsync(dbContextType, pageSize, pageIndex);             
                 IsLoading = false;
             }
             catch (Exception e)
@@ -793,7 +795,6 @@ namespace System.Windows
             }
             return Linq.Expressions.Expression.Lambda<Func<DbContext, IEnumerable<object>>>(body, db);
         }
-
         #endregion
 
         #region Excel 
