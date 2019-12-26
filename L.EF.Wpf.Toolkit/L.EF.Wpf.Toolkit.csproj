@@ -4,7 +4,7 @@
     <TargetFrameworks>net45;netcoreapp3.0</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <RootNamespace>System.Windows</RootNamespace>
-    <Version>19.12.24.01</Version>
+    <Version>19.12.26.01</Version>
     <PackageProjectUrl>https://github.com/Liu-junbao/L.Master.git</PackageProjectUrl>
   </PropertyGroup>
 
