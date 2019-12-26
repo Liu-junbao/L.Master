@@ -15,7 +15,9 @@ namespace System
         Linq.Expressions.Expression QueryExpression { get; }
         bool CanEditItem(object item);
         bool CanDeleteItem(object item);
-        bool CanSaveItem(object item, Dictionary<string, object> changedProperties);
+        void OnDeletedItem(object item);
+        bool CanSaveItem(object oldItem, Dictionary<string, object> changedProperties);
+        void OnSavedItem(object newItem, Dictionary<string, object> changedProperties);
         void OnCatchedException(Exception e, string message);
         void OnCatchedMessage(string message);
         bool IsImportIgnoreErrorItemsWhenImportedFirstErrorItem(int errorRowIndex, string errorColumnName, object value);
@@ -34,7 +36,9 @@ namespace System
         public virtual Expression<Func<IQueryable<TModel>, IQueryable<TModel>>> QueryExpression => i => i;
         protected virtual bool CanEditItem(TModel item) => true;
         protected virtual bool CanDeleteItem(TModel item) => MessageBox.Show("确定删除该项?", "提示", MessageBoxButton.OKCancel) == MessageBoxResult.OK;
-        protected virtual bool CanSaveItem(TModel item, Dictionary<string, object> changedProperties) => true;
+        protected virtual void OnDeletedItem(TModel item) { }
+        protected virtual bool CanSaveItem(TModel oldItem, Dictionary<string, object> changedProperties) => true;
+        protected virtual void OnSavedItem(TModel newItem, Dictionary<string, object> changedProperties) { }
         protected virtual bool IsImportIgnoreErrorItemsWhenImportedFirstErrorItem(int errorRowIndex, string errorColumnName, object errorValue)
         {
             if (MessageBox.Show($"数据格式不正确，是否忽略所有错误行？ [行：{errorRowIndex}   列：{errorColumnName}   值：{errorValue}]", "警告", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
@@ -46,11 +50,11 @@ namespace System
         protected virtual void OnCatchedException(Exception e, string message)
         {
             MessageBox.Show($"{message}\\r\\n{e.Message}");
-        }       
+        }
         protected virtual void OnCatchedMessage(string message)
         {
             MessageBox.Show($"{message}");
-        }  
+        }
         protected virtual void OnImportedComplated(List<TModel> importedItems, List<Tuple<int, string, object>> errorItems)
         {
             StringBuilder builder = new StringBuilder();
@@ -73,7 +77,9 @@ namespace System
         Linq.Expressions.Expression IEFViewModel.QueryExpression => this.QueryExpression;
         bool IEFViewModel.CanEditItem(object item) => CanEditItem((TModel)item);
         bool IEFViewModel.CanDeleteItem(object item) => CanDeleteItem((TModel)item);
-        bool IEFViewModel.CanSaveItem(object item, Dictionary<string, object> changedProperties) => CanSaveItem((TModel)item, changedProperties);
+        void IEFViewModel.OnDeletedItem(object item)=> OnDeletedItem((TModel)item);
+        bool IEFViewModel.CanSaveItem(object oldItem, Dictionary<string, object> changedProperties) => CanSaveItem((TModel)oldItem, changedProperties);
+        void IEFViewModel.OnSavedItem(object newItem, Dictionary<string, object> changedProperties) => OnSavedItem((TModel)newItem, changedProperties);
         bool IEFViewModel.IsImportIgnoreErrorItemsWhenImportedFirstErrorItem(int errorRowIndex, string errorColumnName, object errorValue)
         {
             if (MessageBox.Show($"数据格式不正确，是否忽略所有错误行？ [行：{errorRowIndex}   列：{errorColumnName}   值：{errorValue}]", "警告", MessageBoxButton.OKCancel) == MessageBoxResult.OK)

@@ -508,6 +508,7 @@ namespace System.Windows
 
                         EFDataBoxAssist.SetIsRowEditing(row, false);
 
+                        viewModel?.OnSavedItem(item, changedProperties);
                         viewModel?.OnCatchedMessage("保存成功!");
                     }
                 }
@@ -546,6 +547,7 @@ namespace System.Windows
                         var row = grid.ItemContainerGenerator.ContainerFromItem(item);
                         EFDataBoxAssist.SetIsRowEditing(row, false);
 
+                        viewModel?.OnDeletedItem(item);
                         viewModel?.OnCatchedMessage("删除成功!");
                     }
                 }
