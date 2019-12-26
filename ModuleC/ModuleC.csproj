@@ -90,6 +90,10 @@
     <PackageReference Include="Prism.Wpf" Version="7.2.0.1422" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\L.Netty.Toolkit\L.Netty.Toolkit.csproj">
+      <Project>{0460f832-2b9a-4e20-b53d-13626645d566}</Project>
+      <Name>L.Netty.Toolkit</Name>
+    </ProjectReference>
     <ProjectReference Include="..\L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj">
       <Project>{53542008-a112-4631-a7c2-3548bfb30d30}</Project>
       <Name>L.Prism.Wpf.Toolkit</Name>
