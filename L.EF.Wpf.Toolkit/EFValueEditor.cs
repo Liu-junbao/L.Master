@@ -43,11 +43,6 @@ namespace System.Windows
             var editor = (EFValueEditor)d;
             editor.OnValueChanged(e.OldValue, e.NewValue);
         }
-        private static void OnValueTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            var editor = (EFValueEditor)d;
-            editor.OnValueTextChanged((string)e.OldValue, (string)e.NewValue);
-        }
         static EFValueEditor()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(EFValueEditor), new FrameworkPropertyMetadata(typeof(EFValueEditor)));

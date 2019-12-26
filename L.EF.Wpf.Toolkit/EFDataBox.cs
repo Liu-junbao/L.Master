@@ -237,6 +237,7 @@ namespace System.Windows
         private ObservableDictionary<object, object> _itemsSource;
         private List<string> _entityNames;
         private string _entityName;
+        private Dictionary<string, EFDisplayPropertyInfo> _displayPropertyInfos;
         private Dictionary<string, PropertyInfo> _entitiyPropertys;
         private Dictionary<string, string> _headerToPropertyNames;
         private PropertyInfo _keyPropertyInfo;
@@ -252,6 +253,7 @@ namespace System.Windows
             _loadingLocker = new object();
             _isLoading = false;
             _entityNames = new List<string>();
+            _displayPropertyInfos = new Dictionary<string, EFDisplayPropertyInfo>();
             _entitiyPropertys = new Dictionary<string, PropertyInfo>();
             _headerToPropertyNames = new Dictionary<string, string>();
             _itemsSource = new ObservableDictionary<object, object>();
@@ -382,8 +384,8 @@ namespace System.Windows
         private void InitializeDisplayPropertyNames()
         {
             _entityNames.Clear();
+            _displayPropertyInfos.Clear();
             _headerToPropertyNames.Clear();
-            var genericeNames = new List<EFDisplayPropertyInfo>();
             var type = ActualEntityType;
             if (type != default)
             {
@@ -406,6 +408,7 @@ namespace System.Windows
                     }
                 }
                 _entityName = string.IsNullOrEmpty(entityAttr?.Name) == false ? entityAttr.Name : type.Name;
+                ViewModel?.Initialize(_entityName);
                 foreach (var ppt in _entitiyPropertys.Values)
                 {
                     _headerToPropertyNames.Add(ppt.Name, ppt.Name);
@@ -426,10 +429,10 @@ namespace System.Windows
                         }
                     }
                     if (displayAttr != null)
-                        genericeNames.Add(new EFDisplayPropertyInfo(ppt, displayAttr, entityAttr));
+                        _displayPropertyInfos.Add(ppt.Name, new EFDisplayPropertyInfo(ppt, displayAttr, entityAttr));
                 }
             }
-            DisplayPropertyInfos = genericeNames;
+            DisplayPropertyInfos = _displayPropertyInfos.Values.ToArray();
         }
         private void OnEdit(object sender, ExecutedRoutedEventArgs e)
         {
@@ -479,13 +482,15 @@ namespace System.Windows
             {
                 try
                 {
-                    var changedProperties = new Dictionary<string, object>();
+                    var changedProperties = new List<EFEditedPropertyInfo>();
                     var row = grid.ItemContainerGenerator.ContainerFromItem(item);
                     foreach (var valueEditor in row.FindChildren<EFValueEditor>())
                     {
-                        if (valueEditor.IsValueChanged)
+                        var propertyName = valueEditor.PropertyName;
+                        if (valueEditor.IsValueChanged&&_displayPropertyInfos.ContainsKey(propertyName))
                         {
-                            changedProperties.Add(valueEditor.PropertyName, valueEditor.ValidValue);
+                            var info = _displayPropertyInfos[propertyName];
+                            changedProperties.Add(new EFEditedPropertyInfo(EntityType,info,valueEditor.ValidValue));
                         }
                     }
 
@@ -501,7 +506,7 @@ namespace System.Windows
                             db.Entry(item).State = EntityState.Modified;
                             foreach (var property in changedProperties)
                             {
-                                _entitiyPropertys[property.Key].SetValue(item, property.Value);
+                                property.SetValue(item);
                             }
                             db.SaveChanges();
                         }

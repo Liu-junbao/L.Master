@@ -13,11 +13,12 @@ namespace System
         Type DbContextType { get; }
         Type EntityType { get; }
         Linq.Expressions.Expression QueryExpression { get; }
+        void Initialize(string enitityGenericName);
         bool CanEditItem(object item);
         bool CanDeleteItem(object item);
         void OnDeletedItem(object item);
-        bool CanSaveItem(object oldItem, Dictionary<string, object> changedProperties);
-        void OnSavedItem(object newItem, Dictionary<string, object> changedProperties);
+        bool CanSaveItem(object oldItem, List<EFEditedPropertyInfo> editedPropertyInfos);
+        void OnSavedItem(object newItem, List<EFEditedPropertyInfo> editedPropertyInfos);
         void OnCatchedException(Exception e, string message);
         void OnCatchedMessage(string message);
         bool IsImportIgnoreErrorItemsWhenImportedFirstErrorItem(int errorRowIndex, string errorColumnName, object value);
@@ -28,17 +29,23 @@ namespace System
     {
         private Type _dbContextType;
         private Type _entityType;
+        private string _entityGenericName;
         public EFViewModel()
         {
             _dbContextType = typeof(TDbContext);
             _entityType = typeof(TModel);
         }
+        public string EntityGenericName
+        {
+            get { return _entityGenericName; }
+            private set { SetProperty(ref _entityGenericName, value, OnEntityGenericNameChanged); }
+        }
         public virtual Expression<Func<IQueryable<TModel>, IQueryable<TModel>>> QueryExpression => i => i;
         protected virtual bool CanEditItem(TModel item) => true;
         protected virtual bool CanDeleteItem(TModel item) => MessageBox.Show("确定删除该项?", "提示", MessageBoxButton.OKCancel) == MessageBoxResult.OK;
         protected virtual void OnDeletedItem(TModel item) { }
-        protected virtual bool CanSaveItem(TModel oldItem, Dictionary<string, object> changedProperties) => true;
-        protected virtual void OnSavedItem(TModel newItem, Dictionary<string, object> changedProperties) { }
+        protected virtual bool CanSaveItem(TModel oldItem, List<EFEditedPropertyInfo> editedPropertyInfos) => true;
+        protected virtual void OnSavedItem(TModel newItem, List<EFEditedPropertyInfo> editedPropertyInfos) { }
         protected virtual bool IsImportIgnoreErrorItemsWhenImportedFirstErrorItem(int errorRowIndex, string errorColumnName, object errorValue)
         {
             if (MessageBox.Show($"数据格式不正确，是否忽略所有错误行？ [行：{errorRowIndex}   列：{errorColumnName}   值：{errorValue}]", "警告", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
@@ -69,17 +76,22 @@ namespace System
             }
             MessageBox.Show(builder.ToString(), "导入结果", MessageBoxButton.OK);
         }
+        protected virtual void OnEntityGenericNameChanged(string oldEntityGenericName, string newEntityGenericName)
+        {
+            //
+        }
 
 
         #region IEFViewModel
         Type IEFViewModel.DbContextType => _dbContextType;
         Type IEFViewModel.EntityType => _entityType;
         Linq.Expressions.Expression IEFViewModel.QueryExpression => this.QueryExpression;
+        void IEFViewModel.Initialize(string enitityGenericName) => EntityGenericName = enitityGenericName;
         bool IEFViewModel.CanEditItem(object item) => CanEditItem((TModel)item);
         bool IEFViewModel.CanDeleteItem(object item) => CanDeleteItem((TModel)item);
         void IEFViewModel.OnDeletedItem(object item)=> OnDeletedItem((TModel)item);
-        bool IEFViewModel.CanSaveItem(object oldItem, Dictionary<string, object> changedProperties) => CanSaveItem((TModel)oldItem, changedProperties);
-        void IEFViewModel.OnSavedItem(object newItem, Dictionary<string, object> changedProperties) => OnSavedItem((TModel)newItem, changedProperties);
+        bool IEFViewModel.CanSaveItem(object oldItem, List<EFEditedPropertyInfo> editedPropertyInfos) => CanSaveItem((TModel)oldItem, editedPropertyInfos);
+        void IEFViewModel.OnSavedItem(object newItem, List<EFEditedPropertyInfo> editedPropertyInfos) => OnSavedItem((TModel)newItem, editedPropertyInfos);
         bool IEFViewModel.IsImportIgnoreErrorItemsWhenImportedFirstErrorItem(int errorRowIndex, string errorColumnName, object errorValue)
         {
             if (MessageBox.Show($"数据格式不正确，是否忽略所有错误行？ [行：{errorRowIndex}   列：{errorColumnName}   值：{errorValue}]", "警告", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
@@ -102,4 +114,6 @@ namespace System
         }
         #endregion
     }
+
+   
 }
