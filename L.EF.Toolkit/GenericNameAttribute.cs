@@ -4,7 +4,8 @@ using System.Text;
 
 namespace System
 {
-    public class GenericNameAttribute:Attribute
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property, AllowMultiple = true)]
+    public class GenericNameAttribute : Attribute
     {
         public GenericNameAttribute() { }
         public GenericNameAttribute(string name) : this(name, null, false) { }

@@ -409,17 +409,25 @@ namespace System.Windows
                 }
                 _entityName = string.IsNullOrEmpty(entityAttr?.Name) == false ? entityAttr.Name : type.Name;
                 ViewModel?.Initialize(_entityName);
-                foreach (var ppt in _entitiyPropertys.Values)
+                foreach (var ppty in _entitiyPropertys.Values)
                 {
-                    _headerToPropertyNames.Add(ppt.Name, ppt.Name);
+                    var propertyName = ppty.Name;
+                    _headerToPropertyNames.Add(propertyName, propertyName);
                     GenericNameAttribute displayAttr = null;
-                    foreach (var att in ppt.GetCustomAttributes(typeof(GenericNameAttribute)).OfType<GenericNameAttribute>().OrderByDescending(i => i.Kind))
+                    foreach (var att in ppty.GetCustomAttributes(typeof(GenericNameAttribute)).OfType<GenericNameAttribute>().OrderByDescending(i => i.Kind))
                     {
                         var name = att.Name;
                         var kind = att.Kind;
                         if (_headerToPropertyNames.ContainsKey(name))
-                            throw new ArgumentException($"属性存在同名的标记![{name}]");
-                        _headerToPropertyNames.Add(att.Name, ppt.Name);
+                        {
+                            var registeredPropertyName = _headerToPropertyNames[name];
+                            if (registeredPropertyName != propertyName)
+                            {
+                                throw new ArgumentException($"属性[{propertyName}]与属性[{registeredPropertyName}]存在同名的标记![{name}]");
+                            }
+                        }
+                        else
+                            _headerToPropertyNames.Add(att.Name, propertyName);
                         if (displayAttr == null)
                         {
                             if (kind == validKind)
@@ -429,7 +437,7 @@ namespace System.Windows
                         }
                     }
                     if (displayAttr != null)
-                        _displayPropertyInfos.Add(ppt.Name, new EFDisplayPropertyInfo(ppt, displayAttr, entityAttr));
+                        _displayPropertyInfos.Add(propertyName, new EFDisplayPropertyInfo(ppty, displayAttr, entityAttr));
                 }
             }
             DisplayPropertyInfos = _displayPropertyInfos.Values.ToArray();
@@ -569,7 +577,7 @@ namespace System.Windows
         }
         private void OnRefresh(object sender, ExecutedRoutedEventArgs e)
         {
-
+            Refresh();
         }
         private async void OnExport(object sender, ExecutedRoutedEventArgs e)
         {
