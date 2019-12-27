@@ -22,6 +22,7 @@ namespace System
         void OnCatchedException(Exception e, string message);
         void OnCatchedMessage(string message);
         bool IsImportIgnoreErrorItemsWhenImportedFirstErrorItem(int errorRowIndex, string errorColumnName, object value);
+        void OnImporting(object item,bool isNewItem);
         void OnImportedCompleted(List<object> importedItems, List<Tuple<int, string, object>> errorItems);
     }
     public abstract class EFViewModel<TModel, TDbContext> : NotifyPropertyChanged, IEFViewModel
@@ -64,6 +65,7 @@ namespace System
         {
             MessageBox.Show(OwnerWindow,$"{message}", "提示");
         }
+        protected virtual void OnImporting(TModel model,bool isNewItem) { }
         protected virtual void OnImportedComplated(List<TModel> importedItems, List<Tuple<int, string, object>> errorItems)
         {
             StringBuilder builder = new StringBuilder();
@@ -78,11 +80,7 @@ namespace System
             }
             MessageBox.Show(builder.ToString(), "导入结果", MessageBoxButton.OK);
         }
-        protected virtual void OnEntityGenericNameChanged(string oldEntityGenericName, string newEntityGenericName)
-        {
-            //
-        }
-
+        protected virtual void OnEntityGenericNameChanged(string oldEntityGenericName, string newEntityGenericName) { }
 
         #region IEFViewModel
         Type IEFViewModel.DbContextType => _dbContextType;
@@ -110,6 +108,7 @@ namespace System
         {
             OnCatchedMessage(message);
         }
+        void IEFViewModel.OnImporting(object item,bool isNewItem) => OnImporting((TModel)item,isNewItem);
         void IEFViewModel.OnImportedCompleted(List<object> importedItems, List<Tuple<int, string, object>> errorItems)
         {
             OnImportedComplated(importedItems.OfType<TModel>().ToList(), errorItems);

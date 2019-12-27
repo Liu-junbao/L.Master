@@ -1080,7 +1080,7 @@ namespace System.Windows
                                     {
                                         continue;
                                     }
-
+                                    viewModel?.OnImporting(model,isNewItem);
                                     updateItems.Add(model);
                                     if (isNewItem)
                                     {

@@ -16,6 +16,35 @@
     RegionBrowserAssist.Title="模块B"
     RegionBrowserAssist.ToolTip="模块B"
     mc:Ignorable="d">
+    <UserControl.Resources>
+        <Style BasedOn="{StaticResource {x:Type EFValueEditor}}" TargetType="{x:Type EFValueEditor}">
+            <Style.Triggers>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="PropertyName" Value="Age" />
+                        <Condition Property="IsEditing" Value="True" />
+                    </MultiTrigger.Conditions>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type EFValueEditor}">
+                                <ComboBox Width="50" SelectedItem="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Value, Mode=TwoWay}">
+                                    <sys:Int32>0</sys:Int32>
+                                    <sys:Int32>1</sys:Int32>
+                                    <sys:Int32>2</sys:Int32>
+                                    <sys:Int32>3</sys:Int32>
+                                    <sys:Int32>4</sys:Int32>
+                                </ComboBox>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </MultiTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style BasedOn="{StaticResource {x:Type EFOperator}}" TargetType="{x:Type EFOperator}">
+            <Setter Property="IsReadOnly" Value="False"/>
+            <Setter Property="CanDelete" Value="False"/>
+        </Style>
+    </UserControl.Resources>
     <EFDataBox ViewModel="{Binding}">
         <DockPanel Margin="10">
             <EFDataGridBar DockPanel.Dock="Bottom" />
@@ -40,33 +69,7 @@
                 Content="导入"
                 DockPanel.Dock="Top" />
             <EFDataFilter DockPanel.Dock="Top" />
-            <EFDataGrid>
-                <EFDataGrid.Resources>
-                    <Style BasedOn="{StaticResource {x:Type EFValueEditor}}" TargetType="{x:Type EFValueEditor}">
-                        <Style.Triggers>
-                            <MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="PropertyName" Value="Age" />
-                                    <Condition Property="IsEditing" Value="True" />
-                                </MultiTrigger.Conditions>
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="{x:Type EFValueEditor}">
-                                            <ComboBox Width="50" SelectedItem="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Value, Mode=TwoWay}">
-                                                <sys:Int32>0</sys:Int32>
-                                                <sys:Int32>1</sys:Int32>
-                                                <sys:Int32>2</sys:Int32>
-                                                <sys:Int32>3</sys:Int32>
-                                                <sys:Int32>4</sys:Int32>
-                                            </ComboBox>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </MultiTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </EFDataGrid.Resources>
-            </EFDataGrid>
+            <EFDataGrid />
         </DockPanel>
     </EFDataBox>
 </UserControl>

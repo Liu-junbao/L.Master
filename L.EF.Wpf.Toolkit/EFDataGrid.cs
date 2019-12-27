@@ -131,27 +131,18 @@ namespace System.Windows
     }
     class GenerateOperatorGridColumn : DataGridColumn
     {
-        public static readonly DependencyProperty EditorStyleProperty =
-          DependencyProperty.Register(nameof(EditorStyle), typeof(Style), typeof(GenerateOperatorGridColumn), new PropertyMetadata(null));
         public GenerateOperatorGridColumn()
         {
             Width = new DataGridLength(1, DataGridLengthUnitType.Star);
         }
-        public Style EditorStyle
-        {
-            get { return (Style)GetValue(EditorStyleProperty); }
-            set { SetValue(EditorStyleProperty, value); }
-        }
         protected override FrameworkElement GenerateEditingElement(DataGridCell cell, object dataItem)
         {
             var editor = new EFOperator();
-            editor.SetBinding(FrameworkElement.StyleProperty, new Binding(nameof(EditorStyle)) { Source = this });
             return editor;
         }
         protected override FrameworkElement GenerateElement(DataGridCell cell, object dataItem)
         {
             var editor = new EFOperator();
-            editor.SetBinding(FrameworkElement.StyleProperty, new Binding(nameof(EditorStyle)) { Source = this });
             return editor;
         }
     }
