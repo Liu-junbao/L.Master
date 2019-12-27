@@ -91,6 +91,10 @@ namespace System.Windows
             get { return (object)GetValue(ValidValueProperty); }
             protected set { SetValue(ValidValuePropertyKey, value); }
         }
+
+
+      
+
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();

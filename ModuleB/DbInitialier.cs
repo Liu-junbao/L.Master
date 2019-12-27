@@ -18,14 +18,14 @@ namespace ModuleB
         }
         protected override void Seed(DB context)
         {
-            var models = new List<Model>();
-            for (int i = 0; i < 100; i++)
-            {
-                models.Add(new Model() { Name = $"Name{i + 1}" });
-            }
-            context.Models.AddOrUpdate(models.ToArray());
-            context.SaveChanges();
-            base.Seed(context);
+            //var models = new List<Model>();
+            //for (int i = 0; i < 100; i++)
+            //{
+            //    models.Add(new Model() { Name = $"Name{i + 1}" });
+            //}
+            //context.Models.AddOrUpdate(models.ToArray());
+            //context.SaveChanges();
+            //base.Seed(context);
         }
     }
 }

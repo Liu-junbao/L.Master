@@ -196,7 +196,7 @@ namespace System
             var collectionChanged = CollectionChanged;
             if (collectionChanged != null)
             {
-                _context.Post(i => collectionChanged?.Invoke(this, e), null);
+                _context.Post(i => RaiseCollectionChanged(e), null);
             }
         }
         private void Inner_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -204,8 +204,16 @@ namespace System
             var propertyChanged = PropertyChanged;
             if (propertyChanged != null)
             {
-                _context.Post(i => propertyChanged?.Invoke(this, e), null);
+                _context.Post(i => RaisePropertyChanged(e), null);
             }
+        }
+        private void RaiseCollectionChanged(NotifyCollectionChangedEventArgs e)
+        {
+            CollectionChanged?.Invoke(this, e);
+        }
+        private void RaisePropertyChanged(PropertyChangedEventArgs e)
+        {
+            PropertyChanged?.Invoke(this,e);
         }
         event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
         {

@@ -490,7 +490,7 @@ namespace System.Windows
                         if (valueEditor.IsValueChanged&&_displayPropertyInfos.ContainsKey(propertyName))
                         {
                             var info = _displayPropertyInfos[propertyName];
-                            changedProperties.Add(new EFEditedPropertyInfo(EntityType,info,valueEditor.ValidValue));
+                            changedProperties.Add(new EFEditedPropertyInfo(ActualEntityType,info,valueEditor.ValidValue));
                         }
                     }
 

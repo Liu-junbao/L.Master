@@ -34,7 +34,9 @@ namespace System
         {
             _dbContextType = typeof(TDbContext);
             _entityType = typeof(TModel);
+            OwnerWindow = Application.Current.MainWindow;
         }
+        public Window OwnerWindow { get; protected set; }
         public string EntityGenericName
         {
             get { return _entityGenericName; }
@@ -42,7 +44,7 @@ namespace System
         }
         public virtual Expression<Func<IQueryable<TModel>, IQueryable<TModel>>> QueryExpression => i => i;
         protected virtual bool CanEditItem(TModel item) => true;
-        protected virtual bool CanDeleteItem(TModel item) => MessageBox.Show("确定删除该项?", "提示", MessageBoxButton.OKCancel) == MessageBoxResult.OK;
+        protected virtual bool CanDeleteItem(TModel item) => MessageBox.Show(OwnerWindow,"确定删除该项?", "提示", MessageBoxButton.OKCancel) == MessageBoxResult.OK;
         protected virtual void OnDeletedItem(TModel item) { }
         protected virtual bool CanSaveItem(TModel oldItem, List<EFEditedPropertyInfo> editedPropertyInfos) => true;
         protected virtual void OnSavedItem(TModel newItem, List<EFEditedPropertyInfo> editedPropertyInfos) { }
@@ -56,11 +58,11 @@ namespace System
         }
         protected virtual void OnCatchedException(Exception e, string message)
         {
-            MessageBox.Show($"{message}\\r\\n{e.Message}");
+            MessageBox.Show(OwnerWindow,$"{message}\r\n{e.Message}", "报警");
         }
         protected virtual void OnCatchedMessage(string message)
         {
-            MessageBox.Show($"{message}");
+            MessageBox.Show(OwnerWindow,$"{message}", "提示");
         }
         protected virtual void OnImportedComplated(List<TModel> importedItems, List<Tuple<int, string, object>> errorItems)
         {
@@ -89,7 +91,7 @@ namespace System
         void IEFViewModel.Initialize(string enitityGenericName) => EntityGenericName = enitityGenericName;
         bool IEFViewModel.CanEditItem(object item) => CanEditItem((TModel)item);
         bool IEFViewModel.CanDeleteItem(object item) => CanDeleteItem((TModel)item);
-        void IEFViewModel.OnDeletedItem(object item)=> OnDeletedItem((TModel)item);
+        void IEFViewModel.OnDeletedItem(object item) => OnDeletedItem((TModel)item);
         bool IEFViewModel.CanSaveItem(object oldItem, List<EFEditedPropertyInfo> editedPropertyInfos) => CanSaveItem((TModel)oldItem, editedPropertyInfos);
         void IEFViewModel.OnSavedItem(object newItem, List<EFEditedPropertyInfo> editedPropertyInfos) => OnSavedItem((TModel)newItem, editedPropertyInfos);
         bool IEFViewModel.IsImportIgnoreErrorItemsWhenImportedFirstErrorItem(int errorRowIndex, string errorColumnName, object errorValue)

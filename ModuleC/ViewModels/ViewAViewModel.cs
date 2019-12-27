@@ -10,12 +10,9 @@ using System.Threading.Tasks;
 
 namespace ModuleC.ViewModels
 {
-    public class ViewAViewModel : NettyServer
+    public class ViewAViewModel 
     {
-        public ViewAViewModel() : base(8730)
-        {
 
-        }
 
         private string _message;
         public string Message
@@ -24,20 +21,7 @@ namespace ModuleC.ViewModels
             set { SetProperty(ref _message, value); }
         }
 
-        protected override void OnLogIn(Channel user)
-        {
-            base.OnLogIn(user);
-        }
-        protected override void OnLogOut(Channel user)
-        {
-            base.OnLogOut(user);
-        }
-
-        protected override void OnMessage(Channel user, object message)
-        {
-            base.OnMessage(user, message);
-            Message = message?.ToString();
-        }
+     
 
        
 

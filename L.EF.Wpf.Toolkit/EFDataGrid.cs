@@ -109,31 +109,22 @@ namespace System.Windows
     }
     class GenerateValueDataGridColumn : DataGridColumn
     {
-        public static readonly DependencyProperty EditorStyleProperty =
-            DependencyProperty.Register(nameof(EditorStyle), typeof(Style), typeof(GenerateValueDataGridColumn), new PropertyMetadata(null));
         public GenerateValueDataGridColumn(string propertyName,Type propertyType)
         {
             PropertyName = propertyName;
             PropertyType = propertyType;
-        }
-        public Style EditorStyle
-        {
-            get { return (Style)GetValue(EditorStyleProperty); }
-            set { SetValue(EditorStyleProperty, value); }
         }
         public string PropertyName { get; }
         public Type PropertyType { get; }
         protected override FrameworkElement GenerateEditingElement(DataGridCell cell, object dataItem)
         {
             var editor = new EFValueEditor(PropertyName, PropertyType);
-            editor.SetBinding(FrameworkElement.StyleProperty, new Binding(nameof(EditorStyle)) { Source = this });
             editor.SetBinding(EFEditorBase.IsReadOnlyProperty, new Binding(nameof(IsReadOnly)) { Source = this });
             return editor;
         }
         protected override FrameworkElement GenerateElement(DataGridCell cell, object dataItem)
         {
             var editor = new EFValueEditor(PropertyName,PropertyType);
-            editor.SetBinding(FrameworkElement.StyleProperty, new Binding(nameof(EditorStyle)) { Source = this });
             editor.SetBinding(EFEditorBase.IsReadOnlyProperty, new Binding(nameof(IsReadOnly)) { Source = this });
             return editor;
         }

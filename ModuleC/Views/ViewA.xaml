@@ -11,7 +11,7 @@
     prism:ViewModelLocator.AutoWireViewModel="True"
     Background="Red"
     RegionBrowserAssist.Data="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
-    RegionBrowserAssist.Title="模块C"
+    RegionBrowserAssist.Title="模块C名字特别长的那种情况下的显示效果你看看"
     mc:Ignorable="d">
     <Grid>
         <TextBlock
