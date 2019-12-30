@@ -635,7 +635,8 @@
                                 <TextBox
                                     x:Name="PART_TextBox"
                                     MinWidth="50"
-                                    Margin="3" />
+                                    Margin="3"
+                                    VerticalContentAlignment="Center" />
                                 <CustomButton
                                     Margin="3"
                                     Command="{x:Static local:EFDataFilter.AddCommand}"
