@@ -8,8 +8,8 @@ namespace System
     public class GenericNameAttribute : Attribute
     {
         public GenericNameAttribute() { }
-        public GenericNameAttribute(string name) : this(name, null, false) { }
-        public GenericNameAttribute(string name, string kind) : this(name, kind, false) { }
+        public GenericNameAttribute(string name) : this(name, null, true) { }
+        public GenericNameAttribute(string name, string kind) : this(name, kind, true) { }
         public GenericNameAttribute(string name, bool isReadOnly) : this(name, null, isReadOnly) { }
         public GenericNameAttribute(string name, string kind, bool isReadOnly)
         {
