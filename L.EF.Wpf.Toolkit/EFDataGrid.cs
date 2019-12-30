@@ -34,6 +34,7 @@ namespace System.Windows
         {
             this.SetBinding(DisplayPropertyInfosProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.DisplayPropertyInfosProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
             this.SetBinding(ItemsSourceProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.ItemsSourceProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
+            this.AddHandler(EFDataBox.AddEvent,new EFDataBoxAddEventHandler(OnAddEvent));
         }
         public bool IsOperable
         {
@@ -65,15 +66,20 @@ namespace System.Windows
                     this.Columns.Add(column);
                 }
             }
-           
+            
             this.InvalidateVisual();
-        }     
+        }
+        private void OnAddEvent(object sender, EFDataBoxAddEventArgs e)
+        {
+            this.ScrollIntoView(e.NewItem);
+        }
         protected override void PrepareContainerForItemOverride(DependencyObject element, object item)
         {
             DataGridRow row = (DataGridRow)element;
             row.SetBinding(EFDataBoxAssist.IsRowMouseOverProperty, new Binding(nameof(row.IsMouseOver)) { Source = row, Mode = BindingMode.OneWay });
             row.SetBinding(EFDataBoxAssist.IsRowSelectedProperty, new Binding(nameof(row.IsSelected)) { Source = row, Mode = BindingMode.OneWay });
-           
+            var isAddedItem = item == EFDataBoxAssist.GetAddedItem(this);
+            EFDataBoxAssist.SetIsAddedItem(row, isAddedItem);
             base.PrepareContainerForItemOverride(element, item);
         }
         protected override void OnLoadingRow(DataGridRowEventArgs e)
@@ -90,7 +96,7 @@ namespace System.Windows
         }
         private void Row_Unselected(object sender, RoutedEventArgs e)
         {
-            EFDataBoxAssist.SetIsRowEditing((DataGridRow)sender, false);
+            EFDataBoxAssist.SetIsRowEditable((DataGridRow)sender, false);
         }
         private void OnRowValueChanged(object sender, RoutedEventArgs e)
         {
@@ -109,7 +115,7 @@ namespace System.Windows
     }
     class GenerateValueDataGridColumn : DataGridColumn
     {
-        public GenerateValueDataGridColumn(string propertyName,Type propertyType)
+        public GenerateValueDataGridColumn(string propertyName, Type propertyType)
         {
             PropertyName = propertyName;
             PropertyType = propertyType;

@@ -1,0 +1,158 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:System.Windows"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <Style x:Key="st.EFEditorBase" TargetType="{x:Type local:EFEditorBase}">
+        <Setter Property="Margin" Value="3" />
+    </Style>
+
+    <Style
+        x:Key="st.EFValueEditor"
+        BasedOn="{StaticResource st.EFEditorBase}"
+        TargetType="{x:Type local:EFValueEditor}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:EFValueEditor}">
+                    <Border
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                        <TextBlock
+                            x:Name="tbValue"
+                            Margin="3,0"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                            Text="{TemplateBinding Value,
+                                                   Converter={ToString}}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsEditing" Value="True">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type local:EFValueEditor}">
+                            <Border
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                                <TextBox
+                                    x:Name="PART_TextBox"
+                                    Margin="1"
+                                    VerticalContentAlignment="Center"
+                                    Text="{TemplateBinding Value,
+                                                           Converter={ToString}}" />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+            <Trigger Property="IsAddedItem" Value="True">
+                <Setter Property="IsEditing" Value="True" />
+            </Trigger>
+            <Trigger Property="IsReadOnly" Value="True">
+                <Setter Property="IsEditing" Value="False" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="st.EFOperator" TargetType="{x:Type local:EFOperator}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="Visibility" Value="Collapsed" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:EFOperator}">
+                    <Border
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                        <CustomButton
+                            Margin="{TemplateBinding Padding}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                            Command="{x:Static local:EFDataBox.EditCommand}"
+                            CommandParameter="{Binding}"
+                            Content="编辑"
+                            ToolTip="编辑" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsEditing" Value="True">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type local:EFOperator}">
+                            <Border
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                                <StackPanel
+                                    Margin="{TemplateBinding Padding}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Orientation="Horizontal">
+                                    <CustomButton
+                                        VerticalAlignment="Center"
+                                        Command="{x:Static local:EFDataBox.SaveCommand}"
+                                        CommandParameter="{Binding}"
+                                        Content="保存"
+                                        IsEnabled="{TemplateBinding IsRowValueChanged}"
+                                        ToolTip="保存" />
+                                    <CustomButton
+                                        x:Name="cb"
+                                        VerticalAlignment="Center"
+                                        Command="{x:Static local:EFDataBox.DeleteCommand}"
+                                        CommandParameter="{Binding}"
+                                        Content="删除"
+                                        ToolTip="删除" />
+                                    <CustomButton
+                                        VerticalAlignment="Center"
+                                        Command="{x:Static local:EFDataBox.CancelCommand}"
+                                        CommandParameter="{Binding}"
+                                        Content="取消"
+                                        ToolTip="取消" />
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="CanDelete" Value="False">
+                                    <Setter TargetName="cb" Property="Visibility" Value="Collapsed" />
+                                </Trigger>
+                                <Trigger Property="IsAddedItem" Value="True">
+                                    <Setter TargetName="cb" Property="Visibility" Value="Collapsed" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsRowMouseOver" Value="True" />
+                    <Condition Property="IsReadOnly" Value="False" />
+                </MultiTrigger.Conditions>
+                <Setter Property="Visibility" Value="Visible" />
+            </MultiTrigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsRowSelected" Value="True" />
+                    <Condition Property="IsReadOnly" Value="False" />
+                </MultiTrigger.Conditions>
+                <Setter Property="Visibility" Value="Visible" />
+            </MultiTrigger>
+            <Trigger Property="HasAddedItem" Value="True">
+                <Setter Property="Visibility" Value="Collapsed" />
+            </Trigger>
+            <Trigger Property="IsAddedItem" Value="True">
+                <Setter Property="Visibility" Value="Visible" />
+                <Setter Property="IsEditing" Value="True" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>

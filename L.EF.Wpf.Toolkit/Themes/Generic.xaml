@@ -3,7 +3,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:System.Windows">
     <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/L.EF.Wpf.Toolkit;component/Themes/ST.EFEditor.xaml" />
         <ResourceDictionary Source="/L.EF.Wpf.Toolkit;component/Themes/ST.EFDataGrid.xaml" />
+        <ResourceDictionary Source="/L.EF.Wpf.Toolkit;component/Themes/ST.EFDataGridBar.xaml" />
+        <ResourceDictionary Source="/L.EF.Wpf.Toolkit;component/Themes/ST.EFDataFilter.xaml" />
+        <ResourceDictionary Source="/L.EF.Wpf.Toolkit;component/Themes/ST.EFDataBox.xaml" />
     </ResourceDictionary.MergedDictionaries>
     <Style BasedOn="{StaticResource st.EFValueEditor}" TargetType="{x:Type local:EFValueEditor}" />
     <Style BasedOn="{StaticResource st.EFOperator}" TargetType="{x:Type local:EFOperator}" />

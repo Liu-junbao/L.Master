@@ -32,6 +32,7 @@ namespace System
             _inner.CollectionChanged += Inner_CollectionChanged;
             ((INotifyPropertyChanged)_inner).PropertyChanged += Inner_PropertyChanged;
         }
+
         /// <summary>
         /// 改变数据(必须UI线程)
         /// </summary>
@@ -151,6 +152,7 @@ namespace System
         public void RemoveAll(Func<TKey, bool> predict) => _inner.RemoveAll(predict);
         public bool TryGetValue(TKey key, out TValue value) => _inner.TryGetValue(key, out value);
         public void Clear() => _inner.ClearValues();
+
         #region 
         bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly => false;
         void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item) => ((ICollection<KeyValuePair<TKey, TValue>>)_inner).Add(item);
@@ -164,6 +166,7 @@ namespace System
         #endregion
 
         #region list
+        public void Update(int index, TKey key, TValue value) => _inner.Update(index,key,value);
         bool ICollection<TValue>.IsReadOnly => false;
         TValue IList<TValue>.this[int index]
         {
@@ -186,7 +189,7 @@ namespace System
         {
             throw new Exception("不支持无键添加元素!");
         }
-        public bool Remove(TValue item) => _inner.RemoveValue(item);
+        bool ICollection<TValue>.Remove(TValue item) => _inner.RemoveValue(item);
         public IEnumerator<TValue> GetEnumerator() => _inner.GetEnumerator();
         #endregion
 
@@ -263,6 +266,14 @@ namespace System
             _values.Add(key, value);
             _keys.Add(key);
             this.Add(value);
+        }
+        public void Update(int index, TKey key, TValue value)
+        {
+            var oldKey = _keys[index];
+            _keys[index] = key;
+            _values.Remove(oldKey);
+            _values.Add(key,value);
+            this.SetItem(index,value);
         }
         public void Insert(int index, TKey key, TValue value)
         {

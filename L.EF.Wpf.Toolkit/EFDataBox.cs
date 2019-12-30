@@ -134,6 +134,21 @@ namespace System.Windows
                 return _deleteCommand;
             }
         }
+        private static RoutedUICommand _addCommand;
+        public static ICommand AddCommand
+        {
+            get
+            {
+                if (_addCommand == null)
+                {
+                    _addCommand = new RoutedUICommand("add command", nameof(AddCommand), typeof(EFDataBox));
+                    //注册热键
+                    //_addCommand.InputGestures.Add(new KeyGesture(Key.B,ModifierKeys.Alt));
+                }
+                return _addCommand;
+            }
+        }
+
         #endregion
 
         #region register properties
@@ -234,6 +249,7 @@ namespace System.Windows
         #endregion
 
         #region fields and constructors
+        private readonly object _newKey;
         private ObservableDictionary<object, object> _itemsSource;
         private List<string> _entityNames;
         private string _entityName;
@@ -250,6 +266,7 @@ namespace System.Windows
         private bool _isLoading;
         public EFDataBox()
         {
+            _newKey = $"{nameof(EFDataBox)}_newKey";
             _loadingLocker = new object();
             _isLoading = false;
             _entityNames = new List<string>();
@@ -271,6 +288,7 @@ namespace System.Windows
             this.CommandBindings.Add(new CommandBinding(CancelCommand, new ExecutedRoutedEventHandler(OnCancel)));
             this.CommandBindings.Add(new CommandBinding(DeleteCommand, new ExecutedRoutedEventHandler(OnDelete)));
             this.CommandBindings.Add(new CommandBinding(SaveCommand, new ExecutedRoutedEventHandler(OnSave)));
+            this.CommandBindings.Add(new CommandBinding(AddCommand, new ExecutedRoutedEventHandler(OnAdd)));
         }
         #endregion
 
@@ -344,6 +362,26 @@ namespace System.Windows
         {
             get { return (bool)GetValue(IsLoadingProperty); }
             protected set { SetValue(IsLoadingPropertyKey, value); }
+        }
+        #endregion
+
+        #region events
+
+        public static readonly RoutedEvent AddEvent =
+                    EventManager.RegisterRoutedEvent(nameof(Add), RoutingStrategy.Tunnel, typeof(EFDataBoxAddEventHandler), typeof(EFDataBox));
+        public event EFDataBoxAddEventHandler Add
+        {
+            add { this.AddHandler(AddEvent, value); }
+            remove { this.RemoveHandler(AddEvent, value); }
+        }
+        private void RaiseAdd(object newItem)
+        {
+            var e = new EFDataBoxAddEventArgs(AddEvent, this, newItem);
+            OnAdd(e);
+        }
+        protected virtual void OnAdd(EFDataBoxAddEventArgs e)
+        {
+            this.RaiseEvent(e);
         }
         #endregion
 
@@ -453,7 +491,7 @@ namespace System.Windows
                     if (ViewModel?.CanEditItem(item) != false)
                     {
                         var row = grid.ItemContainerGenerator.ContainerFromItem(item);
-                        EFDataBoxAssist.SetIsRowEditing(row, true);
+                        EFDataBoxAssist.SetIsRowEditable(row, true);
                     }
                 }
                 catch (Exception ex)
@@ -471,8 +509,17 @@ namespace System.Windows
             {
                 try
                 {
-                    var row = grid.ItemContainerGenerator.ContainerFromItem(item);
-                    EFDataBoxAssist.SetIsRowEditing(row, false);
+                    if (item == EFDataBoxAssist.GetAddedItem(this))
+                    {
+                        EFDataBoxAssist.SetAddedItem(this, null);
+                        EFDataBoxAssist.SetHasAddedItem(this, false);
+                        _itemsSource.Remove(_newKey);
+                    }
+                    else
+                    {
+                        var row = grid.ItemContainerGenerator.ContainerFromItem(item);
+                        EFDataBoxAssist.SetIsRowEditable(row, false);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -490,6 +537,7 @@ namespace System.Windows
             {
                 try
                 {
+                    var isAddedItem = item == EFDataBoxAssist.GetAddedItem(this);
                     var changedProperties = new List<EFEditedPropertyInfo>();
                     var row = grid.ItemContainerGenerator.ContainerFromItem(item);
                     foreach (var valueEditor in row.FindChildren<EFValueEditor>())
@@ -502,7 +550,7 @@ namespace System.Windows
                         }
                     }
 
-                    if (viewModel?.CanSaveItem(item, changedProperties) != false)
+                    if (viewModel?.CanSaveItem(isAddedItem, item, changedProperties) != false)
                     {
                         var dbContextType = ActualDbContextType;
                         if (dbContextType == default || typeof(DbContext).IsAssignableFrom(dbContextType) == false)
@@ -511,7 +559,7 @@ namespace System.Windows
                         //保存
                         using (var db = (DbContext)Activator.CreateInstance(dbContextType))
                         {
-                            db.Entry(item).State = EntityState.Modified;
+                            db.Entry(item).State = isAddedItem ? EntityState.Added : EntityState.Modified;
                             foreach (var property in changedProperties)
                             {
                                 property.SetValue(item);
@@ -519,9 +567,17 @@ namespace System.Windows
                             db.SaveChanges();
                         }
 
-                        EFDataBoxAssist.SetIsRowEditing(row, false);
+                        if (isAddedItem)
+                        {
+                            EFDataBoxAssist.SetAddedItem(this, null);
+                            EFDataBoxAssist.SetHasAddedItem(this, false);
+                            _itemsSource.Update(0, _getKey(item), item);
+                        }
 
-                        viewModel?.OnSavedItem(item, changedProperties);
+
+                        EFDataBoxAssist.SetIsRowEditable(row, false);
+
+                        viewModel?.OnSavedItem(isAddedItem, item, changedProperties);
                         viewModel?.OnCatchedMessage("保存成功!");
                     }
                 }
@@ -531,6 +587,21 @@ namespace System.Windows
                     viewModel?.OnCatchedException(ex, "保存异常");
                 }
             }
+        }
+        private void OnAdd(object sender, ExecutedRoutedEventArgs e)
+        {
+            var type = ActualEntityType;
+            if (type == default) return;
+            object addedItem;
+            if (_itemsSource.ContainsKey(_newKey) == false)
+            {
+                addedItem = Activator.CreateInstance(type);
+                EFDataBoxAssist.SetAddedItem(this, addedItem);
+                EFDataBoxAssist.SetHasAddedItem(this, true);
+                _itemsSource.Insert(0, _newKey, addedItem);
+            }
+            else addedItem = _itemsSource[_newKey];
+            this.RaiseAdd(addedItem);
         }
         private void OnDelete(object sender, ExecutedRoutedEventArgs e)
         {
@@ -558,7 +629,7 @@ namespace System.Windows
                         Refresh();
 
                         var row = grid.ItemContainerGenerator.ContainerFromItem(item);
-                        EFDataBoxAssist.SetIsRowEditing(row, false);
+                        EFDataBoxAssist.SetIsRowEditable(row, false);
 
                         viewModel?.OnDeletedItem(item);
                         viewModel?.OnCatchedMessage("删除成功!");
@@ -683,6 +754,7 @@ namespace System.Windows
         }
         private Task<int> QueryCountAsync(Type contextType)
         {
+            var viewModel = ViewModel;
             return Task.Run(() =>
             {
                 try
@@ -696,12 +768,14 @@ namespace System.Windows
                 catch (Exception e)
                 {
                     //
+                    viewModel?.OnCatchedException(e, "查询数据异常");
                 }
                 return 0;
             });
         }
         private Task QueryPageAsync(Type contextType, int pageSize, int pageIndex)
         {
+            var viewModel = ViewModel;
             return Task.Run(() =>
             {
                 try
@@ -717,6 +791,7 @@ namespace System.Windows
                 catch (Exception e)
                 {
                     //
+                    viewModel?.OnCatchedException(e,"刷新数据异常");
                 }
             });
         }
@@ -1128,6 +1203,16 @@ namespace System.Windows
         #endregion
     }
 
+    public delegate void EFDataBoxAddEventHandler(object sender,EFDataBoxAddEventArgs e);
+    public class EFDataBoxAddEventArgs:RoutedEventArgs
+    {
+        public EFDataBoxAddEventArgs(RoutedEvent routedEvent, object source,object newItem):base(routedEvent,source)
+        {
+            NewItem = newItem;
+        }
+        public object NewItem { get; }
+    }
+
     public static class EFDataBoxAssist
     {
         public static readonly DependencyProperty EntityTypeProperty =
@@ -1138,12 +1223,18 @@ namespace System.Windows
                 DependencyProperty.RegisterAttached("IsRowMouseOver", typeof(bool), typeof(EFDataBoxAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
         public static readonly DependencyProperty IsRowSelectedProperty =
                 DependencyProperty.RegisterAttached("IsRowSelected", typeof(bool), typeof(EFDataBoxAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
-        public static readonly DependencyProperty IsRowEditingProperty =
-                DependencyProperty.RegisterAttached("IsRowEditing", typeof(bool), typeof(EFDataBoxAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
+        public static readonly DependencyProperty IsRowEditableProperty =
+                DependencyProperty.RegisterAttached("IsRowEditable", typeof(bool), typeof(EFDataBoxAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
         public static readonly DependencyProperty ItemsSourceProperty =
                 DependencyProperty.RegisterAttached("ItemsSource", typeof(IEnumerable), typeof(EFDataBoxAssist), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
         public static readonly DependencyProperty IsRowValueChangedProperty =
                 DependencyProperty.RegisterAttached("IsRowValueChanged", typeof(bool), typeof(EFDataBoxAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
+        public static readonly DependencyProperty AddedItemProperty =
+                DependencyProperty.RegisterAttached("AddedItem", typeof(object), typeof(EFDataBoxAssist), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
+        public static readonly DependencyProperty HasAddedItemProperty =
+                DependencyProperty.RegisterAttached("HasAddedItem", typeof(bool), typeof(EFDataBoxAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
+        public static readonly DependencyProperty IsAddedItemProperty =
+                DependencyProperty.RegisterAttached("IsAddedItem", typeof(bool), typeof(EFDataBoxAssist), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
         public static Type GetEntityType(DependencyObject obj)
         {
             return (Type)obj.GetValue(EntityTypeProperty);
@@ -1176,13 +1267,13 @@ namespace System.Windows
         {
             obj.SetValue(IsRowSelectedProperty, value);
         }
-        public static bool GetIsRowEditing(DependencyObject obj)
+        public static bool GetIsRowEditable(DependencyObject obj)
         {
-            return (bool)obj.GetValue(IsRowEditingProperty);
+            return (bool)obj.GetValue(IsRowEditableProperty);
         }
-        public static void SetIsRowEditing(DependencyObject obj, bool value)
+        public static void SetIsRowEditable(DependencyObject obj, bool value)
         {
-            obj.SetValue(IsRowEditingProperty, value);
+            obj.SetValue(IsRowEditableProperty, value);
         }
         public static bool GetIsRowValueChanged(DependencyObject obj)
         {
@@ -1199,6 +1290,31 @@ namespace System.Windows
         public static void SetItemsSource(DependencyObject obj, IEnumerable value)
         {
             obj.SetValue(ItemsSourceProperty, value);
+        }
+        public static object GetAddedItem(DependencyObject obj)
+        {
+            return (object)obj.GetValue(AddedItemProperty);
+        }
+        public static void SetAddedItem(DependencyObject obj, object value)
+        {
+            obj.SetValue(AddedItemProperty, value);
+        }
+        public static bool GetHasAddedItem(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(HasAddedItemProperty);
+        }
+        public static void SetHasAddedItem(DependencyObject obj, bool value)
+        {
+            obj.SetValue(HasAddedItemProperty, value);
+        }
+        public static bool GetIsAddedItem(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(IsAddedItemProperty);
+        }
+
+        public static void SetIsAddedItem(DependencyObject obj, bool value)
+        {
+            obj.SetValue(IsAddedItemProperty, value);
         }
     }
 

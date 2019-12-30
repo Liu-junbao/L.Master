@@ -41,13 +41,18 @@
             </Style.Triggers>
         </Style>
         <Style BasedOn="{StaticResource {x:Type EFOperator}}" TargetType="{x:Type EFOperator}">
-            <Setter Property="IsReadOnly" Value="False"/>
-            <Setter Property="CanDelete" Value="False"/>
+            <Setter Property="IsReadOnly" Value="False" />
+            <Setter Property="CanDelete" Value="False" />
         </Style>
     </UserControl.Resources>
     <EFDataBox ViewModel="{Binding}">
         <DockPanel Margin="10">
             <EFDataGridBar DockPanel.Dock="Bottom" />
+            <CustomButton
+                HorizontalAlignment="Left"
+                Command="{x:Static EFDataBox.AddCommand}"
+                Content="添加"
+                DockPanel.Dock="Top" />
             <CustomButton
                 HorizontalAlignment="Left"
                 Command="{x:Static EFDataBox.LoadCommand}"

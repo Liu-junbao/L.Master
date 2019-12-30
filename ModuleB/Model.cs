@@ -12,7 +12,7 @@ namespace ModuleB
     public class Model
     {
         public int Id { get; set; }
-        [GenericName("名称",true)]
+        [GenericName("名称")]
         public string Name { get; set; }
         [GenericName("年龄")]
         public int Age { get; set; }

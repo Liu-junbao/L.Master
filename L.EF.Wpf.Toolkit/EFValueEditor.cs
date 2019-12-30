@@ -199,5 +199,7 @@ namespace System.Windows
         {
             this.RaiseEvent(e);
         }
+
+        public override string ToString() => $"{PropertyName}:{PropertyValue}";
     }
 }
