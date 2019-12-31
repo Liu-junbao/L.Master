@@ -274,6 +274,7 @@ namespace System.Windows
             _entitiyPropertys = new Dictionary<string, PropertyInfo>();
             _headerToPropertyNames = new Dictionary<string, string>();
             _itemsSource = new ObservableDictionary<object, object>();
+            _itemsSource.CollectionChanged += ItemsSource_CollectionChanged;
             EFDataBoxAssist.SetItemsSource(this, _itemsSource);
             DisplayItemsSource = _itemsSource;
             this.SetBinding(EFDataBoxAssist.EntityTypeProperty, new Binding(nameof(ActualEntityType)) { Source = this, Mode = BindingMode.OneWay });
@@ -365,26 +366,15 @@ namespace System.Windows
         }
         #endregion
 
-        #region events
-
-        public static readonly RoutedEvent AddEvent =
-                    EventManager.RegisterRoutedEvent(nameof(Add), RoutingStrategy.Tunnel, typeof(EFDataBoxAddEventHandler), typeof(EFDataBox));
-        public event EFDataBoxAddEventHandler Add
+        private void ItemsSource_CollectionChanged(object sender, Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            add { this.AddHandler(AddEvent, value); }
-            remove { this.RemoveHandler(AddEvent, value); }
+            var hasAddedItem = _itemsSource.ContainsKey(_newKey);
+            EFDataBoxAssist.SetHasAddedItem(this, hasAddedItem);
+            if (hasAddedItem == false)
+                EFDataBoxAssist.SetAddedItem(this, null);
+            else
+                EFDataBoxAssist.SetAddedItem(this,_itemsSource[_newKey]);
         }
-        private void RaiseAdd(object newItem)
-        {
-            var e = new EFDataBoxAddEventArgs(AddEvent, this, newItem);
-            OnAdd(e);
-        }
-        protected virtual void OnAdd(EFDataBoxAddEventArgs e)
-        {
-            this.RaiseEvent(e);
-        }
-        #endregion
-
         protected override void OnInitialized(EventArgs e)
         {
             base.OnInitialized(e);
@@ -510,11 +500,7 @@ namespace System.Windows
                 try
                 {
                     if (item == EFDataBoxAssist.GetAddedItem(this))
-                    {
-                        EFDataBoxAssist.SetAddedItem(this, null);
-                        EFDataBoxAssist.SetHasAddedItem(this, false);
                         _itemsSource.Remove(_newKey);
-                    }
                     else
                     {
                         var row = grid.ItemContainerGenerator.ContainerFromItem(item);
@@ -568,12 +554,7 @@ namespace System.Windows
                         }
 
                         if (isAddedItem)
-                        {
-                            EFDataBoxAssist.SetAddedItem(this, null);
-                            EFDataBoxAssist.SetHasAddedItem(this, false);
                             _itemsSource.Update(0, _getKey(item), item);
-                        }
-
 
                         EFDataBoxAssist.SetIsRowEditable(row, false);
 
@@ -596,12 +577,16 @@ namespace System.Windows
             if (_itemsSource.ContainsKey(_newKey) == false)
             {
                 addedItem = Activator.CreateInstance(type);
-                EFDataBoxAssist.SetAddedItem(this, addedItem);
-                EFDataBoxAssist.SetHasAddedItem(this, true);
                 _itemsSource.Insert(0, _newKey, addedItem);
             }
-            else addedItem = _itemsSource[_newKey];
-            this.RaiseAdd(addedItem);
+            else
+            {
+                addedItem = _itemsSource[_newKey];
+                foreach (var item in this.FindChildren<EFDataGrid>())
+                {
+                    item.ScrollIntoView(addedItem);
+                }
+            }
         }
         private void OnDelete(object sender, ExecutedRoutedEventArgs e)
         {
@@ -1311,7 +1296,6 @@ namespace System.Windows
         {
             return (bool)obj.GetValue(IsAddedItemProperty);
         }
-
         public static void SetIsAddedItem(DependencyObject obj, bool value)
         {
             obj.SetValue(IsAddedItemProperty, value);

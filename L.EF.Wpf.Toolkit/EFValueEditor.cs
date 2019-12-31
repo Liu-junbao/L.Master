@@ -92,9 +92,6 @@ namespace System.Windows
             protected set { SetValue(ValidValuePropertyKey, value); }
         }
 
-
-      
-
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
@@ -125,11 +122,15 @@ namespace System.Windows
             }
             RaiseValueChanged();
         }
-        protected override void OnIsEditingChanged(bool isEditing)
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            _propertyValueBinding.UpdateTarget();
-            var value = PropertyValue;
-            Value = value;
+            base.OnPropertyChanged(e);
+            if (e.Property == IsRowEditableProperty || e.Property == IsAddedItemProperty || e.Property == IsEditingProperty)
+            {
+                _propertyValueBinding.UpdateTarget();
+                var value = PropertyValue;
+                Value = value;
+            }
         }
         private void OnPropertyValueChanged(object oldValue, object newValue)
         {

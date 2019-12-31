@@ -23,12 +23,7 @@ namespace System.Windows
         public static readonly DependencyProperty HasAddedItemProperty =
            DependencyProperty.Register(nameof(HasAddedItem), typeof(bool), typeof(EFEditorBase), new PropertyMetadata(false));
         public static readonly DependencyProperty IsEditingProperty =
-           DependencyProperty.Register(nameof(IsEditing), typeof(bool), typeof(EFEditorBase), new PropertyMetadata(false, OnIsEditingChanged));
-        private static void OnIsEditingChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            EFEditorBase editor = (EFEditorBase)d;
-            editor.OnIsEditingChanged((bool)e.NewValue);
-        }
+           DependencyProperty.Register(nameof(IsEditing), typeof(bool), typeof(EFEditorBase), new PropertyMetadata(false));
         public EFEditorBase()
         {
             this.SetBinding(IsRowMouseOverProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.IsRowMouseOverProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
@@ -79,7 +74,5 @@ namespace System.Windows
             get { return (bool)GetValue(IsEditingProperty); }
             set { SetValue(IsEditingProperty, value); }
         }
-
-        protected virtual void OnIsEditingChanged(bool isEditing) { }
     }
 }

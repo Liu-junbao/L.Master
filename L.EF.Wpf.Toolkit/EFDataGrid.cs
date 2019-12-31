@@ -34,7 +34,7 @@ namespace System.Windows
         {
             this.SetBinding(DisplayPropertyInfosProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.DisplayPropertyInfosProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
             this.SetBinding(ItemsSourceProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.ItemsSourceProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
-            this.AddHandler(EFDataBox.AddEvent,new EFDataBoxAddEventHandler(OnAddEvent));
+            this.SetBinding(SelectedItemProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.AddedItemProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
         }
         public bool IsOperable
         {
@@ -68,10 +68,6 @@ namespace System.Windows
             }
             
             this.InvalidateVisual();
-        }
-        private void OnAddEvent(object sender, EFDataBoxAddEventArgs e)
-        {
-            this.ScrollIntoView(e.NewItem);
         }
         protected override void PrepareContainerForItemOverride(DependencyObject element, object item)
         {

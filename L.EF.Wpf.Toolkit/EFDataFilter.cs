@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -323,7 +324,10 @@ namespace System.Windows
                 validValue = Convert.ChangeType(value, SelectedPropertyInfo.PropertyType);
                 return IsValidValueForComparison(comparison, validValue);
             }
-            catch { }
+            catch
+            {
+                Debug.Write("类型转换");
+            }
             return false;
         }
         private bool IsValidValueForComparison(EFComparison comparison,object value)

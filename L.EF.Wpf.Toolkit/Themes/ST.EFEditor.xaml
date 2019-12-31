@@ -52,6 +52,9 @@
                     </Setter.Value>
                 </Setter>
             </Trigger>
+            <Trigger Property="IsRowEditable" Value="True">
+                <Setter Property="IsEditing" Value="True" />
+            </Trigger>
             <Trigger Property="IsAddedItem" Value="True">
                 <Setter Property="IsEditing" Value="True" />
             </Trigger>
@@ -138,6 +141,9 @@
                 </MultiTrigger.Conditions>
                 <Setter Property="Visibility" Value="Visible" />
             </MultiTrigger>
+            <Trigger Property="IsRowEditable" Value="True">
+                <Setter Property="IsEditing" Value="True" />
+            </Trigger>
             <MultiTrigger>
                 <MultiTrigger.Conditions>
                     <Condition Property="IsRowSelected" Value="True" />

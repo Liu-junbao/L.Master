@@ -11,12 +11,13 @@ namespace ModuleB
     [GenericName("实体模型")]
     public class Model
     {
+        [GenericName("序号")]
         public int Id { get; set; }
         [GenericName("名称")]
         public string Name { get; set; }
-        [GenericName("年龄")]
+        [GenericName("年龄",false)]
         public int Age { get; set; }
-        [GenericName("描述")]
+        [GenericName("描述",false)]
         public string Descripton { get; set; }
         public string Text { get; set; }
 
