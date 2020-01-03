@@ -11,15 +11,16 @@ using System.Threading.Tasks;
 
 namespace System
 {
-    public abstract class NettyClient:IChannelManager,IDisposable
+    public abstract class NettyClient : ChannelManager, IDisposable
     {
         private readonly MultithreadEventLoopGroup _group;
         private Bootstrap _bootstrap;
         private bool _isDisposed;
-        public NettyClient(string ip, int port, BasedFrameDecoderKind kind = BasedFrameDecoderKind.None)
+        private bool _isConnected;
+        public NettyClient(string ip, int port, BasedFrameDecoderKind kind = BasedFrameDecoderKind.None):base(false)
         {
             _group = new MultithreadEventLoopGroup();
-            var endPoint = GetEndPoint(ip,port);
+            var endPoint = GetEndPoint(ip, port);
             InitializeAsync(endPoint, kind);
         }
         private async void InitializeAsync(EndPoint endPoint, BasedFrameDecoderKind kind)
@@ -61,7 +62,7 @@ namespace System
                 return null;
             });
             if (_bootstrap == null) throw new Exception();
-            DoConnect();
+            DoConnect(_bootstrap, endPoint);
         }
         private IPEndPoint GetEndPoint(string address, int port)
         {
@@ -80,63 +81,29 @@ namespace System
         }
         private async void DoConnect(Bootstrap bootstrap, EndPoint hostPoint)
         {
-            //try
-            //{
-            //    var channel = await bootstrap.ConnectAsync(hostPoint);
-            //    if (channel != null)
-            //    {
-            //        var remotePoint = channel.LocalAddress as IPEndPoint;
-                    
-            //        await Task.Delay(2000);
-            //        while (channel.Active && IsConnected && _isDisposed == false)//检查连接状态
-            //        {
-            //            await Task.Delay(2000);
-            //        }
-            //        await channel.CloseCompletion;//断线时或者释放时 释放旧的连接组件
-            //    }
-            //}
-            //catch (Exception e)
-            //{
+            try
+            {
+                var channel = await bootstrap.ConnectAsync(hostPoint);
+                if (channel != null)
+                {
+                    var remotePoint = channel.LocalAddress as IPEndPoint;
+                    do
+                    {
+                        await Task.Delay(2000);
 
-            //}
+                    } while (channel.Active && _isConnected && _isDisposed == false);
+
+                    await channel.CloseCompletion;//断线时或者释放时 释放旧的连接组件
+                }
+            }
+            catch (Exception e)
+            {
+
+            }
             await Task.Delay(3000);
             if (_isDisposed) return;
             DoConnect(bootstrap, hostPoint);
         }
-        /// <summary>
-        /// 断线重连
-        /// </summary>
-        private void DoConnect()
-        {
-
-        }
-
-        #region 
-        protected virtual void OnActiveChanged(Channel channel,bool isActive)
-        {
-
-        }
-        #endregion
-
-        #region channel manager
-        void IChannelManager.ChannleActive(IChannelHandlerContext context)
-        {
-
-        }
-        void IChannelManager.ChannelInactive(IChannelHandlerContext context)
-        {
-           
-        }
-        void IChannelManager.ChannelRead(IChannelHandlerContext context, object message)
-        {
-           
-        }
-        void IChannelManager.ExceptionCaught(IChannelHandlerContext context, Exception e)
-        {
-          
-        }
-        #endregion
-
         public void Dispose()
         {
             _isDisposed = true;

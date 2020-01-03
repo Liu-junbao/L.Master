@@ -17,8 +17,6 @@ namespace System.Windows
 {
     public class EFDataGrid : DataGrid
     {
-        public static readonly DependencyProperty IsOperableProperty =
-           DependencyProperty.Register(nameof(IsOperable), typeof(bool), typeof(EFDataGrid), new PropertyMetadata(true, OnPropertyChanged));
         public static readonly DependencyProperty DisplayPropertyInfosProperty =
            DependencyProperty.Register(nameof(DisplayPropertyInfos), typeof(IEnumerable<EFDisplayPropertyInfo>), typeof(EFDataGrid), new PropertyMetadata(null,OnPropertyChanged));
         private static void OnPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -36,11 +34,6 @@ namespace System.Windows
             this.SetBinding(ItemsSourceProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.ItemsSourceProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
             this.SetBinding(SelectedItemProperty, new Binding($"({nameof(EFDataBoxAssist)}.{EFDataBoxAssist.AddedItemProperty.Name})") { Source = this, Mode = BindingMode.OneWay });
         }
-        public bool IsOperable
-        {
-            get { return (bool)GetValue(IsOperableProperty); }
-            set { SetValue(IsOperableProperty, value); }
-        }
         public IEnumerable<EFDisplayPropertyInfo> DisplayPropertyInfos
         {
             get { return (IEnumerable<EFDisplayPropertyInfo>)GetValue(DisplayPropertyInfosProperty); }
@@ -51,6 +44,7 @@ namespace System.Windows
             this.Columns.Clear();
             if (DisplayPropertyInfos != null)
             {
+                var isAllReadOnly = true;
                 foreach (var item in DisplayPropertyInfos)
                 {
                     var propertyName = item.PropertyName;
@@ -59,8 +53,10 @@ namespace System.Windows
                     var isReadOnly = item.IsReadOnly;
                     var column = new GenerateValueDataGridColumn(propertyName, propertyType) { Header = genericName, IsReadOnly = isReadOnly };
                     this.Columns.Add(column);
+                    if (isReadOnly==false)
+                        isAllReadOnly = false;
                 }
-                if (IsOperable)
+                if (isAllReadOnly == false)
                 {
                     var column = new GenerateOperatorGridColumn();
                     this.Columns.Add(column);

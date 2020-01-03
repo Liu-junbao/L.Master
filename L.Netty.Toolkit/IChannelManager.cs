@@ -14,4 +14,9 @@ namespace System
         void ChannelRead(IChannelHandlerContext context, object message);
         void ExceptionCaught(IChannelHandlerContext context, Exception e);
     }
+
+    interface IQuestioner
+    {
+        void Answer();
+    }
 }

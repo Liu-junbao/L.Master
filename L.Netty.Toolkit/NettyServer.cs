@@ -13,17 +13,17 @@ using System.Threading.Tasks;
 
 namespace System
 {
-    public abstract class NettyServer:IChannelManager
-    {      
+    public abstract class NettyServer : ChannelManager
+    {
         private readonly MultithreadEventLoopGroup _bossGroup;
         private readonly MultithreadEventLoopGroup _workGroup;
         private ServerBootstrap _bootstrap;
 
-        public NettyServer(int port, BasedFrameDecoderKind kind = BasedFrameDecoderKind.None)
+        public NettyServer(int port, BasedFrameDecoderKind kind = BasedFrameDecoderKind.None):base(true)
         {
             _bootstrap = new ServerBootstrap();
             _workGroup = new MultithreadEventLoopGroup();
-            InitializeAsync(port,kind);
+            InitializeAsync(port, kind);
         }
         private async void InitializeAsync(int port, BasedFrameDecoderKind kind)
         {
@@ -77,66 +77,25 @@ namespace System
             if (_group == null) return;
             await _group.WriteAndFlushAsync(message);
         }
-        public async Task BroadCastAsync(object message, params Channel[] users)
+        public async Task BroadCastAsync(object message, params ISession[] users)
         {
             if (_group == null) return;
-            await _group.WriteAndFlushAsync(message, new UserChannelMatcherCollection(users));
+            await _group.WriteAndFlushAsync(message, new ChannelMatcherCollection(users));
         }
-
-        #region user
-        protected virtual void OnLogIn(Channel user) { }
-        protected virtual void OnLogOut(Channel user) { }
-        protected virtual void OnMessage(Channel user, object message) { }
-        protected virtual void OnExceptionCaught(Channel user,Exception e) { }
-        #endregion
-
-        #region channel mananger
-        private static volatile IChannelGroup _group;
-        void IChannelManager.ChannleActive(IChannelHandlerContext context)
-        {
-            IChannelGroup g = _group;
-            if (g == null)
-            {
-                lock (this)
-                {
-                    if (_group == null)
-                    {
-                        _group = new DefaultChannelGroup(context.Executor);
-                    }
-                    g = _group;
-                }
-            }
-            var channel = context.Channel;
-            g.Add(channel);
-            OnLogIn(new Channel(channel));
-        }
-        void IChannelManager.ChannelInactive(IChannelHandlerContext context)
-        {
-            var channel = context.Channel;
-            OnLogOut(new Channel(channel));
-        }
-        void IChannelManager.ChannelRead(IChannelHandlerContext context, object message)
-        {
-            var channel = context.Channel;
-            OnMessage(new Channel(channel),message);
-        }
-        void IChannelManager.ExceptionCaught(IChannelHandlerContext context, Exception e)
-        {
-            var channel = context.Channel;
-            OnExceptionCaught(new Channel(channel), e);
-        }
-        #endregion
     }
   
-    class UserChannelMatcherCollection :IChannelMatcher
+    class ChannelMatcherCollection :IChannelMatcher
     {
         private List<Channel> _channels;
-        public UserChannelMatcherCollection (params Channel[] users)
+        public ChannelMatcherCollection (params ISession[] users)
         {
             _channels = new List<Channel>();
             if (users != null)
             {
-                _channels.AddRange(users);
+                foreach (var item in users)
+                {
+                    _channels.Add((Channel)item);
+                }
             }
         }
         public bool Matches(IChannel channel)

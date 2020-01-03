@@ -53,10 +53,6 @@ namespace System
         /// 尾部
         /// </summary>
         EndWith,
-        /// <summary>
-        /// 匹配
-        /// </summary>
-        Match,
     }
 
 

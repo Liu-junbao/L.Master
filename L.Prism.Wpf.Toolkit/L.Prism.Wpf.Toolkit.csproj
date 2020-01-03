@@ -4,7 +4,7 @@
     <TargetFrameworks>net45;netcoreapp3.0</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <RootNamespace>Prism</RootNamespace>
-    <Version>19.12.31.01</Version>
+    <Version>19.12.31.05</Version>
     <PackageProjectUrl>https://github.com/Liu-junbao/L.Master.git</PackageProjectUrl>
   </PropertyGroup>
 

@@ -34,8 +34,6 @@ namespace System.Windows
                     return IsSign ? "StartWith" : "开头为";
                 case EFComparison.EndWith:
                     return IsSign ? "EndWith" : "结尾为";
-                case EFComparison.Match:
-                    return IsSign ? "Match" : "符合正则";
                 default:
                     break;
             }

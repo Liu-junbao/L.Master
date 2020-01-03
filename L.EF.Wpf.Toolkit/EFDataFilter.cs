@@ -241,7 +241,6 @@ namespace System.Windows
                 yield return EFComparison.NotContains;
                 yield return EFComparison.StartWith;
                 yield return EFComparison.EndWith;
-                yield return EFComparison.Match;
             }
             else if (typeof(IComparable).IsAssignableFrom(type))
             {
@@ -353,8 +352,6 @@ namespace System.Windows
                 case EFComparison.StartWith:
                     return string.IsNullOrEmpty(value?.ToString()) == false;
                 case EFComparison.EndWith:
-                    return string.IsNullOrEmpty(value?.ToString()) == false;
-                case EFComparison.Match:
                     return string.IsNullOrEmpty(value?.ToString()) == false;
                 default:
                     break;
@@ -651,8 +648,6 @@ namespace System.Windows
                     return Linq.Expressions.Expression.Call(propertyExp, nameof(string.StartsWith), null, valueExp);// i.PropertyName.StartsWith(value);
                 case EFComparison.EndWith:
                     return Linq.Expressions.Expression.Call(propertyExp, nameof(string.EndsWith), null, valueExp);// i.PropertyName.EndsWith(value);
-                case EFComparison.Match:
-                    return Linq.Expressions.Expression.Call(typeof(Regex), nameof(Regex.IsMatch), null, propertyExp, valueExp);// i.PropertyName.EndsWith(value);
                 default:
                     break;
             }
