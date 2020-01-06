@@ -1,37 +1,29 @@
-﻿using System.Windows.Input;
+﻿using System.Linq.Expressions;
+using System.Threading;
+using System.Windows.Input;
 
 namespace System
 {
-    public class Command:ICommand
+    public class Command:AbstractCommand
     {
         private Action _execute;
         private Func<bool> _canExecute;
-        public Command(Action execute)
-        {
-            _execute = execute;
-        }
+        public Command(Action execute) : this(execute, null) { }
         public Command(Action execute,Func<bool> canExecute)
         {
             _execute = execute;
             _canExecute = canExecute;
         }
-
-        public bool CanExecute(object parameter)
+        public override bool CanExecute(object parameter)
         {
             return _canExecute?.Invoke() ?? true;
         }
-
-        public void Execute(object parameter)
+        public override void Execute(object parameter)
         {
             _execute?.Invoke();
         }
-        public void RaiseCanExecuteChanged()
-        {
-            CanExecuteChanged?.Invoke(this,null);
-        }
-        public event EventHandler CanExecuteChanged;
     }
-    public class Command<T>:ICommand
+    public class Command<T> : AbstractCommand
     {
         private Action<T> _execute;
         private Func<T, bool> _canExecute;
@@ -44,18 +36,13 @@ namespace System
             _execute = execute;
             _canExecute = canExecute;
         }
-        public bool CanExecute(object parameter)
+        public override bool CanExecute(object parameter)
         {
             return _canExecute?.Invoke((T)parameter) ?? true;
         }
-        public void Execute(object parameter)
+        public override void Execute(object parameter)
         {
             _execute?.Invoke((T)parameter);
         }
-        public void RaiseCanExecuteChanged()
-        {
-            CanExecuteChanged?.Invoke(this, null);
-        }
-        public event EventHandler CanExecuteChanged;
     }
 }

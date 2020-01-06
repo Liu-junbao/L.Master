@@ -14,15 +14,24 @@ namespace System
         IPEndPoint EndPoint { get; }
         IPEndPoint LocalEndPoint { get; }
         Task Send(object message);
-        Task<string> Request(string question, int timeoutMilliseconds);
+        Task<IAnswerResult> Request(string question, int timeoutMilliseconds = 5000);
         event EventHandler Inactived;
-        event MessageHandler ReceivedMessage;
+        event QuestionHandler Requested;
     }
     public interface IQuestion
     {
         DateTime Time { get; }
         string Content { get; }
-        void Answer(string content);
+        void RaiseAnswer(OnAnswerHandler answer = null);
+        void RaiseAnswerAsync(OnAnswerAsyncHandler answerAsync = null);
     }
-    public delegate void MessageHandler(ISession session, object message, IQuestion question);
+    public interface IAnswerResult
+    {
+        bool IsAnswered { get; }
+        string Message { get; }
+    }
+
+    public delegate void QuestionHandler(ISession session,IQuestion question);
+    public delegate string OnAnswerHandler(string question);
+    public delegate Task<string> OnAnswerAsyncHandler(string question);
 }

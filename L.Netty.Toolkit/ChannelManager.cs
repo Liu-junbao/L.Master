@@ -2,13 +2,15 @@
 using DotNetty.Transport.Channels.Groups;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace System
 {
-    public abstract class ChannelManager: IChannelManager
+    public abstract class ChannelManager : IChannelManager, INotifyPropertyChanged
     {
         protected static volatile IChannelGroup _group;
         private static readonly object _groupLocker = new object();
@@ -22,6 +24,8 @@ namespace System
             _channels = new Dictionary<string, Channel>();
         }
         protected virtual void OnActive(ISession session) { }
+        protected virtual void OnInActive(ISession session) { }
+        protected virtual void OnMessage(ISession session, object message) { }
         protected virtual void OnExceptionCaught(ISession session, Exception e) { }
         void IChannelManager.ChannleActive(IChannelHandlerContext context)
         {
@@ -38,7 +42,7 @@ namespace System
                 }
                 else ch = _channels[sessionId];
             }
-           
+
             if (_isServer)
             {
                 IChannelGroup g = _group;
@@ -55,14 +59,14 @@ namespace System
                 }
                 g.Add(channel);
             }
-          
+
             this.OnActive(ch);
         }
         void IChannelManager.ChannelInactive(IChannelHandlerContext context)
         {
             var channel = context.Channel;
             var sessionId = channel.Id.AsLongText();
-            Channel ch;
+            Channel ch = null;
 
             lock (_channelLocker)
             {
@@ -70,8 +74,13 @@ namespace System
                 {
                     ch = _channels[sessionId];
                     _channels.Remove(sessionId);
-                    ch.Inactive();
                 }
+            }
+
+            if (ch != null)
+            {
+                OnInActive(ch);
+                ch.Inactive();
             }
         }
         void IChannelManager.ChannelRead(IChannelHandlerContext context, object message)
@@ -89,6 +98,8 @@ namespace System
                 }
                 else ch = _channels[sessionId];
             }
+
+            this.OnMessage(ch, message);
             ch.OnMessage(message);
         }
         void IChannelManager.ExceptionCaught(IChannelHandlerContext context, Exception e)
@@ -107,5 +118,51 @@ namespace System
             }
             OnExceptionCaught(ch, e);
         }
+
+        #region INotifyPropertyChanged
+        protected void RaisePropertyChanged(string propertyName)
+        {
+            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        protected void RaisePropertyChanged(params string[] propertyNames)
+        {
+            if (propertyNames != null)
+            {
+                foreach (var item in propertyNames)
+                {
+                    RaisePropertyChanged(item);
+                }
+            }
+        }
+        protected virtual bool SetProperty<TValue>(ref TValue storage, TValue newValue, [CallerMemberName] string propertyName = null, params string[] propertyNameArgs)
+        {
+            if (EqualityComparer<TValue>.Default.Equals(storage, newValue) == false)
+            {
+                TValue oldValue = storage;
+                storage = newValue;
+                OnPropertyChanged(propertyName, oldValue, newValue);
+                this.RaisePropertyChanged(propertyName);
+                this.RaisePropertyChanged(propertyNameArgs);
+                return true;
+            }
+            return false;
+        }
+        protected virtual bool SetProperty<TValue>(ref TValue storage, TValue newValue, Action<TValue, TValue> onChanged, [CallerMemberName] string propertyName = null, params string[] propertyNameArgs)
+        {
+            if (EqualityComparer<TValue>.Default.Equals(storage, newValue) == false)
+            {
+                TValue oldValue = storage;
+                storage = newValue;
+                onChanged?.Invoke(oldValue, newValue);
+                OnPropertyChanged(propertyName, oldValue, newValue);
+                this.RaisePropertyChanged(propertyName);
+                this.RaisePropertyChanged(propertyNameArgs);
+                return true;
+            }
+            return false;
+        }
+        protected virtual void OnPropertyChanged(string propertyName, object oldValue, object newValue) { }
+        public event PropertyChangedEventHandler PropertyChanged;
+        #endregion
     }
 }

@@ -7,7 +7,7 @@ using System.Windows.Input;
 
 namespace System
 {
-    public class AsyncCommand : ICommand
+    public class AsyncCommand:AbstractCommand
     {
         private Func<Task> _execute;
         private Func<bool> _canExecute;
@@ -21,13 +21,11 @@ namespace System
             _execute = execute;
             _canExecute = canExecute;
         }
-
-        public bool CanExecute(object parameter)
+        public override bool CanExecute(object parameter)
         {
             return (_canExecute?.Invoke() ?? true) && _isBusy == false;
         }
-
-        public async void Execute(object parameter)
+        public override async void Execute(object parameter)
         {
             if (_execute != null)
             {
@@ -42,14 +40,9 @@ namespace System
                 }
             }
         }
-        public void RaiseCanExecuteChanged()
-        {
-            CanExecuteChanged?.Invoke(this, null);
-        }
-        public event EventHandler CanExecuteChanged;
     }
 
-    public class AsyncCommand<T> : ICommand
+    public class AsyncCommand<T> : AbstractCommand
     {
         private Func<T,Task> _execute;
         private Func<T,bool> _canExecute;
@@ -63,11 +56,11 @@ namespace System
             _execute = execute;
             _canExecute = canExecute;
         }
-        public bool CanExecute(object parameter)
+        public override bool CanExecute(object parameter)
         {
             return (_canExecute?.Invoke((T)parameter) ?? true) && _isBusy == false;
         }
-        public async void Execute(object parameter)
+        public async override void Execute(object parameter)
         {
             if (_execute != null)
             {
@@ -82,10 +75,5 @@ namespace System
                 }
             }
         }
-        public void RaiseCanExecuteChanged()
-        {
-            CanExecuteChanged?.Invoke(this, null);
-        }
-        public event EventHandler CanExecuteChanged;
     }
 }

@@ -18,10 +18,10 @@ namespace System
         private readonly MultithreadEventLoopGroup _bossGroup;
         private readonly MultithreadEventLoopGroup _workGroup;
         private ServerBootstrap _bootstrap;
-
         public NettyServer(int port, BasedFrameDecoderKind kind = BasedFrameDecoderKind.None):base(true)
         {
             _bootstrap = new ServerBootstrap();
+            _bossGroup = new MultithreadEventLoopGroup();
             _workGroup = new MultithreadEventLoopGroup();
             InitializeAsync(port, kind);
         }
