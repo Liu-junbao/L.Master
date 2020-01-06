@@ -1,0 +1,93 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net45;netcoreapp3.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Images\Activity_16xLG.png" />
+    <None Remove="Images\brackets_Square_16xMD.png" />
+    <None Remove="Images\ClassIcon.ico" />
+    <None Remove="Images\ClassIcon.png" />
+    <None Remove="Images\Class_489.png" />
+    <None Remove="Images\Cloud_16xLG.png" />
+    <None Remove="Images\Copy_6524.png" />
+    <None Remove="Images\Delegate_8339.png" />
+    <None Remove="Images\docview_xaml_on_16x16.png" />
+    <None Remove="Images\Enum_582.png" />
+    <None Remove="Images\Event_594.png" />
+    <None Remove="Images\Event_594_exp.png" />
+    <None Remove="Images\glasses_16xLG.png" />
+    <None Remove="Images\grid_Data_16xLG.png" />
+    <None Remove="Images\lightningBolt_16xLG.png" />
+    <None Remove="Images\ListView_687.png" />
+    <None Remove="Images\loading.gif" />
+    <None Remove="Images\Method_636.png" />
+    <None Remove="Images\Module_648.png" />
+    <None Remove="Images\RegistryEditor_5838.ico" />
+    <None Remove="Images\SingleMessage_5727.ico" />
+    <None Remove="Images\Structure_507.png" />
+    <None Remove="Images\Table_748.png" />
+    <None Remove="Images\Tag_7213.png" />
+    <None Remove="Images\usbcontroller.png" />
+    <None Remove="Images\UserInterfaceEditor_5845.ico" />
+    <None Remove="Images\VirtualMachine.png" />
+    <None Remove="Images\WindowsForm_817.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Images\Activity_16xLG.png" />
+    <Content Include="Images\brackets_Square_16xMD.png" />
+    <Content Include="Images\ClassIcon.ico" />
+    <Content Include="Images\ClassIcon.png" />
+    <Content Include="Images\Class_489.png" />
+    <Content Include="Images\Cloud_16xLG.png" />
+    <Content Include="Images\Copy_6524.png" />
+    <Content Include="Images\Delegate_8339.png" />
+    <Content Include="Images\docview_xaml_on_16x16.png" />
+    <Content Include="Images\Enum_582.png" />
+    <Content Include="Images\Event_594.png" />
+    <Content Include="Images\Event_594_exp.png" />
+    <Content Include="Images\glasses_16xLG.png" />
+    <Content Include="Images\grid_Data_16xLG.png" />
+    <Content Include="Images\lightningBolt_16xLG.png" />
+    <Content Include="Images\ListView_687.png" />
+    <Content Include="Images\loading.gif" />
+    <Content Include="Images\Method_636.png" />
+    <Content Include="Images\Module_648.png" />
+    <Content Include="Images\RegistryEditor_5838.ico" />
+    <Content Include="Images\SingleMessage_5727.ico" />
+    <Content Include="Images\Structure_507.png" />
+    <Content Include="Images\Table_748.png" />
+    <Content Include="Images\Tag_7213.png" />
+    <Content Include="Images\usbcontroller.png" />
+    <Content Include="Images\UserInterfaceEditor_5845.ico" />
+    <Content Include="Images\VirtualMachine.png" />
+    <Content Include="Images\WindowsForm_817.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="ImageResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ImageResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="ImageResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ImageResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
+    <PackageReference Include="System.Drawing.Common">
+      <Version>4.7.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Resources.Extensions">
+      <Version>4.7.0</Version>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

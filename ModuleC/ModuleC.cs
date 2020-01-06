@@ -11,7 +11,7 @@ namespace ModuleC
     {
         public void OnInitialized(IContainerProvider containerProvider)
         {
-            containerProvider.RegisterViewNavigationWithRegion<ViewA>("MenuRegion", "ContentRegion", "模块C");
+            containerProvider.RegisterViewNavigationWithRegion<ViewA>("MenuRegion", "ContentRegion", "Netty.Socket");
         }
 
         public void RegisterTypes(IContainerRegistry containerRegistry)
