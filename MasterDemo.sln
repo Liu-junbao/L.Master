@@ -31,7 +31,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "L.EF.Toolkit", "L.EF.Toolki
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "L.Prism.Wpf.Toolkit", "L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj", "{53542008-A112-4631-A7C2-3548BFB30D30}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.Netty.Toolkit", "L.Netty.Toolkit\L.Netty.Toolkit.csproj", "{0460F832-2B9A-4E20-B53D-13626645D566}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "L.Netty.Toolkit", "L.Netty.Toolkit\L.Netty.Toolkit.csproj", "{0460F832-2B9A-4E20-B53D-13626645D566}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -57,23 +57,7 @@ namespace System
                 }
             }
 
-            //移除超过一分钟未答复的消息
-            var time = DateTime.Now;
-            lock (_qaLocker)
-            {
-                var timeOutQAs = new List<string>();
-                foreach (var item in _qas)
-                {
-                    if (item.Value.QuestionTime < time - TimeSpan.FromMinutes(1))
-                    {
-                        timeOutQAs.Add(item.Key);
-                    }
-                }
-                foreach (var item in timeOutQAs)
-                {
-                    _qas.Remove(item);
-                }
-            }
+            RefreshQA();
         }
         private ChannelQuestionAndAnswer FindQuestionAndAnswer(string message)
         {
@@ -125,6 +109,26 @@ namespace System
             }
             return null;
         }      
+        private void RefreshQA()
+        {
+            //移除超过一分钟未答复的消息
+            var time = DateTime.Now;
+            lock (_qaLocker)
+            {
+                var timeOutQAs = new List<string>();
+                foreach (var item in _qas)
+                {
+                    if (item.Value.QuestionTime < time - TimeSpan.FromMinutes(1))
+                    {
+                        timeOutQAs.Add(item.Key);
+                    }
+                }
+                foreach (var item in timeOutQAs)
+                {
+                    _qas.Remove(item);
+                }
+            }
+        }
         public Task Send(object message)
         {
             return _channel?.WriteAndFlushAsync(message);
@@ -135,6 +139,8 @@ namespace System
         }
         public async Task<IAnswerResult> Request(string question, int timeoutMilliseconds)
         {
+            RefreshQA();
+
             var qa = new ChannelQuestionAndAnswer(this, question, DateTime.Now, true);
             var key = this.GetQuestionAndAnswerKey(qa);
             var message = GetQuestionMessage(qa);
@@ -225,7 +231,7 @@ namespace System
         }
         #endregion
 
-        public override string ToString() => $"{(IsQuestioner ? "提问" : "<->")} {_channel.GetQuestionMessage(this)}\r\n{(IsQuestioner ? "<->" : "回答")} {_channel.GetAnswerMessage(this)}";
+        public override string ToString() => $"{(IsQuestioner ? "提问 " : "<-> ")} {_channel.GetQuestionMessage(this)}\r\n{(IsQuestioner ? "<-> " : "回答 ")} {_channel.GetAnswerMessage(this)}";
     }
     class AnswerResult : IAnswerResult
     {
