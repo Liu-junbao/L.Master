@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace System
 {
-    public abstract class NettyClient : ChannelManager, IDisposable
+    public class NettyClient : ChannelManager, IDisposable
     {
         private readonly MultithreadEventLoopGroup _group;
         private Bootstrap _bootstrap;

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace System
 {
-    public abstract class NettyServer : ChannelManager
+    public class NettyServer : ChannelManager
     {
         private readonly MultithreadEventLoopGroup _bossGroup;
         private readonly MultithreadEventLoopGroup _workGroup;

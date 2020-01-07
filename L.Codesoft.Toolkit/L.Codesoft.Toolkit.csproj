@@ -1,7 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net45;netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>net45</TargetFrameworks>
+    <RootNamespace>System</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Interop.LabelManager2">
+      <HintPath>Interop.LabelManager2.dll</HintPath>
+    </Reference>
+    <Reference Include="stdole">
+      <HintPath>stdole.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
+    <PackageReference Include="System.Drawing.Common">
+      <Version>4.7.0</Version>
+    </PackageReference>
+  </ItemGroup>
 
 </Project>
