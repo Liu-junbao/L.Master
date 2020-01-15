@@ -836,6 +836,8 @@ namespace System.Windows
                     }
                 }
                 hasOrderby = body.FindMethodCallExpressions(typeof(Queryable), nameof(Queryable.OrderBy)).FirstOrDefault() != null;
+                if (hasOrderby == false)
+                    hasOrderby = body.FindMethodCallExpressions(typeof(Queryable), nameof(Queryable.OrderByDescending)).FirstOrDefault() != null;
             }
             if (hasOrderby == false)
             {

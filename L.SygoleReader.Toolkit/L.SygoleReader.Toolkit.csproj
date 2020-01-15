@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net45</TargetFrameworks>
+    <RootNamespace>System</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Sygole.HFReader">
+      <HintPath>Sygole.HFReader.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

@@ -33,17 +33,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "L.Prism.Wpf.Toolkit", "L.Pr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "L.Netty.Toolkit", "L.Netty.Toolkit\L.Netty.Toolkit.csproj", "{0460F832-2B9A-4E20-B53D-13626645D566}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.OPC.Toolkit", "L.OPC.Toolkit\L.OPC.Toolkit.csproj", "{72FB7242-B199-49C8-99D9-18ADAEA29F1F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "L.OPC.Toolkit", "L.OPC.Toolkit\L.OPC.Toolkit.csproj", "{72FB7242-B199-49C8-99D9-18ADAEA29F1F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.CAD.ToolKit", "L.CAD.ToolKit\L.CAD.ToolKit.csproj", "{1369428F-FEEF-461B-8A64-0419A07B3E87}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "L.CAD.ToolKit", "L.CAD.ToolKit\L.CAD.ToolKit.csproj", "{1369428F-FEEF-461B-8A64-0419A07B3E87}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.Codesoft.Toolkit", "L.Codesoft.Toolkit\L.Codesoft.Toolkit.csproj", "{2F722BAE-4463-47C5-9835-E86A23F652D7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "L.Codesoft.Toolkit", "L.Codesoft.Toolkit\L.Codesoft.Toolkit.csproj", "{2F722BAE-4463-47C5-9835-E86A23F652D7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Industrial Software Toolkits", "Industrial Software Toolkits", "{3F15A8B8-41BA-408F-BDD8-546F9D639E58}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.SerialPort.Tookit", "L.SerialPort.Tookit\L.SerialPort.Tookit.csproj", "{A1175175-ADE4-4222-92F5-284FAC464DC5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "L.SerialPort.Tookit", "L.SerialPort.Tookit\L.SerialPort.Tookit.csproj", "{A1175175-ADE4-4222-92F5-284FAC464DC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.Resources", "L.Resources\L.Resources.csproj", "{86F315BE-B674-4AF6-85F7-8E48DACBC900}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "L.Resources", "L.Resources\L.Resources.csproj", "{86F315BE-B674-4AF6-85F7-8E48DACBC900}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "L.SygoleReader.Toolkit", "L.SygoleReader.Toolkit\L.SygoleReader.Toolkit.csproj", "{71D72B1F-90F1-484D-9654-0E9EF2C8B16F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -123,6 +125,10 @@ Global
 		{86F315BE-B674-4AF6-85F7-8E48DACBC900}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86F315BE-B674-4AF6-85F7-8E48DACBC900}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86F315BE-B674-4AF6-85F7-8E48DACBC900}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71D72B1F-90F1-484D-9654-0E9EF2C8B16F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71D72B1F-90F1-484D-9654-0E9EF2C8B16F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71D72B1F-90F1-484D-9654-0E9EF2C8B16F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71D72B1F-90F1-484D-9654-0E9EF2C8B16F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -145,6 +151,7 @@ Global
 		{3F15A8B8-41BA-408F-BDD8-546F9D639E58} = {F053F997-7A91-41CC-908B-5337A6BF2699}
 		{A1175175-ADE4-4222-92F5-284FAC464DC5} = {3F15A8B8-41BA-408F-BDD8-546F9D639E58}
 		{86F315BE-B674-4AF6-85F7-8E48DACBC900} = {F053F997-7A91-41CC-908B-5337A6BF2699}
+		{71D72B1F-90F1-484D-9654-0E9EF2C8B16F} = {3F15A8B8-41BA-408F-BDD8-546F9D639E58}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FFFC8C11-944A-45EC-93D5-29C40A886A34}
