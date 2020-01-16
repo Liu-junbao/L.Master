@@ -31,10 +31,12 @@ namespace System
         private Type _dbContextType;
         private Type _entityType;
         private string _entityGenericName;
+        private readonly System.Threading.SynchronizationContext _context;
         public EFViewModel()
         {
             _dbContextType = typeof(TDbContext);
             _entityType = typeof(TModel);
+            _context = Threading.SynchronizationContext.Current ?? throw new Exception("ViewModel只能在UI单线程中初始化!");
             OwnerWindow = Application.Current.MainWindow;
         }
         public Window OwnerWindow { get; protected set; }
@@ -59,11 +61,11 @@ namespace System
         }
         protected virtual void OnCatchedException(Exception e, string message)
         {
-            MessageBox.Show(OwnerWindow, $"{message}\r\n{e.Message}", "报警");
+            BeginInvoke(() => MessageBox.Show(OwnerWindow, $"{message}\r\n{e.Message}", "报警"));
         }
         protected virtual void OnCatchedMessage(string message)
         {
-            MessageBox.Show(OwnerWindow, $"{message}", "提示");
+            BeginInvoke(() => MessageBox.Show(OwnerWindow, $"{message}", "提示"));
         }
         protected virtual void OnImporting(TModel model, bool isNewItem) { }
         protected virtual void OnImportedComplated(List<TModel> importedItems, List<Tuple<int, string, object>> errorItems)
@@ -81,6 +83,11 @@ namespace System
             MessageBox.Show(builder.ToString(), "导入结果", MessageBoxButton.OK);
         }
         protected virtual void OnEntityGenericNameChanged(string oldEntityGenericName, string newEntityGenericName) { }
+        protected void BeginInvoke(Action action)
+        {
+            if (action == null) return;
+            _context.Post(i => action.Invoke(), null);
+        }
 
         #region IEFViewModel
         Type IEFViewModel.DbContextType => _dbContextType;

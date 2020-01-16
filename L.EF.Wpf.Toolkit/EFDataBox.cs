@@ -407,7 +407,7 @@ namespace System.Windows
             var query1 = QueryExpression;
             _queryCountExpression = GetQueryCountExpression(type, query, query1);
             _queryPageExpression = GetQueryPageExpression(type, _keyPropertyInfo, query, query1);
-            _queryExpression = GetQueryExpression(type, query, query1);
+            _queryExpression = GetQueryExpression(type, _keyPropertyInfo, query, query1);
         }
         private void InitializeDisplayPropertyNames()
         {
@@ -782,6 +782,20 @@ namespace System.Windows
         }
 
         #region linq
+        public static IEnumerable<TEntity> Query<TEntity, TKey>(DbContext db, Expression<Func<IQueryable<TEntity>, IQueryable<TEntity>>> condition, Expression<Func<TEntity, TKey>> keySelector) where TEntity : class
+        {
+            IQueryable<TEntity> query = db.Set<TEntity>().OrderBy(keySelector);
+            query = condition.Compile().Invoke(query);
+            return query;
+        }
+        public static IEnumerable<TEntity> Query<TEntity, TKey>(DbContext db, Expression<Func<IQueryable<TEntity>, IQueryable<TEntity>>> condition, Expression<Func<TEntity, TKey>> keySelector, int skipCount, int takeCount) where TEntity : class
+        {
+            if (skipCount < 0) skipCount = 0;
+            if (takeCount <= 0) takeCount = 1;
+            IQueryable<TEntity> query = db.Set<TEntity>().OrderBy(keySelector);
+            query = condition.Compile().Invoke(query);
+            return query.Skip(skipCount).Take(takeCount);
+        }
         private Expression<Func<object, object>> GetKeyFunction(Type entityType, string keyPropertyName)
         {
             if (entityType == default || string.IsNullOrEmpty(keyPropertyName)) return null;
@@ -819,58 +833,67 @@ namespace System.Windows
         {
             if (entityType == default || keyPropertyInfo == null) return null;
 
-            //完整表达式 return db.Set<T>().Where().OrderBy().Skip().Take();   
             var db = Linq.Expressions.Expression.Parameter(typeof(DbContext));
+
             var skipCount = Linq.Expressions.Expression.Parameter(typeof(int));
             var takeCount = Linq.Expressions.Expression.Parameter(typeof(int));
-            var dbSet = Linq.Expressions.Expression.Call(db, nameof(DbContext.Set), new Type[] { entityType });//db.Set<T>()
-            bool hasOrderby = false;
-            Linq.Expressions.Expression body = dbSet;
-            if (querys != null)
-            {
-                foreach (var query in querys)
-                {
-                    if (query != null)
-                    {
-                        body = Linq.Expressions.Expression.Invoke(query, body);
-                    }
-                }
-                hasOrderby = body.FindMethodCallExpressions(typeof(Queryable), nameof(Queryable.OrderBy)).FirstOrDefault() != null;
-                if (hasOrderby == false)
-                    hasOrderby = body.FindMethodCallExpressions(typeof(Queryable), nameof(Queryable.OrderByDescending)).FirstOrDefault() != null;
-            }
-            if (hasOrderby == false)
-            {
-                var model = Linq.Expressions.Expression.Parameter(entityType);
-                var getKey = Linq.Expressions.Expression.Property(model, keyPropertyInfo.Name);
-                var keyExp = Linq.Expressions.Expression.Lambda(getKey, model);
-                body = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.OrderBy),
-                   new Type[] { entityType, keyPropertyInfo.PropertyType },
-                   body, keyExp);//db.Set<T>().OrderBy(i=>i.Key)
-            }
-            body = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.Skip), new Type[] { entityType }, body, skipCount);//db.Set<T>().Where().OrderBy(i=>i.Key).Skip();
-            body = Linq.Expressions.Expression.Call(typeof(Queryable), nameof(Queryable.Take), new Type[] { entityType }, body, takeCount);//db.Set<T>().Where().OrderBy(i=>i.Key).Skip().Take();
-            return Linq.Expressions.Expression.Lambda<Func<DbContext, int, int, IEnumerable<object>>>(body, db, skipCount, takeCount);
-        }
-        private Expression<Func<DbContext, IEnumerable<object>>> GetQueryExpression(Type entityType, params Linq.Expressions.Expression[] querys)
-        {
-            if (entityType == default) return null;
 
-            //完整表达式 return db.Set<T>().Where();   
-            var db = Linq.Expressions.Expression.Parameter(typeof(DbContext));
-            var dbSet = Linq.Expressions.Expression.Call(db, nameof(DbContext.Set), new Type[] { entityType });//db.Set<T>()
-            Linq.Expressions.Expression body = dbSet;
+            var queryType = typeof(IQueryable<>).MakeGenericType(entityType);
+            var queryParameter = Linq.Expressions.Expression.Parameter(queryType);
+            Linq.Expressions.Expression queryCondition = queryParameter;
             if (querys != null)
             {
-                foreach (var query in querys)
+                foreach (var q in querys)
                 {
-                    if (query != null)
+                    if (q != null)
                     {
-                        body = Linq.Expressions.Expression.Invoke(query, body);
+                        queryCondition = Linq.Expressions.Expression.Invoke(q, queryCondition);
                     }
                 }
             }
-            return Linq.Expressions.Expression.Lambda<Func<DbContext, IEnumerable<object>>>(body, db);
+            Linq.Expressions.Expression condition = Linq.Expressions.Expression.Lambda(queryCondition,queryParameter);
+
+            var keyName = keyPropertyInfo.Name;
+            var keyType = keyPropertyInfo.PropertyType;
+            var entity = Linq.Expressions.Expression.Parameter(entityType);
+            var entityKey = Linq.Expressions.Expression.Property(entity, keyName);
+            var keySelector = Linq.Expressions.Expression.Lambda(entityKey,entity);
+
+            var query = Linq.Expressions.Expression.Call(typeof(EFDataBox), nameof(Query), new Type[] { entityType, keyType }, db, condition, keySelector, skipCount, takeCount);
+            return Linq.Expressions.Expression.Lambda<Func<DbContext, int, int, IEnumerable<object>>>(query, db, skipCount, takeCount);
+        }
+
+        
+
+        private Expression<Func<DbContext, IEnumerable<object>>> GetQueryExpression(Type entityType, PropertyInfo keyPropertyInfo, params Linq.Expressions.Expression[] querys)
+        {
+            if (entityType == default || keyPropertyInfo == null) return null;
+
+            var db = Linq.Expressions.Expression.Parameter(typeof(DbContext));
+
+            var queryType = typeof(IQueryable<>).MakeGenericType(entityType);
+            var queryParameter = Linq.Expressions.Expression.Parameter(queryType);
+            Linq.Expressions.Expression queryCondition = queryParameter;
+            if (querys != null)
+            {
+                foreach (var q in querys)
+                {
+                    if (q != null)
+                    {
+                        queryCondition = Linq.Expressions.Expression.Invoke(q, queryCondition);
+                    }
+                }
+            }
+            Linq.Expressions.Expression condition = Linq.Expressions.Expression.Lambda(queryCondition, queryParameter);
+
+            var keyName = keyPropertyInfo.Name;
+            var keyType = keyPropertyInfo.PropertyType;
+            var entity = Linq.Expressions.Expression.Parameter(entityType);
+            var entityKey = Linq.Expressions.Expression.Property(entity, keyName);
+            var keySelector = Linq.Expressions.Expression.Lambda(entityKey, entity);
+
+            var query = Linq.Expressions.Expression.Call(typeof(EFDataBox), nameof(Query), new Type[] { entityType, keyType }, db, condition, keySelector);
+            return Linq.Expressions.Expression.Lambda<Func<DbContext,IEnumerable<object>>>(query, db);
         }
         #endregion
 

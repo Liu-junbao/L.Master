@@ -19,6 +19,11 @@ namespace ModuleB.ViewModels
             get { return _message; }
             set { SetProperty(ref _message, value); }
         }
-        public override Expression<Func<IQueryable<Model>, IQueryable<Model>>> QueryExpression => q => q.OrderBy(i => i.Name);
+        public override Expression<Func<IQueryable<Model>, IQueryable<Model>>> QueryExpression => q => OnQuere(q);
+
+        private IQueryable<Model> OnQuere(IQueryable<Model> q)
+        {
+            return q;
+        }
     }
 }
