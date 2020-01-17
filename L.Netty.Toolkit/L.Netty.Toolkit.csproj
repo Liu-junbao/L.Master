@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net45;netcoreapp3.0</TargetFrameworks>
     <RootNamespace>System</RootNamespace>
-    <Version>20.1.15.1</Version>
+    <Version>20.1.17.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
