@@ -45,6 +45,10 @@
         </Setter>
     </Style>
 
+    <SwitchConverter x:Key="cvt.hasCondition">
+        <IntConvert BackValue="无" Value="0" />
+    </SwitchConverter>
+
     <Style x:Key="st.EFDataFilter" TargetType="{x:Type local:EFDataFilter}">
         <Setter Property="Template">
             <Setter.Value>
@@ -55,7 +59,7 @@
                                 <TextBlock
                                     Margin="3"
                                     VerticalAlignment="Center"
-                                    Text="筛选条件:" />
+                                    Text="添加条件:" />
                                 <ComboBox
                                     Name="cbbOperation"
                                     Margin="3"
@@ -110,7 +114,11 @@
                                     Content="清空"
                                     IsEnabled="{TemplateBinding IsExistsItem}" />
                             </StackPanel>
-                            <ItemsControl ItemsSource="{TemplateBinding PropertyFilters}" />
+                            <TextBlock Margin="3" VerticalAlignment="Center">
+                                <Run Text="筛选条件:" />
+                                <Run Text="{Binding ElementName=ic, Path=Items.Count, Converter={StaticResource cvt.hasCondition}, Mode=OneWay}" />
+                            </TextBlock>
+                            <ItemsControl x:Name="ic" ItemsSource="{TemplateBinding PropertyFilters}" />
                         </StackPanel>
                     </Border>
                     <ControlTemplate.Triggers>

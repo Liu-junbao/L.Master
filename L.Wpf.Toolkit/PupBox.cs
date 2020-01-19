@@ -56,7 +56,8 @@ namespace System.Windows
         }
         private void OnMouseUpHandler(object sender, RoutedEventArgs e)
         {
-            IsDropDownOpen = false;
+            if (IsMouseOver == false)
+                IsDropDownOpen = false;
         }
         private void OnClickHandler(object sender, RoutedEventArgs e)
         {

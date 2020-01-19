@@ -12,6 +12,7 @@ namespace ModuleB
     public class Model
     {
         [GenericName("序号")]
+        [Key]
         public int Id { get; set; }
         [GenericName("名称")]
         public string Name { get; set; }
