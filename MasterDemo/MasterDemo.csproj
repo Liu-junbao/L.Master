@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\L.EF.Wpf.Toolkit\L.EF.Wpf.Toolkit.csproj" />
     <ProjectReference Include="..\L.Prism.Wpf.Toolkit\L.Prism.Wpf.Toolkit.csproj" />
+    <ProjectReference Include="..\L.Resources\L.Resources.csproj" />
     <ProjectReference Include="..\L.Toolkits\L.Toolkits.csproj" />
     <ProjectReference Include="..\L.Wpf.Toolkit\L.Wpf.Toolkit.csproj" />
     <ProjectReference Include="..\ModuleA\ModuleA.csproj" />

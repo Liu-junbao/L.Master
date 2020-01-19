@@ -11,10 +11,9 @@
     d:DesignHeight="300"
     d:DesignWidth="300"
     prism:ViewModelLocator.AutoWireViewModel="True"
-    RegionBrowserAssist.Data="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
+    RegionBrowserAssist.Icon="/L.Resources;component/Images/Table_748.png"
     RegionBrowserAssist.StrokeThickness="0.1"
-    RegionBrowserAssist.Title="模块B"
-    RegionBrowserAssist.ToolTip="模块B"
+    RegionBrowserAssist.Title="DB数据控件"
     mc:Ignorable="d">
     <UserControl.Resources>
         <Style BasedOn="{StaticResource {x:Type EFValueEditor}}" TargetType="{x:Type EFValueEditor}">
@@ -48,31 +47,13 @@
     <EFDataBox ViewModel="{Binding}">
         <DockPanel Margin="10">
             <EFDataGridBar DockPanel.Dock="Bottom" />
-            <CustomButton
-                HorizontalAlignment="Left"
-                Command="{x:Static EFDataBox.AddCommand}"
-                Content="添加"
-                DockPanel.Dock="Top" />
-            <CustomButton
-                HorizontalAlignment="Left"
-                Command="{x:Static EFDataBox.LoadCommand}"
-                Content="搜索"
-                DockPanel.Dock="Top" />
-            <CustomButton
-                HorizontalAlignment="Left"
-                Command="{x:Static EFDataBox.RefreshCommand}"
-                Content="刷新"
-                DockPanel.Dock="Top" />
-            <CustomButton
-                HorizontalAlignment="Left"
-                Command="{x:Static EFDataBox.ExportCommand}"
-                Content="导出"
-                DockPanel.Dock="Top" />
-            <CustomButton
-                HorizontalAlignment="Left"
-                Command="{x:Static EFDataBox.ImportCommand}"
-                Content="导入"
-                DockPanel.Dock="Top" />
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                <CustomButton Command="{x:Static EFDataBox.AddCommand}" Content="添加" />
+                <CustomButton Command="{x:Static EFDataBox.LoadCommand}" Content="搜索" />
+                <CustomButton Command="{x:Static EFDataBox.RefreshCommand}" Content="刷新" />
+                <CustomButton Command="{x:Static EFDataBox.ExportCommand}" Content="导出" />
+                <CustomButton Command="{x:Static EFDataBox.ImportCommand}" Content="导入" />
+            </StackPanel>
             <EFDataFilter DockPanel.Dock="Top" />
             <EFDataGrid />
         </DockPanel>

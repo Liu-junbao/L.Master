@@ -112,6 +112,10 @@
       <Project>{53542008-a112-4631-a7c2-3548bfb30d30}</Project>
       <Name>L.Prism.Wpf.Toolkit</Name>
     </ProjectReference>
+    <ProjectReference Include="..\L.Resources\L.Resources.csproj">
+      <Project>{86f315be-b674-4af6-85f7-8e48dacbc900}</Project>
+      <Name>L.Resources</Name>
+    </ProjectReference>
     <ProjectReference Include="..\L.Toolkits\L.Toolkits.csproj">
       <Project>{f09277b3-2ece-42c5-9674-85306d7aee81}</Project>
       <Name>L.Toolkits</Name>

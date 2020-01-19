@@ -5,35 +5,62 @@
     xmlns:local="clr-namespace:Prism">
 
     <DataTemplate x:Key="dt.RegionBrowser.Header">
-        <StackPanel
-            VerticalAlignment="Center"
-            Orientation="Horizontal"
-            Visibility="{Binding (RegionBrowserAssist.Visibility)}">
-            <Path
-                x:Name="ph"
-                Width="10"
-                Height="10"
+        <Border Background="Transparent">
+            <Border.ToolTip>
+                <StackPanel
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Visibility="{Binding (RegionBrowserAssist.Visibility)}">
+                    <Path
+                        Width="10"
+                        Height="10"
+                        VerticalAlignment="Center"
+                        Data="{Binding (RegionBrowserAssist.Data)}"
+                        Fill="{Binding (RegionBrowserAssist.Fill)}"
+                        Stretch="Fill"
+                        Stroke="{Binding (RegionBrowserAssist.Stroke)}"
+                        StrokeThickness="{Binding (RegionBrowserAssist.StrokeThickness)}"
+                        Visibility="{Binding RelativeSource={RelativeSource self}, Path=Data, Converter={cvt:NullToVisibility}}" />
+                    <Image
+                        Width="12"
+                        Height="12"
+                        VerticalAlignment="Center"
+                        Source="{Binding (RegionBrowserAssist.Icon)}"
+                        Stretch="Fill"
+                        Visibility="{Binding RelativeSource={RelativeSource self}, Path=Source, Converter={cvt:NullToVisibility}}" />
+                    <TextBlock
+                        Margin="3"
+                        VerticalAlignment="Center"
+                        Text="{Binding (RegionBrowserAssist.Title)}" />
+                </StackPanel>
+            </Border.ToolTip>
+            <StackPanel
                 VerticalAlignment="Center"
-                Data="{Binding (RegionBrowserAssist.Data)}"
-                Fill="{Binding (RegionBrowserAssist.Fill)}"
-                Stretch="Fill"
-                Stroke="{Binding (RegionBrowserAssist.Stroke)}"
-                StrokeThickness="{Binding (RegionBrowserAssist.StrokeThickness)}"
-                Visibility="{Binding ElementName=ph, Path=Data, Converter={cvt:NullToVisibility}}" />
-            <Image
-                x:Name="ig"
-                Width="12"
-                Height="12"
-                VerticalAlignment="Center"
-                Source="{Binding (RegionBrowserAssist.Icon)}"
-                Stretch="Fill"
-                Visibility="{Binding ElementName=ig, Path=Source, Converter={cvt:NullToVisibility}}" />
-            <TextBlock
-                x:Name="tb"
-                Margin="3"
-                VerticalAlignment="Center"
-                Text="{Binding (RegionBrowserAssist.Title)}" />
-        </StackPanel>
+                Orientation="Horizontal"
+                Visibility="{Binding (RegionBrowserAssist.Visibility)}">
+                <Path
+                    Width="10"
+                    Height="10"
+                    VerticalAlignment="Center"
+                    Data="{Binding (RegionBrowserAssist.Data)}"
+                    Fill="{Binding (RegionBrowserAssist.Fill)}"
+                    Stretch="Fill"
+                    Stroke="{Binding (RegionBrowserAssist.Stroke)}"
+                    StrokeThickness="{Binding (RegionBrowserAssist.StrokeThickness)}"
+                    Visibility="{Binding RelativeSource={RelativeSource self}, Path=Data, Converter={cvt:NullToVisibility}}" />
+                <Image
+                    Width="12"
+                    Height="12"
+                    VerticalAlignment="Center"
+                    Source="{Binding (RegionBrowserAssist.Icon)}"
+                    Stretch="Fill"
+                    Visibility="{Binding RelativeSource={RelativeSource self}, Path=Source, Converter={cvt:NullToVisibility}}" />
+                <TextBlock
+                    Margin="3"
+                    VerticalAlignment="Center"
+                    Text="{Binding (RegionBrowserAssist.Title)}" />
+            </StackPanel>
+        </Border>
     </DataTemplate>
 
     <Style x:Key="st.RegionNavigationItem" TargetType="local:RegionNavigationItem">

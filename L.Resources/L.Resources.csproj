@@ -36,34 +36,34 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Images\Activity_16xLG.png" />
-    <Content Include="Images\brackets_Square_16xMD.png" />
-    <Content Include="Images\ClassIcon.ico" />
-    <Content Include="Images\ClassIcon.png" />
-    <Content Include="Images\Class_489.png" />
-    <Content Include="Images\Cloud_16xLG.png" />
-    <Content Include="Images\Copy_6524.png" />
-    <Content Include="Images\Delegate_8339.png" />
-    <Content Include="Images\docview_xaml_on_16x16.png" />
-    <Content Include="Images\Enum_582.png" />
-    <Content Include="Images\Event_594.png" />
-    <Content Include="Images\Event_594_exp.png" />
-    <Content Include="Images\glasses_16xLG.png" />
-    <Content Include="Images\grid_Data_16xLG.png" />
-    <Content Include="Images\lightningBolt_16xLG.png" />
-    <Content Include="Images\ListView_687.png" />
-    <Content Include="Images\loading.gif" />
-    <Content Include="Images\Method_636.png" />
-    <Content Include="Images\Module_648.png" />
-    <Content Include="Images\RegistryEditor_5838.ico" />
-    <Content Include="Images\SingleMessage_5727.ico" />
-    <Content Include="Images\Structure_507.png" />
-    <Content Include="Images\Table_748.png" />
-    <Content Include="Images\Tag_7213.png" />
-    <Content Include="Images\usbcontroller.png" />
-    <Content Include="Images\UserInterfaceEditor_5845.ico" />
-    <Content Include="Images\VirtualMachine.png" />
-    <Content Include="Images\WindowsForm_817.ico" />
+    <Resource Include="Images\Activity_16xLG.png" />
+    <Resource Include="Images\brackets_Square_16xMD.png" />
+    <Resource Include="Images\ClassIcon.ico" />
+    <Resource Include="Images\ClassIcon.png" />
+    <Resource Include="Images\Class_489.png" />
+    <Resource Include="Images\Cloud_16xLG.png" />
+    <Resource Include="Images\Copy_6524.png" />
+    <Resource Include="Images\Delegate_8339.png" />
+    <Resource Include="Images\docview_xaml_on_16x16.png" />
+    <Resource Include="Images\Enum_582.png" />
+    <Resource Include="Images\Event_594.png" />
+    <Resource Include="Images\Event_594_exp.png" />
+    <Resource Include="Images\glasses_16xLG.png" />
+    <Resource Include="Images\grid_Data_16xLG.png" />
+    <Resource Include="Images\lightningBolt_16xLG.png" />
+    <Resource Include="Images\ListView_687.png" />
+    <Resource Include="Images\loading.gif" />
+    <Resource Include="Images\Method_636.png" />
+    <Resource Include="Images\Module_648.png" />
+    <Resource Include="Images\RegistryEditor_5838.ico" />
+    <Resource Include="Images\SingleMessage_5727.ico" />
+    <Resource Include="Images\Structure_507.png" />
+    <Resource Include="Images\Table_748.png" />
+    <Resource Include="Images\Tag_7213.png" />
+    <Resource Include="Images\usbcontroller.png" />
+    <Resource Include="Images\UserInterfaceEditor_5845.ico" />
+    <Resource Include="Images\VirtualMachine.png" />
+    <Resource Include="Images\WindowsForm_817.ico" />
   </ItemGroup>
 
   <ItemGroup>
