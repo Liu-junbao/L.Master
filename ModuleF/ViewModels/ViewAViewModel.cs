@@ -16,7 +16,6 @@ namespace ModuleF.ViewModels
             get { return _message; }
             set { SetProperty(ref _message, value); }
         }
-
         public ViewAViewModel()
         {
             Message = "View A from your Prism Module";
