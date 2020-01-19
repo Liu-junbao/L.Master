@@ -105,6 +105,10 @@
       <Project>{53542008-a112-4631-a7c2-3548bfb30d30}</Project>
       <Name>L.Prism.Wpf.Toolkit</Name>
     </ProjectReference>
+    <ProjectReference Include="..\L.Wpf.Toolkit\L.Wpf.Toolkit.csproj">
+      <Project>{dbc0c9ad-2fa0-4ea2-813f-999558ccf3b8}</Project>
+      <Name>L.Wpf.Toolkit</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
