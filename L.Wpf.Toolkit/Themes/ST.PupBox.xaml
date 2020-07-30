@@ -37,8 +37,8 @@
                                 </Grid>
                             </Border>
                             <Popup
+                                x:Name="pp"
                                 AllowsTransparency="true"
-                                IsOpen="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
                                 Placement="{TemplateBinding Placement}"
                                 PopupAnimation="{DynamicResource {x:Static SystemParameters.ComboBoxPopupAnimationKey}}">
                                 <Border Background="{TemplateBinding local:PupBoxAssist.PupBackground}" SnapsToDevicePixels="True">
@@ -50,6 +50,7 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="rect" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="pp" Property="IsOpen" Value="True" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

@@ -82,6 +82,7 @@
                         prism:RegionManager.RegionName="MenuRegion"
                         DockPanel.Dock="Left"
                         Header="注册菜单列表" />
+
                     <Border />
                 </DockPanel>
             </CustomWindowDrager>
