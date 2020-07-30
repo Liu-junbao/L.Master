@@ -686,8 +686,16 @@ namespace System.Windows
                 Count = count;
                 PageCount = pageCount;
                 PageIndex = pageIndex;
-                await QueryPageAsync(dbContextType, pageSize, pageIndex);             
-                IsLoading = false;
+
+                if (count > 0)
+                {
+                    var source = await QueryPageAsync(dbContextType, pageSize, pageIndex);
+                    _itemsSource.SetSource(source.ToDictionary(_getKey));
+                }
+                else
+                {
+                    _itemsSource.SetSource(null);
+                }       
             }
             catch (Exception e)
             {
@@ -696,6 +704,7 @@ namespace System.Windows
             finally
             {
                 _isLoading = false;
+                IsLoading = false;
             }
         }
         private void Refresh()
@@ -725,8 +734,8 @@ namespace System.Windows
                     pageSize = 50;
                     PageSize = 50;
                 }
-                await QueryPageAsync(dbContextType, pageSize, pageIndex);
-                IsLoading = false;
+                var source =  await QueryPageAsync(dbContextType, pageSize, pageIndex);
+                _itemsSource.SetSource(source.ToDictionary(_getKey));
             }
             catch (Exception e)
             {
@@ -735,12 +744,14 @@ namespace System.Windows
             finally
             {
                 _isLoading = false;
+                IsLoading = false;
             }
         }
-        private Task<int> QueryCountAsync(Type contextType)
+        private async Task<int> QueryCountAsync(Type contextType)
         {
             var viewModel = ViewModel;
-            return Task.Run(() =>
+
+            var loadingTask = Task.Run(() =>
             {
                 try
                 {
@@ -753,15 +764,27 @@ namespace System.Windows
                 catch (Exception e)
                 {
                     //
-                    viewModel?.OnCatchedException(e, "查询数据异常");
+                    viewModel?.OnCatchedException(e, "查询数据数量异常");
                 }
                 return 0;
             });
+
+            var delayTask = Task.Delay(10000);
+            var compTask = await Task.WhenAny(loadingTask, delayTask);
+            if (compTask == delayTask)
+            {
+                viewModel?.OnCatchedException(new Exception("查询数据数量异常"), "查询数据数量异常");
+                return 0;
+            }
+            else
+            {
+                return loadingTask.Result;
+            }
         }
-        private Task QueryPageAsync(Type contextType, int pageSize, int pageIndex)
+        private async Task<object[]> QueryPageAsync(Type contextType, int pageSize, int pageIndex)
         {
             var viewModel = ViewModel;
-            return Task.Run(() =>
+            var loadingTask = Task.Run(() =>
             {
                 try
                 {
@@ -769,16 +792,28 @@ namespace System.Windows
                     {
                         if (pageSize <= 0) pageSize = 1;
                         if (pageIndex <= 0) pageIndex = 1;
-                        var query = _queryPageExpression?.Compile();
-                        _itemsSource.SetSourceAsync(query?.Invoke(db, pageSize * (pageIndex - 1), pageSize), _getKey);
+                        return _queryPageExpression?.Compile().Invoke(db, pageSize * (pageIndex - 1), pageSize).ToArray();
                     }
                 }
                 catch (Exception e)
                 {
                     //
-                    viewModel?.OnCatchedException(e,"刷新数据异常");
+                    viewModel?.OnCatchedException(e, "刷新数据异常");
                 }
+                return null;
             });
+
+            var delayTask = Task.Delay(10000);
+            var compTask = await Task.WhenAny(loadingTask, delayTask);
+            if (compTask == delayTask)
+            {
+                viewModel?.OnCatchedException(new Exception("刷新数据超时"), "刷新数据超时");
+                return null;
+            }
+            else
+            {
+                return loadingTask.Result;
+            }
         }
 
         #region linq

@@ -192,7 +192,7 @@
                             <ListBox
                                 Grid.Column="5"
                                 Margin="3"
-                                ItemsSource="{TemplateBinding DisplayIndexSource}"
+                                ItemsSource="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=DisplayIndexSource, Mode=OneWay}"
                                 Style="{StaticResource st.ListBox.EFDataGridBar}"
                                 Validation.ErrorTemplate="{x:Null}">
                                 <ListBox.SelectedItem>

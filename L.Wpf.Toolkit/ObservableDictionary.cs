@@ -84,7 +84,7 @@ namespace System
         ///  改变数据(必须UI线程)
         /// </summary>
         /// <param name="sources"></param>
-        public void SetSource(Dictionary<TKey, TValue> sources) => SetSource(sources, (s, v) => v);
+        public void SetSource(Dictionary<TKey, TValue> sources) => SetSource(sources, (s, v) => s);
         /// <summary>
         /// 改变数据(UI线程安全的)
         /// </summary>
