@@ -121,7 +121,7 @@
                                     Command="{x:Static local:BrowserBar.ClosePage}"
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource st.Button.CloseButton}"
-                                    Visibility="Collapsed" />
+                                    Visibility="Hidden" />
                             </Border>
                         </Grid>
                     </Border>

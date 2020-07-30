@@ -7,17 +7,23 @@ using System.Windows.Input;
 
 namespace System
 {
-    public class AsyncCommand:AbstractCommand
+    public class AsyncCommand : AbstractCommand
     {
         private Func<Task> _execute;
         private Func<bool> _canExecute;
         private bool _isBusy;
-        public AsyncCommand(Func<Task> execute)
+        private int _timeoutMilliseconds;
+        private Action _timeout;
+        public AsyncCommand(Func<Task> execute, int timeoutMilliseconds = 3000, Action timeout = null)
         {
+            _timeoutMilliseconds = timeoutMilliseconds;
+            _timeout = timeout;
             _execute = execute;
         }
-        public AsyncCommand(Func<Task> execute, Func<bool> canExecute)
+        public AsyncCommand(Func<Task> execute, Func<bool> canExecute, int timeoutMilliseconds = 3000, Action timeout = null)
         {
+            _timeoutMilliseconds = timeoutMilliseconds;
+            _timeout = timeout;
             _execute = execute;
             _canExecute = canExecute;
         }
@@ -32,7 +38,10 @@ namespace System
                 _isBusy = true;
                 try
                 {
-                    await _execute.Invoke();
+                    var delay = Task.Delay(_timeoutMilliseconds);
+                    var comp = await Task.WhenAny(delay, _execute.Invoke());
+                    if (comp == delay)
+                        _timeout?.Invoke();
                 }
                 finally
                 {
@@ -44,15 +53,21 @@ namespace System
 
     public class AsyncCommand<T> : AbstractCommand
     {
-        private Func<T,Task> _execute;
-        private Func<T,bool> _canExecute;
+        private Func<T, Task> _execute;
+        private Func<T, bool> _canExecute;
         private bool _isBusy;
-        public AsyncCommand(Func<T,Task> execute)
+        private int _timeoutMilliseconds;
+        private Action<T> _timeout;
+        public AsyncCommand(Func<T, Task> execute, int timeoutMilliseconds = 3000, Action<T> timeout = null)
         {
+            _timeoutMilliseconds = timeoutMilliseconds;
+            _timeout = timeout;
             _execute = execute;
         }
-        public AsyncCommand(Func<T,Task> execute, Func<T,bool> canExecute)
+        public AsyncCommand(Func<T, Task> execute, Func<T, bool> canExecute, int timeoutMilliseconds = 3000, Action<T> timeout = null)
         {
+            _timeoutMilliseconds = timeoutMilliseconds;
+            _timeout = timeout;
             _execute = execute;
             _canExecute = canExecute;
         }
@@ -67,7 +82,11 @@ namespace System
                 _isBusy = true;
                 try
                 {
-                    await _execute.Invoke((T)parameter);
+                    var model = (T)parameter;
+                    var delay = Task.Delay(_timeoutMilliseconds);
+                    var comp = await Task.WhenAny(delay, _execute.Invoke(model));
+                    if (comp == delay)
+                        _timeout?.Invoke(model);
                 }
                 finally
                 {
