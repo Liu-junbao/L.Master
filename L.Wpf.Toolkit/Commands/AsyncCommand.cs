@@ -38,6 +38,7 @@ namespace System
                 _isBusy = true;
                 try
                 {
+                    RaiseCanExecuteChanged();
                     var delay = Task.Delay(_timeoutMilliseconds);
                     var comp = await Task.WhenAny(delay, _execute.Invoke());
                     if (comp == delay)
@@ -47,6 +48,7 @@ namespace System
                 {
                     _isBusy = false;
                 }
+                RaiseCanExecuteChanged();
             }
         }
     }
@@ -82,6 +84,7 @@ namespace System
                 _isBusy = true;
                 try
                 {
+                    RaiseCanExecuteChanged();
                     var model = (T)parameter;
                     var delay = Task.Delay(_timeoutMilliseconds);
                     var comp = await Task.WhenAny(delay, _execute.Invoke(model));
@@ -92,6 +95,7 @@ namespace System
                 {
                     _isBusy = false;
                 }
+                RaiseCanExecuteChanged();
             }
         }
     }

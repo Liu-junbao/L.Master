@@ -13,6 +13,7 @@ namespace System
         Type DbContextType { get; }
         Type EntityType { get; }
         Linq.Expressions.Expression QueryExpression { get; }
+        Action RefreshAction { set; }
         void Initialize(string enitityGenericName);
         bool CanEditItem(object item);
         bool CanDeleteItem(object item);
@@ -32,6 +33,7 @@ namespace System
         private Type _entityType;
         private string _entityGenericName;
         private readonly System.Threading.SynchronizationContext _context;
+        private Action _refreshAction;
         public EFViewModel()
         {
             _dbContextType = typeof(TDbContext);
@@ -39,13 +41,17 @@ namespace System
             _context = Threading.SynchronizationContext.Current ?? throw new Exception("ViewModel只能在UI单线程中初始化!");
             OwnerWindow = Application.Current.MainWindow;
         }
-        public Window OwnerWindow { get; protected set; }
+        public Window OwnerWindow { get; protected set; }  
         public string EntityGenericName
         {
             get { return _entityGenericName; }
             private set { SetProperty(ref _entityGenericName, value, OnEntityGenericNameChanged); }
         }
         public virtual Expression<Func<IQueryable<TModel>, IQueryable<TModel>>> QueryExpression => i => i;
+        protected void Refresh()
+        {
+            _refreshAction?.Invoke();
+        }
         protected virtual bool CanEditItem(TModel item) => true;
         protected virtual bool CanDeleteItem(TModel item) => MessageBox.Show(OwnerWindow, "确定删除该项?", "提示", MessageBoxButton.OKCancel) == MessageBoxResult.OK;
         protected virtual void OnDeletedItem(TModel item) { }
@@ -92,6 +98,7 @@ namespace System
         #region IEFViewModel
         Type IEFViewModel.DbContextType => _dbContextType;
         Type IEFViewModel.EntityType => _entityType;
+        Action IEFViewModel.RefreshAction { set => _refreshAction = value; }
         Linq.Expressions.Expression IEFViewModel.QueryExpression => this.QueryExpression;
         void IEFViewModel.Initialize(string enitityGenericName) => EntityGenericName = enitityGenericName;
         bool IEFViewModel.CanEditItem(object item) => CanEditItem((TModel)item);

@@ -223,6 +223,7 @@ namespace System.Windows
                 }
                 else
                 {
+                    viewModel.RefreshAction = box.Refresh;
                     box.ActualDbContextType = viewModel.DbContextType;
                     box.ActualEntityType = viewModel.EntityType;
                 }
@@ -668,7 +669,6 @@ namespace System.Windows
                 if (_isLoading) return;
                 _isLoading = true;
             }
-
             try
             {
                 IsLoading = true;
@@ -750,8 +750,36 @@ namespace System.Windows
         private async Task<int> QueryCountAsync(Type contextType)
         {
             var viewModel = ViewModel;
-
-            var loadingTask = Task.Run(() =>
+            var loadingTask = QueryCount(contextType);
+            var delayTask = Task.Delay(3000);
+            if (await Task.WhenAny(loadingTask, Task.Delay(3000)) == loadingTask)
+            {
+                return loadingTask.Result;
+            }
+            else
+            {
+                viewModel?.OnCatchedException(new Exception("查询数据数量超时"), "查询数据数量超时");
+                return 0;
+            }
+        }
+        private async Task<object[]> QueryPageAsync(Type contextType, int pageSize, int pageIndex)
+        {
+            var viewModel = ViewModel;
+            var loadingTask = QueryArray(contextType, pageSize, pageIndex);
+            if (await Task.WhenAny(loadingTask, Task.Delay(10000)) == loadingTask)
+            {
+                return loadingTask.Result;
+            }
+            else
+            {
+                viewModel?.OnCatchedException(new Exception("刷新数据超时"), "刷新数据超时");
+                return null;
+            }
+        }
+        private async Task<int> QueryCount(Type contextType)
+        {
+            var viewModel = ViewModel;
+            var count = await Task.Run(() =>
             {
                 try
                 {
@@ -769,22 +797,12 @@ namespace System.Windows
                 return 0;
             });
 
-            var delayTask = Task.Delay(10000);
-            var compTask = await Task.WhenAny(loadingTask, delayTask);
-            if (compTask == delayTask)
-            {
-                viewModel?.OnCatchedException(new Exception("查询数据数量异常"), "查询数据数量异常");
-                return 0;
-            }
-            else
-            {
-                return loadingTask.Result;
-            }
+            return count;
         }
-        private async Task<object[]> QueryPageAsync(Type contextType, int pageSize, int pageIndex)
+        private async Task<object[]> QueryArray(Type contextType, int pageSize, int pageIndex)
         {
             var viewModel = ViewModel;
-            var loadingTask = Task.Run(() =>
+            var data = await Task.Run(() =>
             {
                 try
                 {
@@ -802,19 +820,9 @@ namespace System.Windows
                 }
                 return null;
             });
-
-            var delayTask = Task.Delay(10000);
-            var compTask = await Task.WhenAny(loadingTask, delayTask);
-            if (compTask == delayTask)
-            {
-                viewModel?.OnCatchedException(new Exception("刷新数据超时"), "刷新数据超时");
-                return null;
-            }
-            else
-            {
-                return loadingTask.Result;
-            }
+            return data;
         }
+
 
         #region linq
         public static IEnumerable<TEntity> Query<TEntity, TKey>(DbContext db, Expression<Func<IQueryable<TEntity>, IQueryable<TEntity>>> condition, Expression<Func<TEntity, TKey>> keySelector) where TEntity : class
